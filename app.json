@@ -1,0 +1,23 @@
+{
+  "pages": [
+    "pages/home/home",
+    "pages/record/record",
+    "pages/records-list/records-list",
+    "pages/profile-detail/profile-detail",
+    "pages/profile-edit/profile-edit",
+    "pages/profile-settings/profile-settings",
+    "pages/profile-members/profile-members",
+    "pages/medication-edit/medication-edit",
+    "pages/invite-create/invite-create",
+    "pages/invite-accept/invite-accept",
+    "pages/report/report",
+    "pages/user-settings/user-settings"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTitleText": "来自儿女的关心",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f5f5f5"
+  },
+  "sitemapLocation": "sitemap.json"
+}
