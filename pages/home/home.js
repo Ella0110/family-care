@@ -56,13 +56,20 @@ function getLoginStatus() {
 Page({
   data: {
     profiles: [],
-    firstProfile: null,
+    activeProfile: null,
+    profileCards: [],
     referenceLines: getReferenceLines(),
     hasProfiles: false,
+    viewState: 'loading',
+    isEmptyState: false,
+    isMultiProfileList: false,
+    isSingleProfileView: false,
+    canReturnToProfileList: false,
     hasLatestRecord: false,
     latestRecord: null,
     latestRecordDisplay: null,
     isLoadingLatestRecord: false,
+    isLoadingProfileCards: false,
     latestRecordError: '',
     isLoginReady: false,
     isLoginFailed: false,
@@ -72,14 +79,14 @@ Page({
   onLoad() {
     this.unsubscribeStore = store.subscribe((nextState) => {
       this.renderState(nextState);
-      this.loadLatestRecord();
+      this.loadRecordsForCurrentView();
     });
     this.renderState();
   },
 
   onShow() {
     this.renderState();
-    this.loadLatestRecord();
+    this.loadRecordsForCurrentView();
   },
 
   onUnload() {
@@ -91,18 +98,100 @@ Page({
 
   renderState(nextState) {
     const state = nextState || store.getState();
+    const view = this.resolveHomeView(state);
     const profiles = Array.isArray(state.profiles) ? state.profiles : [];
-    const firstProfile = profiles[0] || null;
     const loginStatus = getLoginStatus();
 
     this.setData({
       profiles,
-      firstProfile,
-      referenceLines: getReferenceLines(firstProfile && firstProfile.settings && firstProfile.settings.bp && firstProfile.settings.bp.referenceLines),
+      activeProfile: view.activeProfile,
+      profileCards: view.profileCards,
+      referenceLines: getReferenceLines(view.activeProfile && view.activeProfile.settings && view.activeProfile.settings.bp && view.activeProfile.settings.bp.referenceLines),
       hasProfiles: profiles.length > 0,
+      viewState: view.viewState,
+      isEmptyState: view.viewState === 'empty',
+      isMultiProfileList: view.viewState === 'multi',
+      isSingleProfileView: view.viewState === 'single',
+      canReturnToProfileList: view.canReturnToProfileList,
       isLoginReady: loginStatus.isLoginReady,
       isLoginFailed: loginStatus.isLoginFailed,
     });
+  },
+
+  resolveHomeView(state) {
+    const profiles = Array.isArray(state.profiles) ? state.profiles : [];
+    const loginStatus = getLoginStatus();
+
+    if (!loginStatus.isLoginReady) {
+      return {
+        viewState: 'loading',
+        activeProfile: null,
+        profileCards: [],
+        canReturnToProfileList: false,
+      };
+    }
+
+    if (loginStatus.isLoginFailed) {
+      return {
+        viewState: 'failed',
+        activeProfile: null,
+        profileCards: [],
+        canReturnToProfileList: false,
+      };
+    }
+
+    if (profiles.length === 0) {
+      return {
+        viewState: 'empty',
+        activeProfile: null,
+        profileCards: [],
+        canReturnToProfileList: false,
+      };
+    }
+
+    if (profiles.length === 1) {
+      return {
+        viewState: 'single',
+        activeProfile: profiles[0],
+        profileCards: [],
+        canReturnToProfileList: false,
+      };
+    }
+
+    const activeProfile = state.currentProfileId
+      ? profiles.find((profile) => profile && profile._id === state.currentProfileId) || null
+      : null;
+
+    if (!activeProfile) {
+      return {
+        viewState: 'multi',
+        activeProfile: null,
+        profileCards: profiles.map((profile) => this.createProfileCard(profile)),
+        canReturnToProfileList: false,
+      };
+    }
+
+    return {
+      viewState: 'single',
+      activeProfile,
+      profileCards: [],
+      canReturnToProfileList: true,
+    };
+  },
+
+  createProfileCard(profile, latestRecordResult) {
+    const failed = latestRecordResult && latestRecordResult.failed;
+    const latestRecord = latestRecordResult && latestRecordResult.record;
+
+    return {
+      profile,
+      relationText: profile.relation || '关系未填写',
+      isLoading: !latestRecordResult,
+      latestRecord,
+      hasLatestRecord: Boolean(latestRecord),
+      latestRecordDisplay: latestRecord ? this.formatLatestRecord(latestRecord, profile) : null,
+      latestRecordError: failed ? '加载失败' : '',
+    };
   },
 
   formatLatestRecord(record, profile) {
@@ -122,9 +211,9 @@ Page({
   },
 
   async loadLatestRecord() {
-    const profile = this.data.firstProfile;
+    const profile = this.data.activeProfile;
 
-    if (!profile || !profile._id || this.data.isLoginFailed) {
+    if (!profile || !profile._id || this.data.isLoginFailed || this.data.viewState !== 'single') {
       this.latestRecordRequestId = (this.latestRecordRequestId || 0) + 1;
       this.setData({
         hasLatestRecord: false,
@@ -172,6 +261,64 @@ Page({
     }
   },
 
+  async loadLatestRecordsForProfiles() {
+    const profiles = this.data.profiles || [];
+
+    if (this.data.viewState !== 'multi' || profiles.length < 2) {
+      this.multiLatestRecordRequestId = (this.multiLatestRecordRequestId || 0) + 1;
+      this.setData({
+        isLoadingProfileCards: false,
+      });
+      return;
+    }
+
+    const requestId = (this.multiLatestRecordRequestId || 0) + 1;
+    this.multiLatestRecordRequestId = requestId;
+    this.setData({
+      isLoadingProfileCards: true,
+      profileCards: profiles.map((profile) => this.createProfileCard(profile)),
+    });
+
+    const results = await Promise.all(
+      profiles.map((profile) =>
+        recordService
+          .getRecords(profile._id, { limit: 1 })
+          .then((result) => ({
+            profileId: profile._id,
+            record: result.records[0] || null,
+          }))
+          .catch(() => ({
+            profileId: profile._id,
+            failed: true,
+            record: null,
+          })),
+      ),
+    );
+
+    if (this.multiLatestRecordRequestId !== requestId) {
+      return;
+    }
+
+    const resultMap = results.reduce((map, item) => {
+      map[item.profileId] = item;
+      return map;
+    }, {});
+
+    this.setData({
+      isLoadingProfileCards: false,
+      profileCards: profiles.map((profile) => this.createProfileCard(profile, resultMap[profile._id])),
+    });
+  },
+
+  loadRecordsForCurrentView() {
+    if (this.data.viewState === 'multi') {
+      this.loadLatestRecordsForProfiles();
+      return;
+    }
+
+    this.loadLatestRecord();
+  },
+
   handleCreateProfile() {
     wx.navigateTo({
       url: '/pages/profile-edit/profile-edit?mode=create',
@@ -179,7 +326,7 @@ Page({
   },
 
   handleAddRecord() {
-    const profile = this.data.firstProfile;
+    const profile = this.data.activeProfile;
 
     if (!profile || !profile._id) {
       wx.showToast({
@@ -195,7 +342,7 @@ Page({
   },
 
   handleViewRecords() {
-    const profile = this.data.firstProfile;
+    const profile = this.data.activeProfile;
 
     if (!profile || !profile._id) {
       wx.showToast({
@@ -208,6 +355,15 @@ Page({
     wx.navigateTo({
       url: `/pages/records-list/records-list?profileId=${profile._id}`,
     });
+  },
+
+  handleProfileCardTap(event) {
+    const profileId = event.currentTarget.dataset.profileId;
+    store.setCurrentProfileId(profileId);
+  },
+
+  handleReturnToProfileList() {
+    store.setCurrentProfileId(null);
   },
 
   async handleRetryLogin() {

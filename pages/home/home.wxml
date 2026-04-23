@@ -18,18 +18,68 @@
   </view>
 
   <empty-state
-    wx:elif="{{!hasProfiles}}"
+    wx:elif="{{isEmptyState}}"
     title="记录家人的血压，从第一条开始"
     subtitle="先建一个档案吧"
     buttonText="为家人或自己建档案"
     bind:buttontap="handleCreateProfile"
   />
 
+  <view wx:elif="{{isMultiProfileList}}" class="home-profile-list">
+    <view class="home-profile-list__header">
+      <view>
+        <view class="home-profile-list__title">选择要查看的档案</view>
+        <view class="home-profile-list__subtitle">一眼查看每个档案的最近血压</view>
+      </view>
+      <button class="home-profile-list__add" bindtap="handleCreateProfile">+</button>
+    </view>
+
+    <view class="home-profile-list__cards">
+      <view
+        wx:for="{{profileCards}}"
+        wx:key="profile._id"
+        class="profile-card card"
+        data-profile-id="{{item.profile._id}}"
+        bindtap="handleProfileCardTap"
+      >
+        <view class="profile-card__top">
+          <view>
+            <view class="profile-card__name">{{item.profile.name}}</view>
+            <view class="profile-card__relation">{{item.relationText}}</view>
+          </view>
+          <view class="profile-card__arrow">›</view>
+        </view>
+
+        <view wx:if="{{item.isLoading}}" class="profile-card__empty">正在读取最近血压...</view>
+        <view wx:elif="{{item.latestRecordError}}" class="profile-card__empty">{{item.latestRecordError}}</view>
+        <view wx:elif="{{item.hasLatestRecord}}" class="profile-card__record">
+          <view class="profile-card__bp {{item.latestRecordDisplay.statusClassName}}">
+            {{item.latestRecordDisplay.systolic}} <text>/</text> {{item.latestRecordDisplay.diastolic}}
+          </view>
+          <bp-status-tag
+            systolic="{{item.latestRecordDisplay.systolic}}"
+            diastolic="{{item.latestRecordDisplay.diastolic}}"
+            reference-lines="{{item.profile.settings.bp.referenceLines}}"
+          />
+          <view class="profile-card__time">{{item.latestRecordDisplay.measuredAtText}}</view>
+        </view>
+        <view wx:else class="profile-card__empty">还没有记录</view>
+      </view>
+    </view>
+  </view>
+
   <view wx:else class="home-profile">
     <view class="home-profile__header">
       <view>
+        <view
+          wx:if="{{canReturnToProfileList}}"
+          class="home-profile__back"
+          bindtap="handleReturnToProfileList"
+        >
+          ← 返回档案列表
+        </view>
         <view class="home-profile__eyebrow">当前档案</view>
-        <view class="home-profile__title">已建档：{{firstProfile.name}}</view>
+        <view class="home-profile__title">已建档：{{activeProfile.name}}</view>
       </view>
       <button class="home-profile__add" bindtap="handleCreateProfile">添加档案</button>
     </view>

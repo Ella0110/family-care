@@ -82,6 +82,24 @@ const store = {
   },
 
   /**
+   * Selects the current profile. Unknown profile ids fall back to null so the
+   * multi-profile list remains the safe default.
+   *
+   * @param {string|null} profileId
+   * @returns {StoreState}
+   */
+  setCurrentProfileId(profileId) {
+    if (profileId === null || profileId === undefined || profileId === '') {
+      return this.setState({ currentProfileId: null });
+    }
+
+    const profileIds = state.profiles.map((profile) => profile && profile._id).filter(Boolean);
+    return this.setState({
+      currentProfileId: profileIds.includes(profileId) ? profileId : null,
+    });
+  },
+
+  /**
    * Subscribes to store changes.
    *
    * @param {(nextState: StoreState) => void} listener

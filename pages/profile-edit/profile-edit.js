@@ -174,15 +174,17 @@ Page({
     try {
       const result = await profileService.createProfile(this.buildPayload());
       const state = store.getState();
+      const nextCurrentProfileId =
+        state.currentProfileId || (state.profiles.length === 1 ? state.profiles[0]._id : null);
 
       store.setState({
         profiles: state.profiles.concat(result.profile),
         relationships: state.relationships.concat(result.relationship),
-        currentProfileId: state.currentProfileId || null,
+        currentProfileId: nextCurrentProfileId,
       });
 
       wx.showToast({
-        title: '创建成功',
+        title: `已为${result.profile.name}建档`,
         icon: 'success',
       });
       goHome();

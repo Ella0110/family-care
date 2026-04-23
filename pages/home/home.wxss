@@ -7,6 +7,115 @@
   margin-top: 8rpx;
 }
 
+.home-profile-list {
+  margin-top: 8rpx;
+}
+
+.home-profile-list__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24rpx;
+  margin-bottom: 28rpx;
+}
+
+.home-profile-list__title {
+  color: #111827;
+  font-size: 46rpx;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.home-profile-list__subtitle {
+  margin-top: 10rpx;
+  color: #4b5563;
+  font-size: 30rpx;
+}
+
+.home-profile-list__add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 76rpx;
+  height: 76rpx;
+  margin: 0;
+  padding: 0;
+  border-radius: 38rpx;
+  background: #1d4ed8;
+  color: #ffffff;
+  font-size: 46rpx;
+  font-weight: 700;
+  line-height: 76rpx;
+}
+
+.home-profile-list__add::after {
+  border: 0;
+}
+
+.profile-card + .profile-card {
+  margin-top: 24rpx;
+}
+
+.profile-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24rpx;
+}
+
+.profile-card__name {
+  color: #111827;
+  font-size: 40rpx;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.profile-card__relation {
+  margin-top: 8rpx;
+  color: #4b5563;
+  font-size: 28rpx;
+}
+
+.profile-card__arrow {
+  color: #9ca3af;
+  font-size: 48rpx;
+  line-height: 1;
+}
+
+.profile-card__record {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 18rpx;
+  margin-top: 24rpx;
+}
+
+.profile-card__bp {
+  color: #1f2937;
+  font-size: 44rpx;
+  font-weight: 800;
+}
+
+.profile-card__bp.is-high {
+  color: #b42318;
+}
+
+.profile-card__bp.is-low {
+  color: #c2410c;
+}
+
+.profile-card__time {
+  grid-column: 1 / -1;
+  color: #6b7280;
+  font-size: 28rpx;
+}
+
+.profile-card__empty {
+  margin-top: 24rpx;
+  color: #6b7280;
+  font-size: 30rpx;
+}
+
 .home-loading__title,
 .home-failed__title,
 .home-profile__title {
@@ -32,6 +141,19 @@
 
 .home-profile__eyebrow {
   margin-bottom: 12rpx;
+  color: #1d4ed8;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.home-profile__back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 56rpx;
+  margin-bottom: 18rpx;
+  padding: 0 20rpx;
+  border-radius: 999rpx;
+  background: #dbeafe;
   color: #1d4ed8;
   font-size: 28rpx;
   font-weight: 700;
