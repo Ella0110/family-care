@@ -3,6 +3,7 @@ const authModule = require('./_shared/auth');
 const { assertNonEmptyString } = require('./_shared/validation');
 const { createError } = require('./_shared/errors');
 const { canModifyRecord } = require('./_shared/record-permissions');
+const { getDocumentOrNull } = require('./_shared/documents');
 
 /**
  * @param {{ db?: any, auth?: any, now?: () => Date }} [deps]
@@ -16,8 +17,9 @@ function createDeleteRecordHandler(deps = {}) {
   return async function deleteRecordHandler(event, context) {
     const user = await auth.requireCurrentUser(event, context);
     const recordId = assertNonEmptyString(event.recordId, 'recordId');
-    const recordRes = await database.collection(COLLECTIONS.RECORDS).doc(recordId).get();
-    const record = recordRes && recordRes.data ? recordRes.data : null;
+    const record = await getDocumentOrNull(
+      database.collection(COLLECTIONS.RECORDS).doc(recordId),
+    );
 
     if (!record) {
       throw createError('RECORD_NOT_FOUND', 'Record does not exist');

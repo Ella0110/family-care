@@ -48,7 +48,6 @@ async function main() {
   const viewerDefaults = getRoleDefaults('viewer');
   await runtime.db.collection(COLLECTIONS.RELATIONSHIPS).doc('rel_viewer').set({
     data: {
-      _id: 'rel_viewer',
       userId: 'viewer_user',
       profileId: createdProfile.profile._id,
       role: viewerDefaults.role,

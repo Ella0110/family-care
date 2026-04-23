@@ -87,13 +87,25 @@ class FakeDocRef {
 
   async get() {
     const collection = this.store[this.collectionName] || {};
+    if (!collection[this.id]) {
+      const error = new Error(`document.get:fail document with _id ${this.id} does not exist`);
+      error.code = 'DOCUMENT_NOT_FOUND';
+      throw error;
+    }
+
     return {
-      data: collection[this.id] ? cloneValue(collection[this.id]) : null,
+      data: cloneValue(collection[this.id]),
     };
   }
 
   async set({ data }) {
     const collection = (this.store[this.collectionName] = this.store[this.collectionName] || {});
+    if (data && Object.prototype.hasOwnProperty.call(data, '_id')) {
+      const error = new Error('document.set:fail -501007 invalid parameters. 不能更新_id的值');
+      error.code = 'INVALID_DOCUMENT_SET';
+      throw error;
+    }
+
     collection[this.id] = cloneValue(Object.assign({}, data, { _id: this.id }));
     return { updated: 1 };
   }

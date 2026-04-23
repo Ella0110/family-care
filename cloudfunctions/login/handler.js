@@ -40,7 +40,18 @@ function createLoginHandler(deps = {}) {
         settings: getDefaultUserSettings(),
       };
 
-      await database.collection(COLLECTIONS.USERS).doc(openId).set({ data: user });
+      await database.collection(COLLECTIONS.USERS).doc(openId).set({
+        data: {
+          openid: user.openid,
+          unionid: user.unionid,
+          nickname: user.nickname,
+          avatarUrl: user.avatarUrl,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+          lastActiveAt: user.lastActiveAt,
+          settings: user.settings,
+        },
+      });
     } else {
       user = Object.assign({}, user, {
         unionid: user.unionid || unionId || null,

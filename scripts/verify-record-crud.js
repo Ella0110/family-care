@@ -43,6 +43,19 @@ async function main() {
   await login({}, {});
   const createdProfile = await createProfile({ name: '妈妈' }, {});
 
+  const missingUpdate = await updateRecord({
+    recordId: 'missing_record_id',
+    patch: {
+      note: 'should fail',
+    },
+  }, {});
+  assert.strictEqual(missingUpdate.success, false);
+  assert.strictEqual(missingUpdate.code, 'RECORD_NOT_FOUND');
+
+  const missingDelete = await deleteRecord({ recordId: 'missing_record_id' }, {});
+  assert.strictEqual(missingDelete.success, false);
+  assert.strictEqual(missingDelete.code, 'RECORD_NOT_FOUND');
+
   const saved = await saveRecord({
     profileId: createdProfile.profile._id,
     measuredAt,

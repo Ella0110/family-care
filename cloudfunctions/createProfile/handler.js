@@ -52,8 +52,34 @@ function createCreateProfileHandler(deps = {}) {
 
     const transaction = await database.startTransaction();
     try {
-      await transaction.collection(COLLECTIONS.PROFILES).doc(profileId).set({ data: profile });
-      await transaction.collection(COLLECTIONS.RELATIONSHIPS).doc(relationshipId).set({ data: relationship });
+      await transaction.collection(COLLECTIONS.PROFILES).doc(profileId).set({
+        data: {
+          name: profile.name,
+          relation: profile.relation,
+          gender: profile.gender,
+          birthDate: profile.birthDate,
+          note: profile.note,
+          emergencyContact: profile.emergencyContact,
+          createdBy: profile.createdBy,
+          createdAt: profile.createdAt,
+          updatedAt: profile.updatedAt,
+          deletedAt: profile.deletedAt,
+          settings: profile.settings,
+        },
+      });
+      await transaction.collection(COLLECTIONS.RELATIONSHIPS).doc(relationshipId).set({
+        data: {
+          userId: relationship.userId,
+          profileId: relationship.profileId,
+          role: relationship.role,
+          permissions: relationship.permissions,
+          subscribeAlerts: relationship.subscribeAlerts,
+          displayName: relationship.displayName,
+          createdAt: relationship.createdAt,
+          acceptedAt: relationship.acceptedAt,
+          invitedBy: relationship.invitedBy,
+        },
+      });
       await transaction.commit();
     } catch (error) {
       await transaction.rollback();

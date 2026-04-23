@@ -5,6 +5,7 @@ const { parseClientDateInput } = require('./_shared/time');
 const { createError } = require('./_shared/errors');
 const { normalizeRecordPatch } = require('./_shared/record-utils');
 const { canModifyRecord } = require('./_shared/record-permissions');
+const { getDocumentOrNull } = require('./_shared/documents');
 
 /**
  * @param {{ db?: any, auth?: any, now?: () => Date }} [deps]
@@ -18,8 +19,9 @@ function createUpdateRecordHandler(deps = {}) {
   return async function updateRecordHandler(event, context) {
     const user = await auth.requireCurrentUser(event, context);
     const recordId = assertNonEmptyString(event.recordId, 'recordId');
-    const recordRes = await database.collection(COLLECTIONS.RECORDS).doc(recordId).get();
-    const record = recordRes && recordRes.data ? recordRes.data : null;
+    const record = await getDocumentOrNull(
+      database.collection(COLLECTIONS.RECORDS).doc(recordId),
+    );
 
     if (!record || record.deletedAt) {
       throw createError('RECORD_NOT_FOUND', 'Record does not exist');

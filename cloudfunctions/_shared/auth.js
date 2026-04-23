@@ -1,5 +1,6 @@
 const { cloud, db, COLLECTIONS } = require('./db');
 const { createError, invalidArgument } = require('./errors');
+const { getDocumentOrNull } = require('./documents');
 
 /**
  * @param {{ db: any, cloud: any }} [deps]
@@ -21,8 +22,9 @@ function createAuthService(deps = {}) {
       throw invalidArgument('profileId must be a non-empty string');
     }
 
-    const res = await database.collection(COLLECTIONS.PROFILES).doc(profileId).get();
-    const profile = res && res.data ? res.data : null;
+    const profile = await getDocumentOrNull(
+      database.collection(COLLECTIONS.PROFILES).doc(profileId),
+    );
 
     if (!profile) {
       return null;
@@ -59,8 +61,7 @@ function createAuthService(deps = {}) {
       throw createError('USER_NOT_FOUND', 'Current user is not available in cloud context');
     }
 
-    const res = await database.collection(COLLECTIONS.USERS).doc(openId).get();
-    return res && res.data ? res.data : null;
+    return getDocumentOrNull(database.collection(COLLECTIONS.USERS).doc(openId));
   }
 
   /**
