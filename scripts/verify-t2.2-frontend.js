@@ -51,6 +51,8 @@ assertContains('pages/record/record.js', /saveRecord/, 'record page should call 
 assertContains('pages/record/record.wxml', /bp-input/, 'record page should render bp-input');
 assertContains('pages/record/record.wxml', /心率/, 'record page should render heart rate field');
 assertContains('pages/record/record.wxml', /测量时间/, 'record page should render measuredAt field');
+assertContains('pages/record/record.wxml', /start="\{\{minMeasuredDate\}\}"/, 'record date picker should enforce a minimum date');
+assertContains('pages/record/record.wxml', /end="\{\{maxMeasuredDate\}\}"/, 'record date picker should enforce a maximum date');
 
 [
   'pages/home/home.js',
@@ -145,5 +147,13 @@ const futurePage = createPage({
   }),
 });
 assert.match(recordPageConfig.validateForm.call(futurePage), /未来/);
+
+const tooOldPage = createPage({
+  form: Object.assign({}, createPage().data.form, {
+    measuredDate: '1745-01-01',
+    measuredTime: '17:45',
+  }),
+});
+assert.match(recordPageConfig.validateForm.call(tooOldPage), /2000/);
 
 console.log('[verify-t2.2-frontend] pass');

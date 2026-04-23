@@ -43,7 +43,13 @@
     <view class="form-item">
       <view class="form-label">测量时间 <text class="form-required">*</text></view>
       <view class="time-row">
-        <picker mode="date" value="{{form.measuredDate}}" bindchange="onMeasuredDateChange">
+        <picker
+          mode="date"
+          value="{{form.measuredDate}}"
+          start="{{minMeasuredDate}}"
+          end="{{maxMeasuredDate}}"
+          bindchange="onMeasuredDateChange"
+        >
           <view class="time-picker">{{form.measuredDate}}</view>
         </picker>
         <picker mode="time" value="{{form.measuredTime}}" bindchange="onMeasuredTimeChange">

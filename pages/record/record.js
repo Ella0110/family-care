@@ -2,15 +2,22 @@ const { store } = require('../../store/index');
 const recordService = require('../../services/record-service');
 const { getReferenceLines } = require('../../utils/bp-status');
 
+const MIN_MEASURED_AT_MS = 946684800000;
+const MAX_FUTURE_SKEW_MS = 5 * 60 * 1000;
+
 function pad(value) {
   return String(value).padStart(2, '0');
 }
 
 function getNowParts() {
   const now = new Date();
+  const maxDate = new Date(Date.now() + MAX_FUTURE_SKEW_MS);
+
   return {
     date: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
     time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
+    minDate: '2000-01-01',
+    maxDate: `${maxDate.getFullYear()}-${pad(maxDate.getMonth() + 1)}-${pad(maxDate.getDate())}`,
   };
 }
 
@@ -39,6 +46,11 @@ function parseMeasuredAt(dateValue, timeValue) {
 
 function getSaveErrorMessage(error) {
   if (error && error.code === 'INVALID_ARGUMENT') {
+    const message = error.message || '';
+    if (/measuredAt|timestamp|date|时间/i.test(message)) {
+      return '测量时间有误，请选择 2000 年以后的时间';
+    }
+
     return '血压信息填写有误，请检查后重试';
   }
 
@@ -70,6 +82,8 @@ Page({
     referenceLines: getReferenceLines(),
     isSaving: false,
     errorText: '',
+    minMeasuredDate: '2000-01-01',
+    maxMeasuredDate: '',
     form: {
       systolic: null,
       diastolic: null,
@@ -90,6 +104,8 @@ Page({
       profileId,
       profileName: profile ? profile.name : '当前档案',
       referenceLines: getReferenceLines(profile && profile.settings && profile.settings.bp && profile.settings.bp.referenceLines),
+      minMeasuredDate: nowParts.minDate,
+      maxMeasuredDate: nowParts.maxDate,
       'form.measuredDate': nowParts.date,
       'form.measuredTime': nowParts.time,
     });
@@ -141,7 +157,7 @@ Page({
     const diastolic = parseInteger(form.diastolic);
     const heartRate = parseInteger(form.heartRate);
     const measuredAt = parseMeasuredAt(form.measuredDate, form.measuredTime);
-    const maxMeasuredAt = Date.now() + 5 * 60 * 1000;
+    const maxMeasuredAt = Date.now() + MAX_FUTURE_SKEW_MS;
 
     if (!this.data.profileId) {
       return '缺少档案信息，请返回首页重试';
@@ -165,6 +181,10 @@ Page({
 
     if (Number.isNaN(measuredAt.getTime())) {
       return '请选择有效的测量时间';
+    }
+
+    if (measuredAt.getTime() < MIN_MEASURED_AT_MS) {
+      return '测量时间不能早于 2000 年';
     }
 
     if (measuredAt.getTime() > maxMeasuredAt) {
