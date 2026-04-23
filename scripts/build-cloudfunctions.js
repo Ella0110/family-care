@@ -1,17 +1,13 @@
 const fs = require('fs');
 const path = require('path');
-
-const FUNCTION_NAMES = [
-  'login',
-  'createProfile',
-  'updateProfile',
-  'deleteProfile',
-  'updateProfileSettings',
-  'saveRecord',
-  'getRecords',
-  'updateRecord',
-  'deleteRecord',
-];
+const {
+  getCloudfunctionsDir,
+  getCloudfunctionDirectories,
+  readJsonIfExists,
+  buildFunctionPackageManifest,
+  writeJsonFile,
+} = require('./_helpers/cloudfunction-packaging');
+const { verifyCloudfunctionManifests } = require('./verify-cloudfunction-manifests');
 
 function copyDirectory(sourceDir, targetDir) {
   fs.mkdirSync(targetDir, { recursive: true });
@@ -31,15 +27,22 @@ function copyDirectory(sourceDir, targetDir) {
 
 function main() {
   const repoRoot = path.resolve(__dirname, '..');
-  const cloudfunctionsDir = path.join(repoRoot, 'cloudfunctions');
+  const cloudfunctionsDir = getCloudfunctionsDir(repoRoot);
   const sourceSharedDir = path.join(cloudfunctionsDir, '_shared');
 
-  for (const functionName of FUNCTION_NAMES) {
-    const targetSharedDir = path.join(cloudfunctionsDir, functionName, '_shared');
+  for (const { name, dir } of getCloudfunctionDirectories(cloudfunctionsDir)) {
+    const targetSharedDir = path.join(dir, '_shared');
     fs.rmSync(targetSharedDir, { recursive: true, force: true });
     copyDirectory(sourceSharedDir, targetSharedDir);
-    console.log(`[build-cloudfunctions] copied _shared -> ${functionName}/_shared`);
+    console.log(`[build-cloudfunctions] copied _shared -> ${name}/_shared`);
+
+    const manifestPath = path.join(dir, 'package.json');
+    const nextManifest = buildFunctionPackageManifest(name, readJsonIfExists(manifestPath));
+    writeJsonFile(manifestPath, nextManifest);
+    console.log(`[build-cloudfunctions] ensured package.json -> ${name}/package.json`);
   }
+
+  verifyCloudfunctionManifests({ cloudfunctionsDir });
 }
 
 main();

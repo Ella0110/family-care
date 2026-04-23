@@ -1,6 +1,7 @@
 {
   "scripts": {
     "build:functions": "node scripts/build-cloudfunctions.js",
+    "verify:functions:manifests": "node scripts/verify-cloudfunction-manifests.js",
     "verify:functions:isolation": "node scripts/verify-cloudfunction-isolation.js"
   },
   "devDependencies": {
