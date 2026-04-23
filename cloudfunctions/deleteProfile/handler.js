@@ -1,7 +1,7 @@
-const { db, COLLECTIONS } = require('../_shared/db');
-const authModule = require('../_shared/auth');
-const { assertNonEmptyString } = require('../_shared/validation');
-const { createError } = require('../_shared/errors');
+const { db, COLLECTIONS } = require('./_shared/db');
+const authModule = require('./_shared/auth');
+const { assertNonEmptyString } = require('./_shared/validation');
+const { createError } = require('./_shared/errors');
 
 /**
  * @param {{ db?: any, auth?: any, now?: () => Date }} [deps]

@@ -1,9 +1,9 @@
-const { db, command, COLLECTIONS } = require('../_shared/db');
-const authModule = require('../_shared/auth');
-const { createError } = require('../_shared/errors');
-const { assertNonEmptyString, normalizeNumberInRange } = require('../_shared/validation');
-const { parseOptionalClientDateInput } = require('../_shared/time');
-const { normalizeRecordType } = require('../_shared/record-utils');
+const { db, command, COLLECTIONS } = require('./_shared/db');
+const authModule = require('./_shared/auth');
+const { createError } = require('./_shared/errors');
+const { assertNonEmptyString, normalizeNumberInRange } = require('./_shared/validation');
+const { parseOptionalClientDateInput } = require('./_shared/time');
+const { normalizeRecordType } = require('./_shared/record-utils');
 
 /**
  * @param {{ db?: any, command?: any, auth?: any }} [deps]

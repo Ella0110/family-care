@@ -1,14 +1,14 @@
-const { db, COLLECTIONS } = require('../_shared/db');
-const authModule = require('../_shared/auth');
-const { DEFAULT_BP_THRESHOLD } = require('../_shared/defaults');
-const { assertNonEmptyString } = require('../_shared/validation');
-const { parseClientDateInput } = require('../_shared/time');
+const { db, COLLECTIONS } = require('./_shared/db');
+const authModule = require('./_shared/auth');
+const { DEFAULT_BP_THRESHOLD } = require('./_shared/defaults');
+const { assertNonEmptyString } = require('./_shared/validation');
+const { parseClientDateInput } = require('./_shared/time');
 const {
   normalizeBpPayload,
   normalizePeriod,
   normalizeRecordNote,
   normalizeRecordType,
-} = require('../_shared/record-utils');
+} = require('./_shared/record-utils');
 
 /**
  * @param {{ db?: any, auth?: any, now?: () => Date }} [deps]

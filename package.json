@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "build:functions": "node scripts/build-cloudfunctions.js",
+    "verify:functions:isolation": "node scripts/verify-cloudfunction-isolation.js"
+  },
   "devDependencies": {
     "dotenv": "^17.4.2",
     "tencentcloud-sdk-nodejs": "^4.1.220",

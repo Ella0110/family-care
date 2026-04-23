@@ -1,3 +1,5 @@
+require('./_helpers/ensure-cloudfunctions-built');
+
 const assert = require('assert');
 
 const { createCloudFunction } = require('../cloudfunctions/_shared/function');

@@ -1,34 +1,10 @@
-const { db, COLLECTIONS } = require('../_shared/db');
-const authModule = require('../_shared/auth');
-const { assertNonEmptyString } = require('../_shared/validation');
-const { parseClientDateInput } = require('../_shared/time');
-const { createError } = require('../_shared/errors');
-const { normalizeRecordPatch } = require('../_shared/record-utils');
-
-/**
- * @param {Object} relationship
- * @param {Object} record
- * @returns {boolean}
- */
-function canModifyRecord(relationship, record) {
-  if (!relationship) {
-    return false;
-  }
-
-  if (relationship.role === 'owner') {
-    return true;
-  }
-
-  if (relationship.permissions && relationship.permissions.canManage === true) {
-    return true;
-  }
-
-  return Boolean(
-    relationship.permissions &&
-      relationship.permissions.canWrite === true &&
-      record.recordedBy === relationship.userId,
-  );
-}
+const { db, COLLECTIONS } = require('./_shared/db');
+const authModule = require('./_shared/auth');
+const { assertNonEmptyString } = require('./_shared/validation');
+const { parseClientDateInput } = require('./_shared/time');
+const { createError } = require('./_shared/errors');
+const { normalizeRecordPatch } = require('./_shared/record-utils');
+const { canModifyRecord } = require('./_shared/record-permissions');
 
 /**
  * @param {{ db?: any, auth?: any, now?: () => Date }} [deps]
@@ -80,5 +56,4 @@ function createUpdateRecordHandler(deps = {}) {
 
 module.exports = {
   createUpdateRecordHandler,
-  canModifyRecord,
 };

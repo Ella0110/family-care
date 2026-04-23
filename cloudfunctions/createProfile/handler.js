@@ -1,8 +1,8 @@
-const { db, COLLECTIONS } = require('../_shared/db');
-const authModule = require('../_shared/auth');
-const ids = require('../_shared/ids');
-const { getDefaultProfileSettings, getRoleDefaults } = require('../_shared/defaults');
-const { normalizeCreateProfileInput } = require('../_shared/profile-utils');
+const { db, COLLECTIONS } = require('./_shared/db');
+const authModule = require('./_shared/auth');
+const ids = require('./_shared/ids');
+const { getDefaultProfileSettings, getRoleDefaults } = require('./_shared/defaults');
+const { normalizeCreateProfileInput } = require('./_shared/profile-utils');
 
 /**
  * @param {{ db?: any, auth?: any, ids?: any, now?: () => Date }} [deps]

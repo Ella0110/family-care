@@ -1,7 +1,7 @@
-const { cloud, db, COLLECTIONS } = require('../_shared/db');
-const authModule = require('../_shared/auth');
-const { getDefaultUserSettings } = require('../_shared/defaults');
-const { createError } = require('../_shared/errors');
+const { cloud, db, COLLECTIONS } = require('./_shared/db');
+const authModule = require('./_shared/auth');
+const { getDefaultUserSettings } = require('./_shared/defaults');
+const { createError } = require('./_shared/errors');
 
 /**
  * @param {{ db?: any, cloud?: any, auth?: any, now?: () => Date }} [deps]
