@@ -1,122 +1,207 @@
-/**
- * @typedef {Object} CloudContext
- * @property {string=} OPENID
- * @property {string=} APPID
- * @property {string=} UNIONID
- */
+const { cloud, db, COLLECTIONS } = require('./db');
+const { createError, invalidArgument } = require('./errors');
 
 /**
- * @typedef {Object} RelationshipPermissions
- * @property {boolean} canView
- * @property {boolean} canWrite
- * @property {boolean} canEditProfile
- * @property {boolean} canInvite
- * @property {boolean} canManage
+ * @param {{ db: any, cloud: any }} [deps]
+ * @returns {Object}
  */
+function createAuthService(deps = {}) {
+  const database = deps.db || db;
+  const cloudSdk = deps.cloud || cloud;
 
-/**
- * @typedef {Object} UserRecord
- * @property {string} _id
- * @property {string} openid
- * @property {string=} unionid
- * @property {string=} nickname
- * @property {string=} avatarUrl
- * @property {*} createdAt
- * @property {*} updatedAt
- * @property {*} lastActiveAt
- * @property {{ fontScale?: number, theme?: string }=} settings
- */
-
-/**
- * @typedef {Object} RelationshipRecord
- * @property {string} _id
- * @property {string} userId
- * @property {string} profileId
- * @property {'owner'|'collaborator'|'viewer'} role
- * @property {RelationshipPermissions} permissions
- * @property {boolean} subscribeAlerts
- * @property {string=} displayName
- * @property {*} createdAt
- * @property {*} acceptedAt
- * @property {string=} invitedBy
- */
-
-class AuthError extends Error {
   /**
-   * @param {string} code
-   * @param {string} message
+   * @param {string} profileId
+   * @param {{ includeDeleted?: boolean }} [options]
+   * @returns {Promise<Object|null>}
    */
-  constructor(code, message) {
-    super(message);
-    this.name = this.constructor.name;
-    this.code = code;
-  }
-}
+  async function getProfile(profileId, options = {}) {
+    const { includeDeleted = false } = options;
 
-class PermissionDeniedError extends AuthError {
+    if (typeof profileId !== 'string' || !profileId.trim()) {
+      throw invalidArgument('profileId must be a non-empty string');
+    }
+
+    const res = await database.collection(COLLECTIONS.PROFILES).doc(profileId).get();
+    const profile = res && res.data ? res.data : null;
+
+    if (!profile) {
+      return null;
+    }
+
+    if (!includeDeleted && profile.deletedAt) {
+      return null;
+    }
+
+    return profile;
+  }
+
   /**
-   * @param {string} message
+   * @param {string} profileId
+   * @returns {Promise<Object|null>}
    */
-  constructor(message) {
-    super('PERMISSION_DENIED', message);
+  async function getActiveProfile(profileId) {
+    return getProfile(profileId, { includeDeleted: false });
   }
-}
 
-class NotImplementedInT0Error extends AuthError {
-  constructor() {
-    super('NOT_IMPLEMENTED', 'Not implemented in T0, will be done in T1');
+  /**
+   * Resolves the current user from cloud context. Missing users return null by design so
+   * login can create them while other functions can convert the absence into USER_NOT_FOUND.
+   *
+   * @param {Object} _event
+   * @param {Object} _context
+   * @returns {Promise<Object|null>}
+   */
+  async function getCurrentUser(_event, _context) {
+    const wxContext = cloudSdk.getWXContext();
+    const openId = wxContext && wxContext.OPENID;
+
+    if (!openId) {
+      throw createError('USER_NOT_FOUND', 'Current user is not available in cloud context');
+    }
+
+    const res = await database.collection(COLLECTIONS.USERS).doc(openId).get();
+    return res && res.data ? res.data : null;
   }
+
+  /**
+   * @param {Object} event
+   * @param {Object} context
+   * @returns {Promise<Object>}
+   */
+  async function requireCurrentUser(event, context) {
+    const user = await getCurrentUser(event, context);
+
+    if (!user) {
+      throw createError('USER_NOT_FOUND', 'Current user record does not exist');
+    }
+
+    return user;
+  }
+
+  /**
+   * @param {string} userId
+   * @param {string} profileId
+   * @returns {Promise<Object|null>}
+   */
+  async function getRelationship(userId, profileId) {
+    if (typeof userId !== 'string' || !userId.trim()) {
+      throw invalidArgument('userId must be a non-empty string');
+    }
+
+    if (typeof profileId !== 'string' || !profileId.trim()) {
+      throw invalidArgument('profileId must be a non-empty string');
+    }
+
+    const res = await database
+      .collection(COLLECTIONS.RELATIONSHIPS)
+      .where({ userId, profileId })
+      .limit(1)
+      .get();
+
+    return res && Array.isArray(res.data) && res.data[0] ? res.data[0] : null;
+  }
+
+  /**
+   * @param {string} userId
+   * @param {string} profileId
+   * @param {string} permission
+   * @returns {Promise<Object>}
+   */
+  async function requirePermission(userId, profileId, permission) {
+    if (typeof permission !== 'string' || !permission.trim()) {
+      throw invalidArgument('permission must be a non-empty string');
+    }
+
+    const profile = await getActiveProfile(profileId);
+    if (!profile) {
+      throw createError('PROFILE_NOT_FOUND', 'Profile does not exist or has been deleted');
+    }
+
+    const relationship = await getRelationship(userId, profileId);
+    if (!relationship) {
+      throw createError('RELATIONSHIP_NOT_FOUND', 'Relationship does not exist');
+    }
+
+    if (!relationship.permissions || relationship.permissions[permission] !== true) {
+      throw createError('PERMISSION_DENIED', `Permission ${permission} is required`);
+    }
+
+    return relationship;
+  }
+
+  /**
+   * @param {string} userId
+   * @param {string} profileId
+   * @returns {Promise<Object>}
+   */
+  async function requireOwner(userId, profileId) {
+    const profile = await getActiveProfile(profileId);
+    if (!profile) {
+      throw createError('PROFILE_NOT_FOUND', 'Profile does not exist or has been deleted');
+    }
+
+    const relationship = await getRelationship(userId, profileId);
+    if (!relationship) {
+      throw createError('RELATIONSHIP_NOT_FOUND', 'Relationship does not exist');
+    }
+
+    if (relationship.role !== 'owner') {
+      throw createError('PERMISSION_DENIED', 'Owner permission is required');
+    }
+
+    return relationship;
+  }
+
+  /**
+   * @param {string} userId
+   * @param {string} profileId
+   * @param {string} permission
+   * @returns {Promise<Object>}
+   */
+  async function requireOwnerOrPermission(userId, profileId, permission) {
+    const profile = await getActiveProfile(profileId);
+    if (!profile) {
+      throw createError('PROFILE_NOT_FOUND', 'Profile does not exist or has been deleted');
+    }
+
+    const relationship = await getRelationship(userId, profileId);
+    if (!relationship) {
+      throw createError('RELATIONSHIP_NOT_FOUND', 'Relationship does not exist');
+    }
+
+    if (relationship.role === 'owner') {
+      return relationship;
+    }
+
+    if (!relationship.permissions || relationship.permissions[permission] !== true) {
+      throw createError('PERMISSION_DENIED', `Owner role or ${permission} permission is required`);
+    }
+
+    return relationship;
+  }
+
+  return {
+    getCurrentUser,
+    requireCurrentUser,
+    getRelationship,
+    getProfile,
+    getActiveProfile,
+    requirePermission,
+    requireOwner,
+    requireOwnerOrPermission,
+  };
 }
 
-/**
- * Resolves the current mini-program user from cloud context.
- *
- * @param {CloudContext} [context] Optional cloud context override for testing or custom entry points.
- * @returns {Promise<UserRecord|null>} The matching user document, or `null` when the openid has not been created yet.
- * @throws {AuthError} When context is invalid or the lookup fails.
- */
-async function getCurrentUser(context) {
-  void context;
-  throw new NotImplementedInT0Error();
-}
-
-/**
- * Ensures a user has the required permission on a profile.
- *
- * @param {string} userId Current user id.
- * @param {string} profileId Target profile id.
- * @param {keyof RelationshipPermissions} permission Permission flag to validate.
- * @returns {Promise<RelationshipRecord>} The matched relationship document when permission passes.
- * @throws {PermissionDeniedError} When the relationship is missing or the permission is false.
- * @throws {AuthError} When input is invalid or the lookup fails.
- */
-async function requirePermission(userId, profileId, permission) {
-  void userId;
-  void profileId;
-  void permission;
-  throw new NotImplementedInT0Error();
-}
-
-/**
- * Ensures the user is the owner of a profile.
- *
- * @param {string} userId Current user id.
- * @param {string} profileId Target profile id.
- * @returns {Promise<RelationshipRecord>} The matched owner relationship document when validation passes.
- * @throws {PermissionDeniedError} When the relationship is missing or the role is not `owner`.
- * @throws {AuthError} When input is invalid or the lookup fails.
- */
-async function requireOwner(userId, profileId) {
-  void userId;
-  void profileId;
-  throw new NotImplementedInT0Error();
-}
+const authService = createAuthService();
 
 module.exports = {
-  AuthError,
-  PermissionDeniedError,
-  NotImplementedInT0Error,
-  getCurrentUser,
-  requirePermission,
-  requireOwner,
+  createAuthService,
+  getCurrentUser: authService.getCurrentUser,
+  requireCurrentUser: authService.requireCurrentUser,
+  getRelationship: authService.getRelationship,
+  getProfile: authService.getProfile,
+  getActiveProfile: authService.getActiveProfile,
+  requirePermission: authService.requirePermission,
+  requireOwner: authService.requireOwner,
+  requireOwnerOrPermission: authService.requireOwnerOrPermission,
 };

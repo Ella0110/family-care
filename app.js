@@ -65,6 +65,12 @@ App({
       const result = await call('login', {}, { silent: true });
       store.setState(normalizeLoginPayload(result));
     } catch (error) {
+      store.setState({
+        user: null,
+        profiles: [],
+        relationships: [],
+        currentProfileId: null,
+      });
       console.warn('Initial login skipped during T0 bootstrap.', error);
     }
   },
