@@ -35,6 +35,42 @@ function getCachedRecord(recordId) {
   return recordCache.get(recordId) || null;
 }
 
+function toTimestamp(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  const timestamp = date.getTime();
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+}
+
+function sortRecordsDesc(records) {
+  return (Array.isArray(records) ? records.slice() : []).sort((left, right) => {
+    const measuredAtDiff = toTimestamp(right && right.measuredAt) - toTimestamp(left && left.measuredAt);
+    if (measuredAtDiff !== 0) {
+      return measuredAtDiff;
+    }
+
+    return String(right && right._id || '').localeCompare(String(left && left._id || ''));
+  });
+}
+
+function updateProfileRecordCaches(profileId, records) {
+  const nextRecords = sortRecordsDesc(records);
+  store.setCachedRecords(profileId, nextRecords);
+  store.setCachedLatestRecord(profileId, nextRecords[0] || null);
+}
+
+function upsertRecord(records, record) {
+  const nextRecords = Array.isArray(records) ? records.slice() : [];
+  const existingIndex = nextRecords.findIndex((item) => item && item._id === record._id);
+
+  if (existingIndex >= 0) {
+    nextRecords[existingIndex] = record;
+  } else {
+    nextRecords.push(record);
+  }
+
+  return sortRecordsDesc(nextRecords);
+}
+
 /**
  * Saves a blood pressure record.
  *
@@ -58,8 +94,13 @@ async function saveRecord(profileId, payload, measuredAt, note) {
 
   const result = await call('saveRecord', data, { silent: true });
   setCachedRecord(result.record);
-  store.invalidateRecords(profileId);
-  store.setCachedLatestRecord(profileId, result.record);
+  if (store.hasCachedRecords(profileId)) {
+    updateProfileRecordCaches(profileId, upsertRecord(store.getCachedRecords(profileId), result.record));
+  } else if (store.hasCachedLatestRecord(profileId)) {
+    const currentLatest = store.getCachedLatestRecord(profileId);
+    const nextLatest = sortRecordsDesc([currentLatest, result.record].filter(Boolean))[0] || null;
+    store.setCachedLatestRecord(profileId, nextLatest);
+  }
 
   return {
     record: result.record,
@@ -235,7 +276,12 @@ async function updateRecord(recordId, patch) {
   const result = await call('updateRecord', { recordId, patch }, { silent: true });
   setCachedRecord(result.record);
   if (result.record && result.record.profileId) {
-    store.invalidateRecords(result.record.profileId);
+    const profileId = result.record.profileId;
+    if (store.hasCachedRecords(profileId)) {
+      updateProfileRecordCaches(profileId, upsertRecord(store.getCachedRecords(profileId), result.record));
+    } else {
+      store.invalidateRecords(profileId);
+    }
   }
 
   return {
@@ -255,7 +301,12 @@ async function deleteRecord(recordId, options = {}) {
   await call('deleteRecord', { recordId }, { silent: true });
   recordCache.delete(recordId);
   if (profileId) {
-    store.invalidateRecords(profileId);
+    if (store.hasCachedRecords(profileId)) {
+      const nextRecords = (store.getCachedRecords(profileId) || []).filter((record) => record && record._id !== recordId);
+      updateProfileRecordCaches(profileId, nextRecords);
+    } else {
+      store.invalidateRecords(profileId);
+    }
   }
 
   return { success: true };

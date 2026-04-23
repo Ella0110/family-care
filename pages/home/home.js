@@ -77,23 +77,56 @@ Page({
   },
 
   onLoad() {
+    this.isPageVisible = false;
+    this.lastHomeStateKey = this.getHomeStateKey(store.getState());
     this.unsubscribeStore = store.subscribe((nextState) => {
+      const nextHomeStateKey = this.getHomeStateKey(nextState);
+
+      if (nextHomeStateKey === this.lastHomeStateKey) {
+        return;
+      }
+
+      this.lastHomeStateKey = nextHomeStateKey;
       this.renderState(nextState);
-      this.loadRecordsForCurrentView();
+
+      if (this.isPageVisible) {
+        this.loadRecordsForCurrentView();
+      }
     });
     this.renderState();
   },
 
   onShow() {
+    this.isPageVisible = true;
+    this.lastHomeStateKey = this.getHomeStateKey(store.getState());
     this.renderState();
     this.loadRecordsForCurrentView();
   },
 
+  onHide() {
+    this.isPageVisible = false;
+  },
+
   onUnload() {
+    this.isPageVisible = false;
     if (this.unsubscribeStore) {
       this.unsubscribeStore();
       this.unsubscribeStore = null;
     }
+  },
+
+  getHomeStateKey(state) {
+    const profiles = Array.isArray(state.profiles) ? state.profiles : [];
+    const loginStatus = getLoginStatus();
+
+    return [
+      loginStatus.isLoginReady ? 'ready' : 'pending',
+      loginStatus.isLoginFailed ? 'failed' : 'ok',
+      state.currentProfileId || 'none',
+      profiles
+        .map((profile) => [profile && profile._id, profile && profile.name, profile && profile.relation].join(':'))
+        .join('|'),
+    ].join('||');
   },
 
   renderState(nextState) {

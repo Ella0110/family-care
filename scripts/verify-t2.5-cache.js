@@ -111,7 +111,8 @@ async function main() {
   );
   assert.strictEqual(saved.record._id, 'saved_record');
   assert.strictEqual(store.getCachedLatestRecord('profile_a')._id, 'saved_record');
-  assert.strictEqual(store.getCachedRecords('profile_a'), null);
+  assert.ok(Array.isArray(store.getCachedRecords('profile_a')));
+  assert.strictEqual(store.getCachedRecords('profile_a')[0]._id, 'saved_record');
 
   store.setCachedLatestRecord('profile_a', { _id: 'latest_before_update', profileId: 'profile_a' });
   store.setCachedRecords('profile_a', [{ _id: 'record_before_update', profileId: 'profile_a' }]);
@@ -119,14 +120,20 @@ async function main() {
     measuredAt: Date.now(),
     payload: { systolic: 135, diastolic: 80 },
   });
-  assert.strictEqual(store.getCachedLatestRecord('profile_a'), null);
-  assert.strictEqual(store.getCachedRecords('profile_a'), null);
+  assert.ok(Array.isArray(store.getCachedRecords('profile_a')));
+  assert.strictEqual(store.getCachedRecords('profile_a')[0]._id, 'record_before_update');
+  assert.strictEqual(store.getCachedLatestRecord('profile_a')._id, 'record_before_update');
 
   store.setCachedLatestRecord('profile_a', { _id: 'latest_before_delete', profileId: 'profile_a' });
-  store.setCachedRecords('profile_a', [{ _id: 'record_before_delete', profileId: 'profile_a' }]);
+  store.setCachedRecords('profile_a', [
+    { _id: 'latest_before_delete', profileId: 'profile_a', measuredAt: 2 },
+    { _id: 'record_before_delete', profileId: 'profile_a', measuredAt: 1 },
+  ]);
   await recordService.deleteRecord('record_before_delete', { profileId: 'profile_a' });
-  assert.strictEqual(store.getCachedLatestRecord('profile_a'), null);
-  assert.strictEqual(store.getCachedRecords('profile_a'), null);
+  assert.ok(Array.isArray(store.getCachedRecords('profile_a')));
+  assert.strictEqual(store.getCachedRecords('profile_a').length, 1);
+  assert.strictEqual(store.getCachedRecords('profile_a')[0]._id, 'latest_before_delete');
+  assert.strictEqual(store.getCachedLatestRecord('profile_a')._id, 'latest_before_delete');
 
   const homePageSource = fs.readFileSync(
     path.resolve(__dirname, '../pages/home/home.js'),
