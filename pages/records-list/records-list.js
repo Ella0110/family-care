@@ -1,5 +1,6 @@
 const { store } = require('../../store/index');
 const recordService = require('../../services/record-service');
+const { getErrorMessage } = require('../../utils/error-messages');
 const { getBPStatusDisplay, getReferenceLines } = require('../../utils/bp-status');
 
 function pad(value) {
@@ -75,7 +76,7 @@ Page({
     });
 
     if (!profileId) {
-      this.setData({ errorText: '缺少档案信息，请返回首页重试' });
+      this.setData({ errorText: getErrorMessage({ code: 'PROFILE_NOT_FOUND' }) });
     }
   },
 
@@ -146,14 +147,14 @@ Page({
 
         this.applyRecords(result.records, result.hasMore);
       },
-      onError: () => {
+      onError: (error) => {
         if (this.data.profileId !== profileId) {
           return;
         }
 
         if (!hasCache) {
           this.setData({
-            errorText: '记录加载失败，请稍后重试',
+            errorText: getErrorMessage(error),
             isLoading: false,
           });
         }

@@ -1,8 +1,44 @@
+const { getErrorMessage } = require('../utils/error-messages');
+
 /**
  * @typedef {Object} CallOptions
  * @property {boolean} [silent=false] Whether to suppress loading and toast feedback.
  * @property {string} [loadingText='加载中'] Loading copy shown while the cloud function is running.
  */
+
+const REQUEST_WINDOW_MS = 10 * 1000;
+const REQUEST_WARNING_THRESHOLD = 5;
+const requestHistory = Object.create(null);
+
+function isDevelopEnv() {
+  try {
+    return (
+      typeof __wxConfig !== 'undefined' &&
+      __wxConfig &&
+      __wxConfig.accountInfo &&
+      __wxConfig.accountInfo.envVersion === 'develop'
+    );
+  } catch (error) {
+    return false;
+  }
+}
+
+function trackRequestFrequency(name) {
+  if (!isDevelopEnv()) {
+    return;
+  }
+
+  const now = Date.now();
+  const recentCalls = (requestHistory[name] || []).filter((timestamp) => now - timestamp <= REQUEST_WINDOW_MS);
+  recentCalls.push(now);
+  requestHistory[name] = recentCalls;
+
+  if (recentCalls.length > REQUEST_WARNING_THRESHOLD) {
+    console.warn(
+      `[REQUEST STORM WARNING] Function ${name} called ${recentCalls.length} times in 10 seconds. Check for subscription loops or duplicate requests.`,
+    );
+  }
+}
 
 /**
  * Normalizes unknown thrown values into a standard Error instance.
@@ -61,6 +97,7 @@ async function call(name, data = {}, options = {}) {
   }
 
   try {
+    trackRequestFrequency(name);
     const res = await wx.cloud.callFunction({ name, data });
     const result = res && res.result;
 
@@ -79,7 +116,7 @@ async function call(name, data = {}, options = {}) {
 
     if (!silent) {
       wx.showToast({
-        title: normalizedError.message || '网络异常',
+        title: getErrorMessage(normalizedError),
         icon: 'none',
       });
     }

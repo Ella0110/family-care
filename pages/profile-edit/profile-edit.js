@@ -1,5 +1,6 @@
 const { store } = require('../../store/index');
 const profileService = require('../../services/profile-service');
+const { getErrorMessage } = require('../../utils/error-messages');
 
 const RELATION_OPTIONS = ['父亲', '母亲', '本人', '配偶', '子女', '其他'];
 const GENDER_OPTIONS = [
@@ -12,22 +13,6 @@ function showToast(title) {
     title,
     icon: 'none',
   });
-}
-
-function getCreateErrorMessage(error) {
-  if (error && error.code === 'INVALID_ARGUMENT') {
-    return '档案信息填写有误，请检查后重试';
-  }
-
-  if (error && error.code === 'USER_NOT_FOUND') {
-    return '登录状态异常，请重新打开小程序';
-  }
-
-  if (error && error.code === 'PERMISSION_DENIED') {
-    return '没有权限保存档案';
-  }
-
-  return (error && error.message) || '保存失败，请稍后重试';
 }
 
 function goHome() {
@@ -51,10 +36,13 @@ Page({
     isSaving: false,
     relationOptions: RELATION_OPTIONS,
     relationIndex: -1,
+    relationPickerText: '',
+    showCustomRelation: false,
     genderOptions: GENDER_OPTIONS,
     form: {
       name: '',
-      relation: '',
+      relationSelection: '',
+      relationCustom: '',
       gender: '',
       birthDate: '',
       note: '',
@@ -71,7 +59,7 @@ Page({
     });
 
     if (mode === 'edit') {
-      showToast('编辑功能将在后续阶段上线');
+      showToast('暂不支持编辑档案');
     }
   },
 
@@ -83,11 +71,26 @@ Page({
 
   onRelationChange(event) {
     const relationIndex = Number(event.detail.value);
-    const relation = RELATION_OPTIONS[relationIndex] || '';
+    const relationSelection = RELATION_OPTIONS[relationIndex] || '';
+    const showCustomRelation = relationSelection === '其他';
 
-    this.setData({
+    const nextData = {
       relationIndex,
-      'form.relation': relation,
+      relationPickerText: relationSelection,
+      showCustomRelation,
+      'form.relationSelection': relationSelection,
+    };
+
+    if (!showCustomRelation) {
+      nextData['form.relationCustom'] = '';
+    }
+
+    this.setData(nextData);
+  },
+
+  onRelationCustomInput(event) {
+    this.setData({
+      'form.relationCustom': event.detail.value,
     });
   },
 
@@ -115,6 +118,8 @@ Page({
     const form = this.data.form;
     const name = (form.name || '').trim();
     const note = (form.note || '').trim();
+    const relationSelection = (form.relationSelection || '').trim();
+    const relationCustom = (form.relationCustom || '').trim();
 
     if (!name) {
       return '请填写姓名';
@@ -122,6 +127,14 @@ Page({
 
     if (name.length > 20) {
       return '姓名不能超过 20 个字';
+    }
+
+    if (relationSelection === '其他' && !relationCustom) {
+      return '请填写具体关系';
+    }
+
+    if (relationSelection === '其他' && relationCustom.length > 10) {
+      return '具体关系不能超过 10 个字';
     }
 
     if (note.length > 200) {
@@ -136,13 +149,17 @@ Page({
     const payload = {
       name: (form.name || '').trim(),
     };
-    const relation = (form.relation || '').trim();
+    const relationSelection = (form.relationSelection || '').trim();
+    const relationCustom = (form.relationCustom || '').trim();
     const gender = (form.gender || '').trim();
     const birthDate = (form.birthDate || '').trim();
     const note = (form.note || '').trim();
 
-    if (relation) {
-      payload.relation = relation;
+    if (relationSelection && relationSelection !== '其他') {
+      payload.relation = relationSelection;
+    }
+    if (relationSelection === '其他' && relationCustom) {
+      payload.relation = relationCustom;
     }
     if (gender) {
       payload.gender = gender;
@@ -159,7 +176,7 @@ Page({
 
   async handleSubmit() {
     if (this.data.isEditMode) {
-      showToast('编辑功能将在后续阶段上线');
+      showToast('暂不支持编辑档案');
       return;
     }
 
@@ -189,7 +206,7 @@ Page({
       });
       goHome();
     } catch (error) {
-      showToast(getCreateErrorMessage(error));
+      showToast(getErrorMessage(error));
     } finally {
       this.setData({ isSaving: false });
     }

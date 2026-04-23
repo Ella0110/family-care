@@ -1,5 +1,6 @@
 const { store } = require('../../store/index');
 const recordService = require('../../services/record-service');
+const { getErrorMessage } = require('../../utils/error-messages');
 const { getBPStatusDisplay, getReferenceLines } = require('../../utils/bp-status');
 
 function pad(value) {
@@ -50,6 +51,7 @@ function getLoginStatus() {
   return {
     isLoginReady: globalData.loginReady === true,
     isLoginFailed: Boolean(globalData.loginError),
+    loginError: globalData.loginError || null,
   };
 }
 
@@ -73,6 +75,7 @@ Page({
     latestRecordError: '',
     isLoginReady: false,
     isLoginFailed: false,
+    loginErrorText: '',
     isRetrying: false,
   },
 
@@ -148,6 +151,7 @@ Page({
       canReturnToProfileList: view.canReturnToProfileList,
       isLoginReady: loginStatus.isLoginReady,
       isLoginFailed: loginStatus.isLoginFailed,
+      loginErrorText: loginStatus.loginError ? getErrorMessage(loginStatus.loginError) : '',
     });
   },
 
@@ -222,6 +226,7 @@ Page({
   createProfileCard(profile, latestRecordResult) {
     const failed = latestRecordResult && latestRecordResult.failed;
     const latestRecord = latestRecordResult && latestRecordResult.record;
+    const failedMessage = latestRecordResult && latestRecordResult.failedMessage;
 
     return {
       profile,
@@ -230,7 +235,7 @@ Page({
       latestRecord,
       hasLatestRecord: Boolean(latestRecord),
       latestRecordDisplay: latestRecord ? this.formatLatestRecord(latestRecord, profile) : null,
-      latestRecordError: failed ? '加载失败' : '',
+      latestRecordError: failed ? (failedMessage || '暂时无法加载') : '',
     };
   },
 
@@ -332,7 +337,7 @@ Page({
 
         this.setLatestRecordState(data.record, profile);
       },
-      onError: () => {
+      onError: (error) => {
         if (
           this.latestRecordRequestId !== requestId ||
           !this.data.activeProfile ||
@@ -346,7 +351,7 @@ Page({
             hasLatestRecord: false,
             latestRecord: null,
             latestRecordDisplay: null,
-            latestRecordError: '血压记录加载失败，请稍后重试',
+            latestRecordError: getErrorMessage(error),
             isLoadingLatestRecord: false,
           });
         }
@@ -411,9 +416,13 @@ Page({
           this.updateProfileCard(profileId, { record: data.record }, requestId);
           this.setData({ isLoadingProfileCards: false });
         },
-        onError: () => {
+        onError: (error) => {
           if (!hasCache) {
-            this.updateProfileCard(profileId, { failed: true, record: null }, requestId);
+            this.updateProfileCard(
+              profileId,
+              { failed: true, failedMessage: getErrorMessage(error), record: null },
+              requestId,
+            );
           }
           this.setData({ isLoadingProfileCards: false });
         },
@@ -495,7 +504,7 @@ Page({
       this.renderState();
     } catch (error) {
       wx.showToast({
-        title: '加载失败，请重试',
+        title: getErrorMessage(error),
         icon: 'none',
       });
     } finally {

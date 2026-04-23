@@ -24,6 +24,10 @@
   margin-top: 36rpx;
 }
 
+.form-item--nested {
+  margin-top: 18rpx;
+}
+
 .form-label {
   margin-bottom: 14rpx;
   color: #111827;

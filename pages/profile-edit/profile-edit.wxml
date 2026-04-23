@@ -10,7 +10,7 @@
       <input
         class="form-input"
         value="{{form.name}}"
-        maxlength="21"
+        maxlength="20"
         placeholder="请输入姓名"
         placeholder-class="form-placeholder"
         bindinput="onNameInput"
@@ -21,10 +21,21 @@
     <view class="form-item">
       <view class="form-label">与你的关系</view>
       <picker mode="selector" range="{{relationOptions}}" value="{{relationIndex}}" bindchange="onRelationChange">
-        <view class="form-picker {{form.relation ? '' : 'form-picker--empty'}}">
-          {{form.relation || '请选择关系'}}
+        <view class="form-picker {{relationPickerText ? '' : 'form-picker--empty'}}">
+          {{relationPickerText || '请选择关系'}}
         </view>
       </picker>
+      <view wx:if="{{showCustomRelation}}" class="form-item form-item--nested">
+        <input
+          class="form-input"
+          value="{{form.relationCustom}}"
+          maxlength="10"
+          placeholder="请填写具体关系，如：弟弟、奶奶等"
+          placeholder-class="form-placeholder"
+          bindinput="onRelationCustomInput"
+        />
+        <view class="form-help">1-10 个字，保存后会直接作为关系显示</view>
+      </view>
     </view>
 
     <view class="form-item">

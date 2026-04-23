@@ -1,5 +1,6 @@
 const { store } = require('../../store/index');
 const recordService = require('../../services/record-service');
+const { getErrorMessage } = require('../../utils/error-messages');
 const { getReferenceLines } = require('../../utils/bp-status');
 
 const MIN_MEASURED_AT_MS = 946684800000;
@@ -67,31 +68,6 @@ function getDateTimeParts(value) {
     date: `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`,
     time: `${pad(date.getHours())}:${pad(date.getMinutes())}`,
   };
-}
-
-function getSaveErrorMessage(error) {
-  if (error && error.code === 'INVALID_ARGUMENT') {
-    const message = error.message || '';
-    if (/measuredAt|timestamp|date|时间/i.test(message)) {
-      return '测量时间有误，请选择 2000 年以后的时间';
-    }
-
-    return '血压信息填写有误，请检查后重试';
-  }
-
-  if (error && error.code === 'NETWORK') {
-    return '网络异常，请恢复网络后重试';
-  }
-
-  if (error && error.code === 'USER_NOT_FOUND') {
-    return '登录状态异常，请重新打开小程序';
-  }
-
-  if (error && error.code === 'PERMISSION_DENIED') {
-    return '没有权限录入该档案';
-  }
-
-  return '保存失败，请稍后重试';
 }
 
 function findProfile(profileId) {
@@ -167,7 +143,7 @@ Page({
     });
 
     if (!profileId) {
-      this.setData({ errorText: '缺少档案信息，请返回首页重试' });
+      this.setData({ errorText: '档案不存在' });
     }
 
     if (mode === 'edit') {
@@ -177,7 +153,7 @@ Page({
 
   async loadEditRecord() {
     if (!this.data.recordId) {
-      this.setData({ errorText: '缺少记录信息，请返回列表重试' });
+      this.setData({ errorText: getErrorMessage({ code: 'RECORD_NOT_FOUND' }) });
       return;
     }
 
@@ -200,14 +176,14 @@ Page({
       });
 
       if (!record) {
-        this.setData({ errorText: '记录不存在或已删除' });
+        this.setData({ errorText: getErrorMessage({ code: 'RECORD_NOT_FOUND' }) });
         return;
       }
 
       this.originalRecord = record;
       this.fillFormFromRecord(record);
     } catch (error) {
-      this.setData({ errorText: '记录加载失败，请返回列表重试' });
+      this.setData({ errorText: getErrorMessage(error) });
     } finally {
       this.setData({ isLoadingRecord: false });
     }
@@ -272,7 +248,7 @@ Page({
     const maxMeasuredAt = Date.now() + MAX_FUTURE_SKEW_MS;
 
     if (!this.data.profileId) {
-      return '缺少档案信息，请返回首页重试';
+      return '档案不存在';
     }
 
     if (!Number.isInteger(systolic) || systolic < 60 || systolic > 300) {
@@ -394,7 +370,7 @@ Page({
         wx.navigateBack({ delta: 1 });
       }, result.alertTriggered ? 1500 : 800);
     } catch (error) {
-      const message = getSaveErrorMessage(error);
+      const message = getErrorMessage(error);
       this.setData({ errorText: message });
       wx.showToast({
         title: message,
@@ -437,7 +413,7 @@ Page({
             wx.navigateBack({ delta: 1 });
           }, 800);
         } catch (error) {
-          const message = getSaveErrorMessage(error);
+          const message = getErrorMessage(error);
           this.setData({
             isDeleting: false,
             errorText: message,

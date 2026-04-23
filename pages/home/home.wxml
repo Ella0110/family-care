@@ -5,8 +5,8 @@
   </view>
 
   <view wx:elif="{{isLoginFailed}}" class="home-failed card">
-    <view class="home-failed__title">加载失败</view>
-    <view class="home-failed__text">网络或登录状态异常，请点击重试。</view>
+    <view class="home-failed__title">暂时无法加载</view>
+    <view class="home-failed__text">{{loginErrorText || '操作失败，请重试'}}</view>
     <button
       class="btn-primary home-failed__button"
       loading="{{isRetrying}}"
@@ -28,7 +28,7 @@
   <view wx:elif="{{isMultiProfileList}}" class="home-profile-list">
     <view class="home-profile-list__header">
       <view>
-        <view class="home-profile-list__title">选择要查看的档案</view>
+        <view class="home-profile-list__title">关注的家人</view>
         <view class="home-profile-list__subtitle">一眼查看每个档案的最近血压</view>
       </view>
       <button class="home-profile-list__add" bindtap="handleCreateProfile">+</button>

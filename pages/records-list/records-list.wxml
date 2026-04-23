@@ -13,7 +13,7 @@
   </view>
 
   <view wx:elif="{{errorText}}" class="card records-state">
-    <view class="records-state__title">加载失败</view>
+    <view class="records-state__title">暂时无法加载</view>
     <view class="records-state__text">{{errorText}}</view>
     <button class="btn-secondary records-state__button" bindtap="loadRecords">重试</button>
   </view>
