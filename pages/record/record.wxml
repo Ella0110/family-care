@@ -2,9 +2,19 @@
   <view class="record-header">
     <view class="record-header__back" bindtap="handleCancel">返回</view>
     <view class="record-header__text">
-      <view class="record-header__title">为 {{profileName}} 录入血压</view>
-      <view class="record-header__subtitle">请按本次测量结果填写</view>
+      <view class="record-header__title">{{pageTitle}}</view>
+      <view class="record-header__subtitle">{{pageSubtitle}}</view>
     </view>
+  </view>
+
+  <view class="record-profile-lock">
+    <view class="record-profile-lock__label">档案</view>
+    <view class="record-profile-lock__name">{{profileName}}</view>
+    <view class="record-profile-lock__hint">不可修改</view>
+  </view>
+
+  <view wx:if="{{isLoadingRecord}}" class="card record-loading">
+    正在读取记录...
   </view>
 
   <view class="card record-form">
@@ -76,10 +86,24 @@
 
   <view class="record-actions">
     <view wx:if="{{errorText}}" class="record-error">{{errorText}}</view>
-    <button class="btn-primary record-button" loading="{{isSaving}}" disabled="{{isSaving}}" bindtap="handleSave">
-      保存
+    <button
+      class="btn-primary record-button"
+      loading="{{isSaving}}"
+      disabled="{{isSaving || isDeleting || isLoadingRecord}}"
+      bindtap="handleSave"
+    >
+      {{isEditMode ? '保存修改' : '保存'}}
     </button>
-    <button class="btn-secondary record-button" disabled="{{isSaving}}" bindtap="handleCancel">
+    <button
+      wx:if="{{isEditMode}}"
+      class="record-delete-button"
+      loading="{{isDeleting}}"
+      disabled="{{isSaving || isDeleting || isLoadingRecord}}"
+      bindtap="handleDelete"
+    >
+      删除
+    </button>
+    <button class="btn-secondary record-button" disabled="{{isSaving || isDeleting}}" bindtap="handleCancel">
       取消
     </button>
   </view>

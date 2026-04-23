@@ -44,6 +44,31 @@ function parseMeasuredAt(dateValue, timeValue) {
   return new Date(dateParts[0], dateParts[1] - 1, dateParts[2], timeParts[0], timeParts[1], 0, 0);
 }
 
+function toDate(value) {
+  if (value instanceof Date) {
+    return value;
+  }
+
+  if (value && typeof value === 'object' && value.$date) {
+    return new Date(value.$date);
+  }
+
+  return new Date(value);
+}
+
+function getDateTimeParts(value) {
+  const date = toDate(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return getNowParts();
+  }
+
+  return {
+    date: `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`,
+    time: `${pad(date.getHours())}:${pad(date.getMinutes())}`,
+  };
+}
+
 function getSaveErrorMessage(error) {
   if (error && error.code === 'INVALID_ARGUMENT') {
     const message = error.message || '';
@@ -74,13 +99,36 @@ function findProfile(profileId) {
   return (state.profiles || []).find((profile) => profile && profile._id === profileId) || null;
 }
 
+function getProfileThreshold(profile) {
+  return (
+    profile &&
+    profile.settings &&
+    profile.settings.bp &&
+    profile.settings.bp.threshold
+  ) || {
+    systolic: 140,
+    diastolic: 90,
+  };
+}
+
+function isAboveThreshold(payload, profile) {
+  const threshold = getProfileThreshold(profile);
+  return Number(payload.systolic) > threshold.systolic || Number(payload.diastolic) > threshold.diastolic;
+}
+
 Page({
   data: {
     mode: 'create',
     profileId: '',
+    recordId: '',
     profileName: '当前档案',
+    pageTitle: '录入血压',
+    pageSubtitle: '请按本次测量结果填写',
     referenceLines: getReferenceLines(),
+    isEditMode: false,
+    isLoadingRecord: false,
     isSaving: false,
+    isDeleting: false,
     errorText: '',
     minMeasuredDate: '2000-01-01',
     maxMeasuredDate: '',
@@ -97,13 +145,21 @@ Page({
   onLoad(options = {}) {
     const nowParts = getNowParts();
     const profileId = options.profileId || '';
+    const recordId = options.recordId || '';
+    const mode = options.mode === 'edit' ? 'edit' : 'create';
     const profile = profileId ? findProfile(profileId) : null;
 
+    this.currentProfile = profile;
+    this.originalRecord = null;
     this.setData({
-      mode: options.mode || 'create',
+      mode,
       profileId,
+      recordId,
       profileName: profile ? profile.name : '当前档案',
+      pageTitle: mode === 'edit' ? '编辑血压记录' : `为 ${profile ? profile.name : '当前档案'} 录入血压`,
+      pageSubtitle: mode === 'edit' ? '修改后会回到记录列表' : '请按本次测量结果填写',
       referenceLines: getReferenceLines(profile && profile.settings && profile.settings.bp && profile.settings.bp.referenceLines),
+      isEditMode: mode === 'edit',
       minMeasuredDate: nowParts.minDate,
       maxMeasuredDate: nowParts.maxDate,
       'form.measuredDate': nowParts.date,
@@ -113,6 +169,54 @@ Page({
     if (!profileId) {
       this.setData({ errorText: '缺少档案信息，请返回首页重试' });
     }
+
+    if (mode === 'edit') {
+      this.loadEditRecord();
+    }
+  },
+
+  async loadEditRecord() {
+    if (!this.data.recordId) {
+      this.setData({ errorText: '缺少记录信息，请返回列表重试' });
+      return;
+    }
+
+    this.setData({
+      isLoadingRecord: true,
+      errorText: '',
+    });
+
+    try {
+      const record = await recordService.getRecord(this.data.recordId, {
+        profileId: this.data.profileId,
+      });
+
+      if (!record) {
+        this.setData({ errorText: '记录不存在或已删除' });
+        return;
+      }
+
+      this.originalRecord = record;
+      this.fillFormFromRecord(record);
+    } catch (error) {
+      this.setData({ errorText: '记录加载失败，请返回列表重试' });
+    } finally {
+      this.setData({ isLoadingRecord: false });
+    }
+  },
+
+  fillFormFromRecord(record) {
+    const payload = (record && record.payload) || {};
+    const dateTime = getDateTimeParts(record && record.measuredAt);
+
+    this.setData({
+      'form.systolic': payload.systolic || null,
+      'form.diastolic': payload.diastolic || null,
+      'form.heartRate': payload.heartRate || '',
+      'form.measuredDate': dateTime.date,
+      'form.measuredTime': dateTime.time,
+      'form.note': record && record.note ? record.note : '',
+    });
   },
 
   onBPChange(event) {
@@ -213,6 +317,16 @@ Page({
     };
   },
 
+  buildPatch() {
+    const data = this.buildPayload();
+
+    return {
+      measuredAt: data.measuredAt,
+      payload: data.payload,
+      note: data.note || null,
+    };
+  },
+
   async handleSave() {
     const validationMessage = this.validateForm();
 
@@ -228,6 +342,33 @@ Page({
     });
 
     try {
+      if (this.data.isEditMode) {
+        const patch = this.buildPatch();
+        const result = await recordService.updateRecord(this.data.recordId, patch);
+        const previousAttention = this.originalRecord
+          ? isAboveThreshold(this.originalRecord.payload || {}, this.currentProfile)
+          : false;
+        const nextAttention = isAboveThreshold(result.record.payload || patch.payload, this.currentProfile);
+        let title = '已更新';
+
+        if (!previousAttention && nextAttention) {
+          title = '血压偏高，已更新';
+        } else if (previousAttention && !nextAttention) {
+          title = '血压恢复正常，已更新';
+        }
+
+        wx.showToast({
+          title,
+          icon: nextAttention ? 'none' : 'success',
+          duration: nextAttention ? 1500 : 800,
+        });
+
+        setTimeout(() => {
+          wx.navigateBack({ delta: 1 });
+        }, nextAttention ? 1500 : 800);
+        return;
+      }
+
       const result = await recordService.saveRecord(
         this.data.profileId,
         data.payload,
@@ -258,5 +399,50 @@ Page({
 
   handleCancel() {
     wx.navigateBack({ delta: 1 });
+  },
+
+  handleDelete() {
+    if (this.data.isDeleting || !this.data.recordId) {
+      return;
+    }
+
+    this.setData({ isDeleting: true });
+    wx.showModal({
+      title: '确定删除这条记录？',
+      content: '删除后无法恢复',
+      confirmText: '删除',
+      confirmColor: '#b42318',
+      cancelText: '取消',
+      success: async (res) => {
+        if (!res.confirm) {
+          this.setData({ isDeleting: false });
+          return;
+        }
+
+        try {
+          await recordService.deleteRecord(this.data.recordId);
+          wx.showToast({
+            title: '已删除',
+            icon: 'success',
+          });
+          setTimeout(() => {
+            wx.navigateBack({ delta: 1 });
+          }, 800);
+        } catch (error) {
+          const message = getSaveErrorMessage(error);
+          this.setData({
+            isDeleting: false,
+            errorText: message,
+          });
+          wx.showToast({
+            title: message,
+            icon: 'none',
+          });
+        }
+      },
+      fail: () => {
+        this.setData({ isDeleting: false });
+      },
+    });
   },
 });

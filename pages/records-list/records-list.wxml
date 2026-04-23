@@ -1,3 +1,57 @@
 <view class="page">
-  <view>records-list page</view>
+  <view class="records-header">
+    <view class="records-header__back" bindtap="handleBack">返回</view>
+    <view class="records-header__text">
+      <view class="records-header__title">{{profileName}} 的记录</view>
+      <view class="records-header__subtitle">按测量时间倒序展示</view>
+    </view>
+  </view>
+
+  <view wx:if="{{isLoading}}" class="card records-state">
+    <view class="records-state__title">正在加载记录</view>
+    <view class="records-state__text">请稍候...</view>
+  </view>
+
+  <view wx:elif="{{errorText}}" class="card records-state">
+    <view class="records-state__title">加载失败</view>
+    <view class="records-state__text">{{errorText}}</view>
+    <button class="btn-secondary records-state__button" bindtap="loadRecords">重试</button>
+  </view>
+
+  <view wx:elif="{{!hasRecords}}" class="card records-state">
+    <view class="records-state__title">还没有记录，去录入第一条</view>
+    <button class="btn-primary records-state__button" bindtap="handleAddRecord">录入血压</button>
+  </view>
+
+  <view wx:else class="records-groups">
+    <view wx:for="{{groups}}" wx:key="date" class="records-group">
+      <view class="records-group__title">{{item.label}}</view>
+      <view class="card records-group__card">
+        <view
+          wx:for="{{item.records}}"
+          wx:for-item="record"
+          wx:key="_id"
+          class="record-row"
+          data-record-id="{{record._id}}"
+          bindtap="handleRecordTap"
+        >
+          <view class="record-row__time">{{record.timeText}}</view>
+          <view class="record-row__main">
+            <view class="record-row__value">{{record.valueText}}</view>
+            <view wx:if="{{record.heartRateText}}" class="record-row__heart">{{record.heartRateText}}</view>
+          </view>
+          <bp-status-tag
+            systolic="{{record.payload.systolic}}"
+            diastolic="{{record.payload.diastolic}}"
+            reference-lines="{{referenceLines}}"
+          />
+          <view class="record-row__arrow">›</view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{hasMore}}" class="records-more">
+      还有更多记录未加载
+    </view>
+  </view>
 </view>

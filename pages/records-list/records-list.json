@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "全部记录"
+  "navigationBarTitleText": "全部记录",
+  "usingComponents": {
+    "bp-status-tag": "/components/bp-status-tag/bp-status-tag"
+  }
 }

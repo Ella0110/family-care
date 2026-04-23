@@ -44,6 +44,35 @@
   padding: 36rpx 32rpx;
 }
 
+.record-profile-lock {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 18rpx;
+  margin-bottom: 24rpx;
+  padding: 22rpx 28rpx;
+  border-radius: 24rpx;
+  background: #eaf2ff;
+}
+
+.record-profile-lock__label,
+.record-profile-lock__hint {
+  color: #4b5563;
+  font-size: 28rpx;
+}
+
+.record-profile-lock__name {
+  color: #111827;
+  font-size: 32rpx;
+  font-weight: 800;
+}
+
+.record-loading {
+  margin-bottom: 24rpx;
+  color: #4b5563;
+  font-size: 30rpx;
+}
+
 .form-item + .form-item {
   margin-top: 38rpx;
 }
@@ -143,5 +172,23 @@
 }
 
 .record-button::after {
+  border: 0;
+}
+
+.record-delete-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 96rpx;
+  margin-top: 20rpx;
+  padding: 0 32rpx;
+  border-radius: 24rpx;
+  background: #fee2e2;
+  color: #b42318;
+  font-size: 36rpx;
+  font-weight: 800;
+}
+
+.record-delete-button::after {
   border: 0;
 }

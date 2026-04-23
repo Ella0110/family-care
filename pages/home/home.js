@@ -195,9 +195,18 @@ Page({
   },
 
   handleViewRecords() {
-    wx.showToast({
-      title: 'T2.3 上线',
-      icon: 'none',
+    const profile = this.data.firstProfile;
+
+    if (!profile || !profile._id) {
+      wx.showToast({
+        title: '请先创建档案',
+        icon: 'none',
+      });
+      return;
+    }
+
+    wx.navigateTo({
+      url: `/pages/records-list/records-list?profileId=${profile._id}`,
     });
   },
 
