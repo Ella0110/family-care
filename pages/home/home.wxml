@@ -25,12 +25,50 @@
     bind:buttontap="handleCreateProfile"
   />
 
-  <view wx:else class="home-profile card">
-    <view class="home-profile__eyebrow">当前档案</view>
-    <view class="home-profile__title">已建档：{{firstProfile.name}}</view>
-    <view class="home-profile__placeholder">血压录入功能将在 T2.2 上线</view>
-    <button class="btn-secondary home-profile__button" bindtap="handleCreateProfile">
-      添加档案
-    </button>
+  <view wx:else class="home-profile">
+    <view class="home-profile__header">
+      <view>
+        <view class="home-profile__eyebrow">当前档案</view>
+        <view class="home-profile__title">已建档：{{firstProfile.name}}</view>
+      </view>
+      <button class="home-profile__add" bindtap="handleCreateProfile">添加档案</button>
+    </view>
+
+    <view wx:if="{{isLoadingLatestRecord}}" class="card home-record-card">
+      <view class="home-profile__placeholder">正在读取最近一次血压...</view>
+    </view>
+
+    <view wx:elif="{{latestRecordError}}" class="card home-record-card">
+      <view class="home-profile__placeholder">{{latestRecordError}}</view>
+      <button class="btn-secondary home-profile__button" bindtap="loadLatestRecord">重试</button>
+    </view>
+
+    <view wx:elif="{{hasLatestRecord}}" class="card home-record-card home-record-card--{{latestRecordDisplay.statusLevel}}">
+      <view class="home-record-card__top">
+        <view class="home-record-card__label">最近一次</view>
+        <bp-status-tag
+          systolic="{{latestRecordDisplay.systolic}}"
+          diastolic="{{latestRecordDisplay.diastolic}}"
+          reference-lines="{{referenceLines}}"
+        />
+      </view>
+      <view class="home-record-card__value {{latestRecordDisplay.statusClassName}}">
+        {{latestRecordDisplay.systolic}} <text class="home-record-card__slash">/</text> {{latestRecordDisplay.diastolic}}
+      </view>
+      <view class="home-record-card__meta">
+        {{latestRecordDisplay.measuredAtText}} · {{latestRecordDisplay.statusLabel}}
+      </view>
+      <view wx:if="{{latestRecordDisplay.heartRate}}" class="home-record-card__heart">
+        心率 {{latestRecordDisplay.heartRate}} bpm
+      </view>
+      <button class="btn-primary home-profile__button" bindtap="handleAddRecord">录入血压</button>
+      <view class="home-record-card__link" bindtap="handleViewRecords">查看所有记录</view>
+    </view>
+
+    <view wx:else class="card home-record-card">
+      <view class="home-profile__placeholder">还没有血压记录，先录入一条吧。</view>
+      <button class="btn-primary home-profile__button" bindtap="handleAddRecord">录入血压</button>
+      <view class="home-record-card__link" bindtap="handleViewRecords">查看所有记录</view>
+    </view>
   </view>
 </view>

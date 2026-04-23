@@ -1,7 +1,10 @@
 .home-loading,
-.home-failed,
-.home-profile {
+.home-failed {
   margin-top: 32rpx;
+}
+
+.home-profile {
+  margin-top: 8rpx;
 }
 
 .home-loading__title,
@@ -32,4 +35,89 @@
   color: #1d4ed8;
   font-size: 28rpx;
   font-weight: 700;
+}
+
+.home-profile__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24rpx;
+  margin-bottom: 28rpx;
+}
+
+.home-profile__add {
+  min-width: 144rpx;
+  min-height: 64rpx;
+  margin: 0;
+  padding: 0 20rpx;
+  border-radius: 999rpx;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 28rpx;
+  font-weight: 700;
+  line-height: 64rpx;
+}
+
+.home-profile__add::after {
+  border: 0;
+}
+
+.home-record-card {
+  margin-top: 20rpx;
+}
+
+.home-record-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24rpx;
+}
+
+.home-record-card__label {
+  color: #4b5563;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.home-record-card__value {
+  margin-top: 24rpx;
+  color: #1f2937;
+  font-size: 76rpx;
+  font-weight: 800;
+  letter-spacing: -2rpx;
+  line-height: 1.1;
+}
+
+.home-record-card__value.is-high {
+  color: #b42318;
+}
+
+.home-record-card__value.is-low {
+  color: #c2410c;
+}
+
+.home-record-card__slash {
+  color: currentColor;
+  font-size: 56rpx;
+}
+
+.home-record-card__meta {
+  margin-top: 16rpx;
+  color: #374151;
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.home-record-card__heart {
+  margin-top: 10rpx;
+  color: #6b7280;
+  font-size: 28rpx;
+}
+
+.home-record-card__link {
+  margin-top: 28rpx;
+  color: #1d4ed8;
+  font-size: 30rpx;
+  font-weight: 700;
+  text-align: center;
 }

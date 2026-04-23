@@ -1,3 +1,80 @@
 <view class="page">
-  <view>record page</view>
+  <view class="record-header">
+    <view class="record-header__back" bindtap="handleCancel">返回</view>
+    <view class="record-header__text">
+      <view class="record-header__title">为 {{profileName}} 录入血压</view>
+      <view class="record-header__subtitle">请按本次测量结果填写</view>
+    </view>
+  </view>
+
+  <view class="card record-form">
+    <view class="form-item">
+      <view class="form-label">血压 <text class="form-required">*</text></view>
+      <bp-input
+        systolic="{{form.systolic}}"
+        diastolic="{{form.diastolic}}"
+        disabled="{{isSaving}}"
+        bind:change="onBPChange"
+      />
+      <bp-status-tag
+        wx:if="{{form.systolic && form.diastolic}}"
+        systolic="{{form.systolic}}"
+        diastolic="{{form.diastolic}}"
+        reference-lines="{{referenceLines}}"
+      />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">心率</view>
+      <view class="number-field">
+        <input
+          class="number-field__input"
+          type="number"
+          value="{{form.heartRate}}"
+          placeholder="选填"
+          placeholder-class="form-placeholder"
+          disabled="{{isSaving}}"
+          bindinput="onHeartRateInput"
+        />
+        <view class="number-field__unit">bpm</view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">测量时间 <text class="form-required">*</text></view>
+      <view class="time-row">
+        <picker mode="date" value="{{form.measuredDate}}" bindchange="onMeasuredDateChange">
+          <view class="time-picker">{{form.measuredDate}}</view>
+        </picker>
+        <picker mode="time" value="{{form.measuredTime}}" bindchange="onMeasuredTimeChange">
+          <view class="time-picker">{{form.measuredTime}}</view>
+        </picker>
+      </view>
+      <view class="form-help">{{form.measuredDate}} {{form.measuredTime}}</view>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">备注</view>
+      <textarea
+        class="form-textarea"
+        value="{{form.note}}"
+        maxlength="100"
+        placeholder="可填写测量前状态、用药情况等"
+        placeholder-class="form-placeholder"
+        disabled="{{isSaving}}"
+        bindinput="onNoteInput"
+      />
+      <view class="form-help">最多 100 个字</view>
+    </view>
+  </view>
+
+  <view class="record-actions">
+    <view wx:if="{{errorText}}" class="record-error">{{errorText}}</view>
+    <button class="btn-primary record-button" loading="{{isSaving}}" disabled="{{isSaving}}" bindtap="handleSave">
+      保存
+    </button>
+    <button class="btn-secondary record-button" disabled="{{isSaving}}" bindtap="handleCancel">
+      取消
+    </button>
+  </view>
 </view>

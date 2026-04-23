@@ -1,0 +1,37 @@
+<view class="bp-input">
+  <view class="bp-input__field {{focusedField === 'systolic' ? 'bp-input__field--focus' : ''}}">
+    <input
+      class="bp-input__control"
+      type="number"
+      value="{{systolic || ''}}"
+      disabled="{{disabled}}"
+      data-field="systolic"
+      placeholder="高压"
+      placeholder-class="bp-input__placeholder"
+      bindinput="onSystolicInput"
+      bindfocus="onFocus"
+      bindblur="onBlur"
+    />
+    <view class="bp-input__label">收缩压</view>
+  </view>
+
+  <view class="bp-input__slash">/</view>
+
+  <view class="bp-input__field {{focusedField === 'diastolic' ? 'bp-input__field--focus' : ''}}">
+    <input
+      class="bp-input__control"
+      type="number"
+      value="{{diastolic || ''}}"
+      disabled="{{disabled}}"
+      data-field="diastolic"
+      placeholder="低压"
+      placeholder-class="bp-input__placeholder"
+      bindinput="onDiastolicInput"
+      bindfocus="onFocus"
+      bindblur="onBlur"
+    />
+    <view class="bp-input__label">舒张压</view>
+  </view>
+
+  <view class="bp-input__unit">mmHg</view>
+</view>

@@ -1,6 +1,7 @@
 {
   "navigationBarTitleText": "来自儿女的关心",
   "usingComponents": {
-    "empty-state": "/components/empty-state/empty-state"
+    "empty-state": "/components/empty-state/empty-state",
+    "bp-status-tag": "/components/bp-status-tag/bp-status-tag"
   }
 }

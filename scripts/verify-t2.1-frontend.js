@@ -44,7 +44,7 @@ assertContains('pages/home/home.js', /store\.subscribe/, 'home should subscribe 
 assertContains('pages/home/home.js', /onShow\(\)/, 'home should refresh from store in onShow');
 assertContains('pages/home/home.js', /profile-edit\?mode=create/, 'home should navigate to create profile mode');
 assertContains('pages/home/home.wxml', /记录家人的血压，从第一条开始/, 'home should show zero-profile title');
-assertContains('pages/home/home.wxml', /血压录入功能将在 T2\.2 上线/, 'home should show T2.2 placeholder after profile creation');
+assertContains('pages/home/home.wxml', /还没有血压记录|血压录入功能将在 T2\.2 上线/, 'home should show a no-record placeholder after profile creation');
 assertContains('pages/home/home.wxml', /bind:buttontap="handleCreateProfile"/, 'home should handle empty-state button tap');
 
 assertContains('pages/profile-edit/profile-edit.js', /createProfile/, 'profile edit should call profile service');

@@ -1,0 +1,4 @@
+<view class="bp-status-tag bp-status-tag--{{status.level}}">
+  <text>{{status.label}}</text>
+  <text wx:if="{{status.detail}}" class="bp-status-tag__detail">{{status.detail}}</text>
+</view>

@@ -12,18 +12,33 @@
  */
 function toError(error) {
   if (error instanceof Error) {
+    if (!error.code) {
+      error.code = inferErrorCode(error.message);
+    }
     return error;
   }
 
   if (error && typeof error === 'object' && typeof error.message === 'string') {
     const nextError = new Error(error.message);
-    if (typeof error.code === 'string') {
-      nextError.code = error.code;
-    }
+    nextError.code = typeof error.code === 'string' ? error.code : inferErrorCode(error.message);
     return nextError;
   }
 
-  return new Error('网络异常');
+  const networkError = new Error('网络异常');
+  networkError.code = 'NETWORK';
+  return networkError;
+}
+
+/**
+ * @param {string} [message='']
+ * @returns {string}
+ */
+function inferErrorCode(message = '') {
+  if (/network|timeout|fail|interrupted|断网|网络/i.test(message)) {
+    return 'NETWORK';
+  }
+
+  return 'INTERNAL_ERROR';
 }
 
 /**

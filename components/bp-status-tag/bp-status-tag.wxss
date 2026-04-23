@@ -1,0 +1,28 @@
+.bp-status-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 52rpx;
+  padding: 0 20rpx;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.bp-status-tag--normal {
+  background: #e8f5ee;
+  color: #166534;
+}
+
+.bp-status-tag--high {
+  background: #fee2e2;
+  color: #b42318;
+}
+
+.bp-status-tag--low {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.bp-status-tag__detail {
+  margin-left: 8rpx;
+}

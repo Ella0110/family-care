@@ -1,3 +1,7 @@
 {
-  "navigationBarTitleText": "记录血压"
+  "navigationBarTitleText": "记录血压",
+  "usingComponents": {
+    "bp-input": "/components/bp-input/bp-input",
+    "bp-status-tag": "/components/bp-status-tag/bp-status-tag"
+  }
 }
