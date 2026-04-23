@@ -24,7 +24,7 @@ assertContains('pages/home/home.js', /records-list\/records-list\?profileId=/, '
 const recordsListJson = JSON.parse(read('pages/records-list/records-list.json'));
 assert.strictEqual(recordsListJson.usingComponents['bp-status-tag'], '/components/bp-status-tag/bp-status-tag');
 
-assertContains('pages/records-list/records-list.js', /getRecords/, 'records list should load records');
+assertContains('pages/records-list/records-list.js', /loadRecords|getRecords/, 'records list should load records');
 assertContains('pages/records-list/records-list.js', /groupRecords/, 'records list should group records by date');
 assertContains('pages/records-list/records-list.js', /setCachedRecord/, 'records list should cache record before edit navigation');
 assertContains('pages/records-list/records-list.wxml', /还没有记录，去录入第一条/, 'records list should render empty state');

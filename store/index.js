@@ -4,6 +4,7 @@
  * @property {Array<Object>} profiles
  * @property {Array<Object>} relationships
  * @property {string|null} currentProfileId
+ * @property {{ profiles: Array<Object>, latestRecords: Object<string, Object>, records: Object<string, Object> }} cache
  */
 
 /** @type {StoreState} */
@@ -12,9 +13,51 @@ const state = {
   profiles: [],
   relationships: [],
   currentProfileId: null,
+  cache: {
+    profiles: [],
+    latestRecords: {},
+    records: {},
+  },
 };
 
 const listeners = new Set();
+
+function cloneCache(cache) {
+  return {
+    profiles: Array.isArray(cache.profiles) ? cache.profiles.slice() : [],
+    latestRecords: Object.assign({}, cache.latestRecords || {}),
+    records: Object.assign({}, cache.records || {}),
+  };
+}
+
+function pruneCacheForProfiles(cache, profiles) {
+  const profileIds = new Set((profiles || []).map((profile) => profile && profile._id).filter(Boolean));
+  const nextCache = {
+    profiles: Array.isArray(profiles) ? profiles.slice() : [],
+    latestRecords: {},
+    records: {},
+  };
+
+  Object.keys(cache.latestRecords || {}).forEach((profileId) => {
+    if (profileIds.has(profileId)) {
+      nextCache.latestRecords[profileId] = cache.latestRecords[profileId];
+    }
+  });
+
+  Object.keys(cache.records || {}).forEach((profileId) => {
+    if (profileIds.has(profileId)) {
+      nextCache.records[profileId] = cache.records[profileId];
+    }
+  });
+
+  return nextCache;
+}
+
+function notify() {
+  const nextSnapshot = snapshot();
+  listeners.forEach((listener) => listener(nextSnapshot));
+  return nextSnapshot;
+}
 
 /**
  * Creates a shallow snapshot for consumers so subscribers do not mutate internal state by accident.
@@ -27,6 +70,7 @@ function snapshot() {
     profiles: state.profiles.slice(),
     relationships: state.relationships.slice(),
     currentProfileId: state.currentProfileId,
+    cache: cloneCache(state.cache),
   };
 }
 
@@ -71,14 +115,16 @@ const store = {
 
     nextState.profiles = Array.isArray(nextState.profiles) ? nextState.profiles : [];
     nextState.relationships = Array.isArray(nextState.relationships) ? nextState.relationships : [];
+    nextState.cache = cloneCache(nextState.cache || state.cache);
+    nextState.cache.profiles = nextState.profiles.slice();
+    if (Object.prototype.hasOwnProperty.call(patch, 'profiles')) {
+      nextState.cache = pruneCacheForProfiles(nextState.cache, nextState.profiles);
+    }
     nextState.currentProfileId = resolveCurrentProfileId(nextState);
 
     Object.assign(state, nextState);
 
-    const nextSnapshot = snapshot();
-    listeners.forEach((listener) => listener(nextSnapshot));
-
-    return nextSnapshot;
+    return notify();
   },
 
   /**
@@ -97,6 +143,102 @@ const store = {
     return this.setState({
       currentProfileId: profileIds.includes(profileId) ? profileId : null,
     });
+  },
+
+  /**
+   * @param {string} profileId
+   * @returns {boolean}
+   */
+  hasCachedLatestRecord(profileId) {
+    return Object.prototype.hasOwnProperty.call(state.cache.latestRecords, profileId);
+  },
+
+  /**
+   * @param {string} profileId
+   * @returns {Object|null}
+   */
+  getCachedLatestRecord(profileId) {
+    const entry = state.cache.latestRecords[profileId];
+    return entry ? entry.record : null;
+  },
+
+  /**
+   * @param {string} profileId
+   * @param {Object|null} record
+   * @returns {StoreState}
+   */
+  setCachedLatestRecord(profileId, record) {
+    if (!profileId) {
+      return snapshot();
+    }
+
+    state.cache.latestRecords = Object.assign({}, state.cache.latestRecords, {
+      [profileId]: {
+        record: record || null,
+        fetchedAt: Date.now(),
+      },
+    });
+
+    return notify();
+  },
+
+  /**
+   * @param {string} profileId
+   * @returns {boolean}
+   */
+  hasCachedRecords(profileId) {
+    return Object.prototype.hasOwnProperty.call(state.cache.records, profileId);
+  },
+
+  /**
+   * @param {string} profileId
+   * @returns {Array<Object>|null}
+   */
+  getCachedRecords(profileId) {
+    const entry = state.cache.records[profileId];
+    return entry ? entry.records.slice() : null;
+  },
+
+  /**
+   * @param {string} profileId
+   * @param {Array<Object>} records
+   * @returns {StoreState}
+   */
+  setCachedRecords(profileId, records) {
+    if (!profileId) {
+      return snapshot();
+    }
+
+    state.cache.records = Object.assign({}, state.cache.records, {
+      [profileId]: {
+        records: Array.isArray(records) ? records.slice() : [],
+        fetchedAt: Date.now(),
+      },
+    });
+
+    return notify();
+  },
+
+  /**
+   * Clears both latest-record and full-list caches for one profile.
+   *
+   * @param {string} profileId
+   * @returns {StoreState}
+   */
+  invalidateRecords(profileId) {
+    if (!profileId) {
+      return snapshot();
+    }
+
+    const nextLatestRecords = Object.assign({}, state.cache.latestRecords);
+    const nextRecords = Object.assign({}, state.cache.records);
+    delete nextLatestRecords[profileId];
+    delete nextRecords[profileId];
+
+    state.cache.latestRecords = nextLatestRecords;
+    state.cache.records = nextRecords;
+
+    return notify();
   },
 
   /**

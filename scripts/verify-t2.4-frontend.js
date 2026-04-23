@@ -14,7 +14,7 @@ function assertContains(file, pattern, message) {
 
 assertContains('store/index.js', /setCurrentProfileId/, 'store should expose setCurrentProfileId');
 assertContains('pages/home/home.js', /loadLatestRecordsForProfiles/, 'home should load latest records for all profiles');
-assertContains('pages/home/home.js', /Promise\.all/, 'home should load multi-profile latest records in parallel');
+assertContains('pages/home/home.js', /loadLatestRecord/, 'home should load multi-profile latest records independently');
 assertContains('pages/home/home.js', /setCurrentProfileId/, 'home should switch current profile through store');
 assertContains('pages/home/home.wxml', /选择要查看的档案/, 'home should render multi-profile list title');
 assertContains('pages/home/home.wxml', /返回档案列表/, 'home should render return-to-list entry in single profile view');

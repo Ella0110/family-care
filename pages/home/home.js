@@ -166,7 +166,14 @@ Page({
       return {
         viewState: 'multi',
         activeProfile: null,
-        profileCards: profiles.map((profile) => this.createProfileCard(profile)),
+        profileCards: profiles.map((profile) =>
+          this.createProfileCard(
+            profile,
+            store.hasCachedLatestRecord(profile._id)
+              ? { record: store.getCachedLatestRecord(profile._id) }
+              : null,
+          ),
+        ),
         canReturnToProfileList: false,
       };
     }
@@ -186,12 +193,46 @@ Page({
     return {
       profile,
       relationText: profile.relation || '关系未填写',
-      isLoading: !latestRecordResult,
+      isLoading: latestRecordResult === undefined || latestRecordResult === null,
       latestRecord,
       hasLatestRecord: Boolean(latestRecord),
       latestRecordDisplay: latestRecord ? this.formatLatestRecord(latestRecord, profile) : null,
       latestRecordError: failed ? '加载失败' : '',
     };
+  },
+
+  getLatestRecordSignature(record) {
+    if (!record) {
+      return 'null';
+    }
+
+    const payload = record.payload || {};
+    return [
+      record._id,
+      record.profileId,
+      record.measuredAt && String(record.measuredAt),
+      payload.systolic,
+      payload.diastolic,
+      payload.heartRate || '',
+      record.updatedAt && String(record.updatedAt),
+    ].join('|');
+  },
+
+  setLatestRecordState(record, profile) {
+    const nextSignature = this.getLatestRecordSignature(record);
+    if (this.latestRecordSignature === nextSignature) {
+      this.setData({ isLoadingLatestRecord: false });
+      return;
+    }
+
+    this.latestRecordSignature = nextSignature;
+    this.setData({
+      hasLatestRecord: Boolean(record),
+      latestRecord: record || null,
+      latestRecordDisplay: record ? this.formatLatestRecord(record, profile) : null,
+      latestRecordError: '',
+      isLoadingLatestRecord: false,
+    });
   },
 
   formatLatestRecord(record, profile) {
@@ -215,6 +256,7 @@ Page({
 
     if (!profile || !profile._id || this.data.isLoginFailed || this.data.viewState !== 'single') {
       this.latestRecordRequestId = (this.latestRecordRequestId || 0) + 1;
+      this.latestRecordSignature = '';
       this.setData({
         hasLatestRecord: false,
         latestRecord: null,
@@ -227,38 +269,76 @@ Page({
 
     const requestId = (this.latestRecordRequestId || 0) + 1;
     this.latestRecordRequestId = requestId;
+    const profileId = profile._id;
+    const hasCache = store.hasCachedLatestRecord(profileId);
     this.setData({
-      isLoadingLatestRecord: true,
+      isLoadingLatestRecord: !hasCache,
       latestRecordError: '',
     });
 
-    try {
-      const result = await recordService.getRecords(profile._id, { limit: 1 });
+    await recordService.loadLatestRecord(profileId, {
+      onCacheHit: (data) => {
+        if (
+          this.latestRecordRequestId !== requestId ||
+          !this.data.activeProfile ||
+          this.data.activeProfile._id !== profileId
+        ) {
+          return;
+        }
 
-      if (this.latestRecordRequestId !== requestId) {
-        return;
-      }
+        this.setLatestRecordState(data.record, profile);
+      },
+      onFresh: (data) => {
+        if (
+          this.latestRecordRequestId !== requestId ||
+          !this.data.activeProfile ||
+          this.data.activeProfile._id !== profileId
+        ) {
+          return;
+        }
 
-      const latestRecord = result.records[0] || null;
-      this.setData({
-        hasLatestRecord: Boolean(latestRecord),
-        latestRecord,
-        latestRecordDisplay: latestRecord ? this.formatLatestRecord(latestRecord, profile) : null,
-        isLoadingLatestRecord: false,
-      });
-    } catch (error) {
-      if (this.latestRecordRequestId !== requestId) {
-        return;
-      }
+        this.setLatestRecordState(data.record, profile);
+      },
+      onError: () => {
+        if (
+          this.latestRecordRequestId !== requestId ||
+          !this.data.activeProfile ||
+          this.data.activeProfile._id !== profileId
+        ) {
+          return;
+        }
 
-      this.setData({
-        hasLatestRecord: false,
-        latestRecord: null,
-        latestRecordDisplay: null,
-        latestRecordError: '血压记录加载失败，请稍后重试',
-        isLoadingLatestRecord: false,
-      });
+        if (!hasCache) {
+          this.setData({
+            hasLatestRecord: false,
+            latestRecord: null,
+            latestRecordDisplay: null,
+            latestRecordError: '血压记录加载失败，请稍后重试',
+            isLoadingLatestRecord: false,
+          });
+        }
+      },
+    });
+  },
+
+  updateProfileCard(profileId, latestRecordResult, requestId) {
+    if (
+      this.multiLatestRecordRequestId !== requestId ||
+      this.data.viewState !== 'multi' ||
+      !(this.data.profiles || []).some((profile) => profile && profile._id === profileId)
+    ) {
+      return;
     }
+
+    this.setData({
+      profileCards: (this.data.profileCards || []).map((card) => {
+        if (!card.profile || card.profile._id !== profileId) {
+          return card;
+        }
+
+        return this.createProfileCard(card.profile, latestRecordResult);
+      }),
+    });
   },
 
   async loadLatestRecordsForProfiles() {
@@ -274,39 +354,37 @@ Page({
 
     const requestId = (this.multiLatestRecordRequestId || 0) + 1;
     this.multiLatestRecordRequestId = requestId;
+    const hasAnyCache = profiles.some((profile) => store.hasCachedLatestRecord(profile._id));
     this.setData({
-      isLoadingProfileCards: true,
-      profileCards: profiles.map((profile) => this.createProfileCard(profile)),
+      isLoadingProfileCards: !hasAnyCache,
+      profileCards: profiles.map((profile) =>
+        this.createProfileCard(
+          profile,
+          store.hasCachedLatestRecord(profile._id)
+            ? { record: store.getCachedLatestRecord(profile._id) }
+            : null,
+        ),
+      ),
     });
 
-    const results = await Promise.all(
-      profiles.map((profile) =>
-        recordService
-          .getRecords(profile._id, { limit: 1 })
-          .then((result) => ({
-            profileId: profile._id,
-            record: result.records[0] || null,
-          }))
-          .catch(() => ({
-            profileId: profile._id,
-            failed: true,
-            record: null,
-          })),
-      ),
-    );
-
-    if (this.multiLatestRecordRequestId !== requestId) {
-      return;
-    }
-
-    const resultMap = results.reduce((map, item) => {
-      map[item.profileId] = item;
-      return map;
-    }, {});
-
-    this.setData({
-      isLoadingProfileCards: false,
-      profileCards: profiles.map((profile) => this.createProfileCard(profile, resultMap[profile._id])),
+    profiles.forEach((profile) => {
+      const profileId = profile._id;
+      const hasCache = store.hasCachedLatestRecord(profileId);
+      recordService.loadLatestRecord(profileId, {
+        onCacheHit: (data) => {
+          this.updateProfileCard(profileId, { record: data.record }, requestId);
+        },
+        onFresh: (data) => {
+          this.updateProfileCard(profileId, { record: data.record }, requestId);
+          this.setData({ isLoadingProfileCards: false });
+        },
+        onError: () => {
+          if (!hasCache) {
+            this.updateProfileCard(profileId, { failed: true, record: null }, requestId);
+          }
+          this.setData({ isLoadingProfileCards: false });
+        },
+      });
     });
   },
 

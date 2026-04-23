@@ -40,7 +40,7 @@ const recordJson = JSON.parse(read('pages/record/record.json'));
 assert.strictEqual(recordJson.usingComponents['bp-input'], '/components/bp-input/bp-input');
 assert.strictEqual(recordJson.usingComponents['bp-status-tag'], '/components/bp-status-tag/bp-status-tag');
 
-assertContains('pages/home/home.js', /getRecords/, 'home should fetch latest record');
+assertContains('pages/home/home.js', /loadLatestRecord|getRecords/, 'home should fetch latest record');
 assertContains('pages/home/home.js', /record\/record\?mode=create&profileId=/, 'home should navigate to record create page');
 assertContains('pages/home/home.wxml', /录入血压/, 'home should render record CTA');
 assertContains('pages/home/home.wxml', /查看所有记录/, 'home should render records-list placeholder entry');

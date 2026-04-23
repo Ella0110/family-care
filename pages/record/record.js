@@ -181,6 +181,14 @@ Page({
       return;
     }
 
+    const cachedRecords = store.getCachedRecords(this.data.profileId) || [];
+    const cachedRecord = cachedRecords.find((record) => record && record._id === this.data.recordId);
+    if (cachedRecord) {
+      this.originalRecord = cachedRecord;
+      this.fillFormFromRecord(cachedRecord);
+      return;
+    }
+
     this.setData({
       isLoadingRecord: true,
       errorText: '',
@@ -420,7 +428,7 @@ Page({
         }
 
         try {
-          await recordService.deleteRecord(this.data.recordId);
+          await recordService.deleteRecord(this.data.recordId, { profileId: this.data.profileId });
           wx.showToast({
             title: '已删除',
             icon: 'success',

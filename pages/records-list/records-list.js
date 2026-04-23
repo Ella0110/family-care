@@ -124,31 +124,58 @@ Page({
       return;
     }
 
+    const profileId = this.data.profileId;
+    const hasCache = store.hasCachedRecords(profileId);
     this.setData({
-      isLoading: true,
+      isLoading: !hasCache,
       errorText: '',
     });
 
-    try {
-      const result = await recordService.getRecords(this.data.profileId, { limit: 200 });
-      const groups = this.groupRecords(result.records);
-      this.recordsById = {};
-      result.records.forEach((record) => {
-        this.recordsById[record._id] = record;
-      });
+    await recordService.loadRecords(profileId, { limit: 200 }, {
+      onCacheHit: (result) => {
+        if (this.data.profileId !== profileId) {
+          return;
+        }
 
-      this.setData({
-        groups,
-        hasRecords: result.records.length > 0,
-        hasMore: result.hasMore,
-        isLoading: false,
-      });
-    } catch (error) {
-      this.setData({
-        errorText: '记录加载失败，请稍后重试',
-        isLoading: false,
-      });
-    }
+        this.applyRecords(result.records, result.hasMore);
+      },
+      onFresh: (result) => {
+        if (this.data.profileId !== profileId) {
+          return;
+        }
+
+        this.applyRecords(result.records, result.hasMore);
+      },
+      onError: () => {
+        if (this.data.profileId !== profileId) {
+          return;
+        }
+
+        if (!hasCache) {
+          this.setData({
+            errorText: '记录加载失败，请稍后重试',
+            isLoading: false,
+          });
+        }
+      },
+    });
+  },
+
+  applyRecords(records, hasMore) {
+    const nextRecords = Array.isArray(records) ? records : [];
+    const groups = this.groupRecords(nextRecords);
+    this.recordsById = {};
+    nextRecords.forEach((record) => {
+      this.recordsById[record._id] = record;
+    });
+
+    this.setData({
+      groups,
+      hasRecords: nextRecords.length > 0,
+      hasMore: hasMore === true,
+      isLoading: false,
+      errorText: '',
+    });
   },
 
   handleBack() {
