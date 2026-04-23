@@ -1,3 +1,85 @@
 <view class="page">
-  <view>profile-edit page</view>
+  <view class="profile-edit__header">
+    <view class="profile-edit__title">新建健康档案</view>
+    <view class="profile-edit__subtitle">先记录基础信息，后续就能为 TA 添加血压记录。</view>
+  </view>
+
+  <view class="card profile-edit__form">
+    <view class="form-item">
+      <view class="form-label">姓名 <text class="form-required">*</text></view>
+      <input
+        class="form-input"
+        value="{{form.name}}"
+        maxlength="21"
+        placeholder="请输入姓名"
+        placeholder-class="form-placeholder"
+        bindinput="onNameInput"
+      />
+      <view class="form-help">1-20 个字，例如：爸爸、妈妈、我自己</view>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">与你的关系</view>
+      <picker mode="selector" range="{{relationOptions}}" value="{{relationIndex}}" bindchange="onRelationChange">
+        <view class="form-picker {{form.relation ? '' : 'form-picker--empty'}}">
+          {{form.relation || '请选择关系'}}
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">性别</view>
+      <view class="gender-options">
+        <view
+          wx:for="{{genderOptions}}"
+          wx:key="value"
+          class="gender-option {{form.gender === item.value ? 'gender-option--active' : ''}}"
+          data-value="{{item.value}}"
+          bindtap="onGenderTap"
+        >
+          {{item.label}}
+        </view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">出生日期</view>
+      <picker mode="date" value="{{form.birthDate}}" bindchange="onBirthDateChange">
+        <view class="form-picker {{form.birthDate ? '' : 'form-picker--empty'}}">
+          {{form.birthDate || '请选择出生日期'}}
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">备注</view>
+      <textarea
+        class="form-textarea"
+        value="{{form.note}}"
+        maxlength="200"
+        placeholder="可填写用药习惯、测量注意事项等"
+        placeholder-class="form-placeholder"
+        bindinput="onNoteInput"
+      />
+      <view class="form-help">最多 200 个字</view>
+    </view>
+  </view>
+
+  <view class="profile-edit__actions">
+    <button
+      class="btn-primary profile-edit__button"
+      loading="{{isSaving}}"
+      disabled="{{isSaving}}"
+      bindtap="handleSubmit"
+    >
+      保存
+    </button>
+    <button
+      class="btn-secondary profile-edit__button"
+      disabled="{{isSaving}}"
+      bindtap="handleCancel"
+    >
+      取消
+    </button>
+  </view>
 </view>

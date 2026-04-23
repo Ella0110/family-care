@@ -39,11 +39,15 @@ function snapshot() {
 function resolveCurrentProfileId(nextState) {
   const profileIds = nextState.profiles.map((profile) => profile && profile._id).filter(Boolean);
 
+  if (!nextState.currentProfileId) {
+    return null;
+  }
+
   if (profileIds.includes(nextState.currentProfileId)) {
     return nextState.currentProfileId;
   }
 
-  return profileIds[0] || null;
+  return null;
 }
 
 const store = {

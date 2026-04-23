@@ -1,1 +1,108 @@
+.profile-edit__header {
+  padding: 16rpx 4rpx 32rpx;
+}
 
+.profile-edit__title {
+  color: #111827;
+  font-size: 48rpx;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.profile-edit__subtitle {
+  margin-top: 14rpx;
+  color: #4b5563;
+  font-size: 32rpx;
+  line-height: 1.55;
+}
+
+.profile-edit__form {
+  padding: 36rpx 32rpx;
+}
+
+.form-item + .form-item {
+  margin-top: 36rpx;
+}
+
+.form-label {
+  margin-bottom: 14rpx;
+  color: #111827;
+  font-size: 34rpx;
+  font-weight: 700;
+}
+
+.form-required {
+  color: #b42318;
+}
+
+.form-input,
+.form-picker,
+.form-textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 96rpx;
+  padding: 24rpx 28rpx;
+  border: 2rpx solid #bfdbfe;
+  border-radius: 24rpx;
+  background: #f8fbff;
+  color: #111827;
+  font-size: 34rpx;
+  line-height: 1.45;
+}
+
+.form-picker {
+  display: flex;
+  align-items: center;
+}
+
+.form-picker--empty,
+.form-placeholder {
+  color: #8a95a6;
+}
+
+.form-textarea {
+  min-height: 180rpx;
+}
+
+.form-help {
+  margin-top: 10rpx;
+  color: #6b7280;
+  font-size: 26rpx;
+}
+
+.gender-options {
+  display: flex;
+  gap: 20rpx;
+}
+
+.gender-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 92rpx;
+  border: 2rpx solid #bfdbfe;
+  border-radius: 24rpx;
+  background: #f8fbff;
+  color: #1f2937;
+  font-size: 34rpx;
+  font-weight: 700;
+}
+
+.gender-option--active {
+  border-color: #1d4ed8;
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.profile-edit__actions {
+  padding: 32rpx 0;
+}
+
+.profile-edit__button + .profile-edit__button {
+  margin-top: 20rpx;
+}
+
+.profile-edit__button::after {
+  border: 0;
+}

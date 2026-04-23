@@ -34,18 +34,46 @@ function normalizeLoginPayload(result = {}) {
     user: result.user || null,
     profiles,
     relationships,
-    currentProfileId: profiles[0] ? profiles[0]._id : null,
+    currentProfileId: null,
   };
 }
 
 App({
   globalData: {
     store,
+    loginReady: false,
+    loginError: null,
+  },
+
+  async login() {
+    try {
+      const result = await call('login', {}, { silent: true });
+      const nextState = normalizeLoginPayload(result);
+
+      this.globalData.loginReady = true;
+      this.globalData.loginError = null;
+      store.setState(nextState);
+
+      return nextState;
+    } catch (error) {
+      this.globalData.loginReady = true;
+      this.globalData.loginError = error;
+      store.setState({
+        user: null,
+        profiles: [],
+        relationships: [],
+        currentProfileId: null,
+      });
+
+      throw error;
+    }
   },
 
   async onLaunch() {
     if (!wx.cloud) {
       console.error('wx.cloud is not available in the current environment.');
+      this.globalData.loginReady = true;
+      this.globalData.loginError = new Error('wx.cloud is not available');
       return;
     }
 
@@ -57,21 +85,16 @@ App({
         traceUser: true,
       });
     } catch (error) {
-      console.warn('Cloud init skipped during T0 bootstrap.', error);
+      this.globalData.loginReady = true;
+      this.globalData.loginError = error;
+      console.warn('Cloud init failed.', error);
       return;
     }
 
     try {
-      const result = await call('login', {}, { silent: true });
-      store.setState(normalizeLoginPayload(result));
+      await this.login();
     } catch (error) {
-      store.setState({
-        user: null,
-        profiles: [],
-        relationships: [],
-        currentProfileId: null,
-      });
-      console.warn('Initial login skipped during T0 bootstrap.', error);
+      console.warn('Initial login failed.', error);
     }
   },
 });

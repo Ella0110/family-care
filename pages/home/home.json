@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "来自儿女的关心"
+  "navigationBarTitleText": "来自儿女的关心",
+  "usingComponents": {
+    "empty-state": "/components/empty-state/empty-state"
+  }
 }

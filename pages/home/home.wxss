@@ -1,1 +1,35 @@
+.home-loading,
+.home-failed,
+.home-profile {
+  margin-top: 32rpx;
+}
 
+.home-loading__title,
+.home-failed__title,
+.home-profile__title {
+  color: #111827;
+  font-size: 44rpx;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.home-loading__text,
+.home-failed__text,
+.home-profile__placeholder {
+  margin-top: 16rpx;
+  color: #4b5563;
+  font-size: 32rpx;
+  line-height: 1.55;
+}
+
+.home-failed__button,
+.home-profile__button {
+  margin-top: 40rpx;
+}
+
+.home-profile__eyebrow {
+  margin-bottom: 12rpx;
+  color: #1d4ed8;
+  font-size: 28rpx;
+  font-weight: 700;
+}

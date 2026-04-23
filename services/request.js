@@ -16,7 +16,11 @@ function toError(error) {
   }
 
   if (error && typeof error === 'object' && typeof error.message === 'string') {
-    return new Error(error.message);
+    const nextError = new Error(error.message);
+    if (typeof error.code === 'string') {
+      nextError.code = error.code;
+    }
+    return nextError;
   }
 
   return new Error('网络异常');
@@ -46,7 +50,12 @@ async function call(name, data = {}, options = {}) {
     const result = res && res.result;
 
     if (!result || result.success !== true) {
-      throw new Error((result && result.message) || '服务异常');
+      const error = new Error((result && result.message) || '服务异常');
+      if (result && typeof result.code === 'string') {
+        error.code = result.code;
+      }
+      error.result = result;
+      throw error;
     }
 
     return result;
