@@ -108,6 +108,17 @@ T1 阶段只实现 `type = 'bp'`。
 
 ## 数据库初始化方式
 
-当前阶段采用“微信开发者工具手动创建集合与索引”的方式完成初始化，不走 `scripts/init-db.js`。脚本保留作为集合/索引定义的权威文档。
+本地初始化与 CI/CD 自动化部署均使用 `scripts/init-db.js`。所需凭据：
 
-未来如启用 CI/CD 自动化部署，可复用 `init-db.js`，届时需补充 TCB API 凭据配置（`SecretId` / `SecretKey` / `envId`）。
+- `TCB_ENV_ID`：云开发环境 ID
+- `TENCENTCLOUD_SECRET_ID / TENCENTCLOUD_SECRET_KEY`：建议使用 CAM 子账号密钥，授权策略 `QcloudTCBFullAccess`，不要使用主账号密钥
+
+本地开发通过 `.env` 注入密钥类环境变量；`TCB_ENV_ID` 可直接从环境变量读取，未提供时回退到 `local.config.js`（该文件在 `.gitignore` 中）。CI/CD 环境统一从环境变量读取。
+
+密钥安全约定：
+
+- 绝不提交 `local.config.js` 到 git
+- 绝不提交 `.env` 到 git
+- CI/CD 环境使用 Secret 变量存储
+- 定期轮换（3-6 个月）
+- 泄露后立即在 CAM 控制台禁用
