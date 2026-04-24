@@ -1,1 +1,199 @@
+.medication-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  margin: -32rpx -32rpx 28rpx;
+  padding: 28rpx 32rpx 24rpx;
+  background: #f5f5f5;
+}
 
+.medication-header__back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 96rpx;
+  height: 64rpx;
+  border-radius: 999rpx;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.medication-header__text {
+  flex: 1;
+}
+
+.medication-header__title {
+  color: #111827;
+  font-size: 42rpx;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.medication-header__subtitle {
+  margin-top: 6rpx;
+  color: #4b5563;
+  font-size: 28rpx;
+}
+
+.medication-profile-lock {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 18rpx;
+  margin-bottom: 24rpx;
+  padding: 22rpx 28rpx;
+  border-radius: 24rpx;
+  background: #eaf2ff;
+}
+
+.medication-profile-lock__label,
+.medication-profile-lock__hint {
+  color: #4b5563;
+  font-size: 28rpx;
+}
+
+.medication-profile-lock__name {
+  color: #111827;
+  font-size: 32rpx;
+  font-weight: 800;
+}
+
+.medication-loading {
+  margin-bottom: 24rpx;
+  color: #4b5563;
+  font-size: 30rpx;
+}
+
+.medication-form {
+  padding: 36rpx 32rpx;
+}
+
+.form-item + .form-item {
+  margin-top: 38rpx;
+}
+
+.form-label {
+  margin-bottom: 16rpx;
+  color: #111827;
+  font-size: 34rpx;
+  font-weight: 700;
+}
+
+.form-required,
+.medication-error {
+  color: #b42318;
+}
+
+.form-input,
+.picker-field,
+.form-textarea {
+  box-sizing: border-box;
+  width: 100%;
+  border: 2rpx solid #bfdbfe;
+  border-radius: 24rpx;
+  background: #f8fbff;
+}
+
+.form-input {
+  min-height: 96rpx;
+  padding: 0 28rpx;
+  color: #111827;
+  font-size: 34rpx;
+  font-weight: 600;
+}
+
+.form-input--custom {
+  margin-top: 18rpx;
+}
+
+.picker-field {
+  display: flex;
+  align-items: center;
+  min-height: 96rpx;
+  padding: 0 28rpx;
+  color: #111827;
+  font-size: 34rpx;
+  font-weight: 600;
+}
+
+.picker-field.is-placeholder {
+  color: #9ca3af;
+}
+
+.date-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 18rpx;
+  align-items: center;
+}
+
+.date-clear {
+  flex-shrink: 0;
+  min-width: 88rpx;
+  color: #1d4ed8;
+  font-size: 28rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+.form-textarea {
+  min-height: 200rpx;
+  padding: 24rpx 28rpx;
+  color: #111827;
+  font-size: 32rpx;
+  line-height: 1.5;
+}
+
+.form-placeholder {
+  color: #9ca3af;
+}
+
+.form-help {
+  margin-top: 10rpx;
+  color: #6b7280;
+  font-size: 26rpx;
+}
+
+.medication-actions {
+  padding: 32rpx 0;
+}
+
+.medication-error {
+  margin-bottom: 20rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 20rpx;
+  background: #fee2e2;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.medication-button + .medication-button {
+  margin-top: 20rpx;
+}
+
+.medication-button::after {
+  border: 0;
+}
+
+.medication-delete-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 96rpx;
+  margin-top: 20rpx;
+  padding: 0 32rpx;
+  border-radius: 24rpx;
+  background: #fee2e2;
+  color: #b42318;
+  font-size: 36rpx;
+  font-weight: 800;
+}
+
+.medication-delete-button::after {
+  border: 0;
+}

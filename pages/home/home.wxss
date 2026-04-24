@@ -188,6 +188,10 @@
   margin-top: 20rpx;
 }
 
+.home-medication-card {
+  margin-top: 20rpx;
+}
+
 .home-record-card__top {
   display: flex;
   align-items: center;
@@ -242,4 +246,66 @@
   font-size: 30rpx;
   font-weight: 700;
   text-align: center;
+}
+
+.home-medication-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24rpx;
+}
+
+.home-medication-card__title {
+  color: #111827;
+  font-size: 36rpx;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.home-medication-card__subtitle {
+  margin-top: 8rpx;
+  color: #6b7280;
+  font-size: 28rpx;
+}
+
+.home-medication-card__add {
+  flex-shrink: 0;
+  color: #1d4ed8;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.home-medication-card__placeholder,
+.home-medication-card__error {
+  margin-top: 24rpx;
+  color: #4b5563;
+  font-size: 30rpx;
+  line-height: 1.6;
+}
+
+.home-medication-card__retry,
+.home-medication-history__toggle,
+.home-medication-card__link {
+  color: #1d4ed8;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.home-medication-card__link {
+  margin-top: 20rpx;
+  text-align: center;
+}
+
+.home-medication-card__error .home-medication-card__retry {
+  margin-top: 14rpx;
+}
+
+.home-medication-history {
+  margin-top: 24rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid #e5e7eb;
+}
+
+.home-medication-history__list {
+  margin-top: 12rpx;
 }

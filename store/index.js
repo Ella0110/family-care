@@ -4,7 +4,7 @@
  * @property {Array<Object>} profiles
  * @property {Array<Object>} relationships
  * @property {string|null} currentProfileId
- * @property {{ profiles: Array<Object>, latestRecords: Object<string, Object>, records: Object<string, Object> }} cache
+ * @property {{ profiles: Array<Object>, latestRecords: Object<string, Object>, records: Object<string, Object>, medications: Object<string, Object> }} cache
  */
 
 /** @type {StoreState} */
@@ -17,6 +17,7 @@ const state = {
     profiles: [],
     latestRecords: {},
     records: {},
+    medications: {},
   },
 };
 
@@ -27,6 +28,7 @@ function cloneCache(cache) {
     profiles: Array.isArray(cache.profiles) ? cache.profiles.slice() : [],
     latestRecords: Object.assign({}, cache.latestRecords || {}),
     records: Object.assign({}, cache.records || {}),
+    medications: Object.assign({}, cache.medications || {}),
   };
 }
 
@@ -36,6 +38,7 @@ function pruneCacheForProfiles(cache, profiles) {
     profiles: Array.isArray(profiles) ? profiles.slice() : [],
     latestRecords: {},
     records: {},
+    medications: {},
   };
 
   Object.keys(cache.latestRecords || {}).forEach((profileId) => {
@@ -47,6 +50,12 @@ function pruneCacheForProfiles(cache, profiles) {
   Object.keys(cache.records || {}).forEach((profileId) => {
     if (profileIds.has(profileId)) {
       nextCache.records[profileId] = cache.records[profileId];
+    }
+  });
+
+  Object.keys(cache.medications || {}).forEach((profileId) => {
+    if (profileIds.has(profileId)) {
+      nextCache.medications[profileId] = cache.medications[profileId];
     }
   });
 
@@ -212,6 +221,52 @@ const store = {
     state.cache.records = Object.assign({}, state.cache.records, {
       [profileId]: {
         records: Array.isArray(records) ? records.slice() : [],
+        fetchedAt: Date.now(),
+      },
+    });
+
+    return notify();
+  },
+
+  /**
+   * @param {string} profileId
+   * @returns {boolean}
+   */
+  hasCachedMedications(profileId) {
+    return Object.prototype.hasOwnProperty.call(state.cache.medications, profileId);
+  },
+
+  /**
+   * @param {string} profileId
+   * @returns {{ active: Array<Object>, historical: Array<Object> }|null}
+   */
+  getCachedMedications(profileId) {
+    const entry = state.cache.medications[profileId];
+
+    if (!entry) {
+      return null;
+    }
+
+    return {
+      active: Array.isArray(entry.active) ? entry.active.slice() : [],
+      historical: Array.isArray(entry.historical) ? entry.historical.slice() : [],
+    };
+  },
+
+  /**
+   * @param {string} profileId
+   * @param {{ active: Array<Object>, historical: Array<Object> }} groups
+   * @returns {StoreState}
+   */
+  setCachedMedications(profileId, groups) {
+    if (!profileId) {
+      return snapshot();
+    }
+
+    state.cache.medications = Object.assign({}, state.cache.medications, {
+      [profileId]: {
+        active: Array.isArray(groups && groups.active) ? groups.active.slice() : [],
+        historical: Array.isArray(groups && groups.historical) ? groups.historical.slice() : [],
         fetchedAt: Date.now(),
       },
     });

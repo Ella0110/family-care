@@ -41,18 +41,17 @@ function createPageInstance(config) {
   return page;
 }
 
-assert.deepStrictEqual(ERROR_MESSAGES, {
-  NETWORK: '网络异常，请稍后再试',
-  AUTH_REQUIRED: '登录状态异常，请重试',
-  PERMISSION_DENIED: '没有操作权限',
-  INVALID_ARGUMENT: '输入有误，请检查',
-  USER_NOT_FOUND: '用户不存在',
-  PROFILE_NOT_FOUND: '档案不存在',
-  RECORD_NOT_FOUND: '记录不存在',
-  NOT_IMPLEMENTED: '该功能正在开发中',
-  INTERNAL_ERROR: '服务异常，请稍后再试',
-  UNKNOWN: '操作失败，请重试',
-});
+assert.strictEqual(ERROR_MESSAGES.NETWORK, '网络异常，请稍后再试');
+assert.strictEqual(ERROR_MESSAGES.AUTH_REQUIRED, '登录状态异常，请重试');
+assert.strictEqual(ERROR_MESSAGES.PERMISSION_DENIED, '没有操作权限');
+assert.strictEqual(ERROR_MESSAGES.INVALID_ARGUMENT, '输入有误，请检查');
+assert.strictEqual(ERROR_MESSAGES.USER_NOT_FOUND, '用户不存在');
+assert.strictEqual(ERROR_MESSAGES.PROFILE_NOT_FOUND, '档案不存在');
+assert.strictEqual(ERROR_MESSAGES.RECORD_NOT_FOUND, '记录不存在');
+assert.strictEqual(ERROR_MESSAGES.MEDICATION_NOT_FOUND, '用药记录不存在');
+assert.strictEqual(ERROR_MESSAGES.NOT_IMPLEMENTED, '该功能正在开发中');
+assert.strictEqual(ERROR_MESSAGES.INTERNAL_ERROR, '服务异常，请稍后再试');
+assert.strictEqual(ERROR_MESSAGES.UNKNOWN, '操作失败，请重试');
 
 assert.match(read('services/request.js'), /REQUEST STORM WARNING/);
 assert.match(read('pages/home/home.wxml'), /关注的家人/);

@@ -120,5 +120,67 @@
       <button class="btn-primary home-profile__button" bindtap="handleAddRecord">录入血压</button>
       <view class="home-record-card__link" bindtap="handleViewRecords">查看所有记录</view>
     </view>
+
+    <view class="card home-medication-card">
+      <view class="home-medication-card__header">
+        <view>
+          <view class="home-medication-card__title">用药管理</view>
+          <view class="home-medication-card__subtitle">长期用药会显示在这里</view>
+        </view>
+        <view class="home-medication-card__add" bindtap="handleAddMedication">+ 添加用药</view>
+      </view>
+
+      <view wx:if="{{isLoadingMedications}}" class="home-medication-card__placeholder">正在读取用药...</view>
+
+      <view wx:elif="{{medicationError}}" class="home-medication-card__error">
+        <view>{{medicationError}}</view>
+        <view class="home-medication-card__retry" bindtap="loadMedicationsForActiveProfile">重试</view>
+      </view>
+
+      <view wx:elif="{{!hasAnyMedications}}" class="home-medication-card__placeholder">
+        TA 还没有长期用药
+      </view>
+
+      <view wx:else>
+        <view wx:if="{{visibleActiveMedications.length > 0}}">
+          <medication-item
+            wx:for="{{visibleActiveMedications}}"
+            wx:key="_id"
+            medication="{{item}}"
+            bind:tapitem="handleMedicationTap"
+          />
+        </view>
+
+        <view
+          wx:elif="{{hasHistoricalMedications && !isShowAllMedications}}"
+          class="home-medication-card__placeholder"
+        >
+          当前没有正在服用的药物
+        </view>
+
+        <view
+          wx:if="{{showMedicationExpandButton}}"
+          class="home-medication-card__link"
+          bindtap="handleViewAllMedications"
+        >
+          {{medicationExpandText}}
+        </view>
+
+        <view wx:if="{{isShowAllMedications && hasHistoricalMedications}}" class="home-medication-history">
+          <view class="home-medication-history__toggle" bindtap="handleToggleHistoricalMedications">
+            {{isShowHistoricalMedications ? '收起' : '展开'}}历史用药（{{historicalMedicationCount}}）
+          </view>
+
+          <view wx:if="{{isShowHistoricalMedications}}" class="home-medication-history__list">
+            <medication-item
+              wx:for="{{historicalMedications}}"
+              wx:key="_id"
+              medication="{{item}}"
+              bind:tapitem="handleMedicationTap"
+            />
+          </view>
+        </view>
+      </view>
+    </view>
   </view>
 </view>

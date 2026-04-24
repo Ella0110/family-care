@@ -1,0 +1,11 @@
+<view class="medication-item {{clickable ? 'is-clickable' : ''}}" bindtap="onTap">
+  <view class="medication-item__top">
+    <view class="medication-item__title">
+      {{medication.drug}} · {{medication.dose}}
+    </view>
+    <view wx:if="{{isHistorical}}" class="medication-item__tag">已停用</view>
+  </view>
+
+  <view wx:if="{{subtitle}}" class="medication-item__subtitle">{{subtitle}}</view>
+  <view wx:if="{{medication.note}}" class="medication-item__note">{{medication.note}}</view>
+</view>

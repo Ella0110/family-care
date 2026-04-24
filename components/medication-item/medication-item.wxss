@@ -1,0 +1,56 @@
+.medication-item {
+  padding: 24rpx 0;
+}
+
+.medication-item + .medication-item {
+  border-top: 1rpx solid #e5e7eb;
+}
+
+.medication-item.is-clickable {
+  position: relative;
+}
+
+.medication-item__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.medication-item__title {
+  flex: 1;
+  color: #111827;
+  font-size: 32rpx;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.medication-item__tag {
+  flex-shrink: 0;
+  min-height: 48rpx;
+  padding: 0 16rpx;
+  border-radius: 999rpx;
+  background: #f3f4f6;
+  color: #6b7280;
+  font-size: 24rpx;
+  line-height: 48rpx;
+}
+
+.medication-item__subtitle {
+  margin-top: 10rpx;
+  color: #4b5563;
+  font-size: 28rpx;
+  line-height: 1.5;
+}
+
+.medication-item__note {
+  display: -webkit-box;
+  margin-top: 10rpx;
+  overflow: hidden;
+  color: #6b7280;
+  font-size: 26rpx;
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}

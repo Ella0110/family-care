@@ -6,6 +6,7 @@ const ERROR_MESSAGES = Object.freeze({
   USER_NOT_FOUND: '用户不存在',
   PROFILE_NOT_FOUND: '档案不存在',
   RECORD_NOT_FOUND: '记录不存在',
+  MEDICATION_NOT_FOUND: '用药记录不存在',
   NOT_IMPLEMENTED: '该功能正在开发中',
   INTERNAL_ERROR: '服务异常，请稍后再试',
   UNKNOWN: '操作失败，请重试',

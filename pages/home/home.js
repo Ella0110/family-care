@@ -1,5 +1,6 @@
 const { store } = require('../../store/index');
 const recordService = require('../../services/record-service');
+const medicationService = require('../../services/medication-service');
 const { getErrorMessage } = require('../../utils/error-messages');
 const { getBPStatusDisplay, getReferenceLines } = require('../../utils/bp-status');
 
@@ -73,6 +74,18 @@ Page({
     isLoadingLatestRecord: false,
     isLoadingProfileCards: false,
     latestRecordError: '',
+    activeMedications: [],
+    visibleActiveMedications: [],
+    historicalMedications: [],
+    hasAnyMedications: false,
+    hasHistoricalMedications: false,
+    showMedicationExpandButton: false,
+    medicationExpandText: '',
+    historicalMedicationCount: 0,
+    medicationError: '',
+    isLoadingMedications: false,
+    isShowAllMedications: false,
+    isShowHistoricalMedications: false,
     isLoginReady: false,
     isLoginFailed: false,
     loginErrorText: '',
@@ -108,10 +121,16 @@ Page({
 
   onHide() {
     this.isPageVisible = false;
+    this.clearMedicationLoadingTimer();
+    this.setData({
+      isShowAllMedications: false,
+      isShowHistoricalMedications: false,
+    });
   },
 
   onUnload() {
     this.isPageVisible = false;
+    this.clearMedicationLoadingTimer();
     if (this.unsubscribeStore) {
       this.unsubscribeStore();
       this.unsubscribeStore = null;
@@ -289,6 +308,153 @@ Page({
     };
   },
 
+  clearMedicationLoadingTimer() {
+    if (this.medicationLoadingTimer) {
+      clearTimeout(this.medicationLoadingTimer);
+      this.medicationLoadingTimer = null;
+    }
+  },
+
+  resetMedicationState() {
+    this.clearMedicationLoadingTimer();
+    this.medicationRequestId = (this.medicationRequestId || 0) + 1;
+    this.setData({
+      activeMedications: [],
+      visibleActiveMedications: [],
+      historicalMedications: [],
+      hasAnyMedications: false,
+      hasHistoricalMedications: false,
+      showMedicationExpandButton: false,
+      medicationExpandText: '',
+      historicalMedicationCount: 0,
+      medicationError: '',
+      isLoadingMedications: false,
+      isShowAllMedications: false,
+      isShowHistoricalMedications: false,
+    });
+  },
+
+  applyMedicationGroups(activeMedications, historicalMedications) {
+    const active = Array.isArray(activeMedications) ? activeMedications : [];
+    const historical = Array.isArray(historicalMedications) ? historicalMedications : [];
+    const visibleActiveMedications = this.data.isShowAllMedications ? active : active.slice(0, 3);
+    const hiddenActiveCount = Math.max(active.length - 3, 0);
+    const showMedicationExpandButton = !this.data.isShowAllMedications && (hiddenActiveCount > 0 || historical.length > 0);
+    let medicationExpandText = '';
+
+    if (showMedicationExpandButton) {
+      medicationExpandText = hiddenActiveCount > 0
+        ? `查看全部（${active.length}）`
+        : `查看历史用药（${historical.length}）`;
+    }
+
+    this.setData({
+      activeMedications: active,
+      visibleActiveMedications,
+      historicalMedications: historical,
+      hasAnyMedications: active.length > 0 || historical.length > 0,
+      hasHistoricalMedications: historical.length > 0,
+      showMedicationExpandButton,
+      medicationExpandText,
+      historicalMedicationCount: historical.length,
+      medicationError: '',
+      isLoadingMedications: false,
+    });
+  },
+
+  async loadMedicationsForActiveProfile() {
+    const profile = this.data.activeProfile;
+
+    if (!profile || !profile._id || this.data.viewState !== 'single' || this.data.isLoginFailed) {
+      this.resetMedicationState();
+      return;
+    }
+
+    const profileId = profile._id;
+    const requestId = (this.medicationRequestId || 0) + 1;
+    const hasCache = store.hasCachedMedications(profileId);
+    this.medicationRequestId = requestId;
+    this.clearMedicationLoadingTimer();
+    this.setData({
+      medicationError: '',
+      isShowAllMedications: false,
+      isShowHistoricalMedications: false,
+    });
+
+    if (hasCache) {
+      const cachedGroups = store.getCachedMedications(profileId);
+      this.applyMedicationGroups(cachedGroups.active, cachedGroups.historical);
+    } else {
+      this.setData({
+        activeMedications: [],
+        visibleActiveMedications: [],
+        historicalMedications: [],
+        hasAnyMedications: false,
+        hasHistoricalMedications: false,
+        showMedicationExpandButton: false,
+        medicationExpandText: '',
+        historicalMedicationCount: 0,
+        isLoadingMedications: false,
+      });
+
+      this.medicationLoadingTimer = setTimeout(() => {
+        if (
+          this.medicationRequestId !== requestId ||
+          !this.data.activeProfile ||
+          this.data.activeProfile._id !== profileId ||
+          this.data.viewState !== 'single'
+        ) {
+          return;
+        }
+
+        this.setData({ isLoadingMedications: true });
+      }, 300);
+    }
+
+    await medicationService.loadMedications(profileId, {
+      onCacheHit: (groups) => {
+        if (
+          this.medicationRequestId !== requestId ||
+          !this.data.activeProfile ||
+          this.data.activeProfile._id !== profileId
+        ) {
+          return;
+        }
+
+        this.applyMedicationGroups(groups.active, groups.historical);
+      },
+      onFresh: (groups) => {
+        if (
+          this.medicationRequestId !== requestId ||
+          !this.data.activeProfile ||
+          this.data.activeProfile._id !== profileId
+        ) {
+          return;
+        }
+
+        this.clearMedicationLoadingTimer();
+        this.applyMedicationGroups(groups.active, groups.historical);
+      },
+      onError: (error) => {
+        if (
+          this.medicationRequestId !== requestId ||
+          !this.data.activeProfile ||
+          this.data.activeProfile._id !== profileId
+        ) {
+          return;
+        }
+
+        this.clearMedicationLoadingTimer();
+        if (!hasCache) {
+          this.setData({
+            medicationError: getErrorMessage(error),
+            isLoadingMedications: false,
+          });
+        }
+      },
+    });
+  },
+
   async loadLatestRecord() {
     const profile = this.data.activeProfile;
 
@@ -430,13 +596,25 @@ Page({
     });
   },
 
-  loadRecordsForCurrentView() {
+  loadDataForCurrentView() {
     if (this.data.viewState === 'multi') {
       this.loadLatestRecordsForProfiles();
+      this.resetMedicationState();
+      return;
+    }
+
+    if (this.data.viewState !== 'single') {
+      this.loadLatestRecord();
+      this.resetMedicationState();
       return;
     }
 
     this.loadLatestRecord();
+    this.loadMedicationsForActiveProfile();
+  },
+
+  loadRecordsForCurrentView() {
+    this.loadDataForCurrentView();
   },
 
   handleCreateProfile() {
@@ -461,6 +639,22 @@ Page({
     });
   },
 
+  handleAddMedication() {
+    const profile = this.data.activeProfile;
+
+    if (!profile || !profile._id) {
+      wx.showToast({
+        title: '请先创建档案',
+        icon: 'none',
+      });
+      return;
+    }
+
+    wx.navigateTo({
+      url: `/pages/medication-edit/medication-edit?mode=create&profileId=${profile._id}`,
+    });
+  },
+
   handleViewRecords() {
     const profile = this.data.activeProfile;
 
@@ -479,11 +673,49 @@ Page({
 
   handleProfileCardTap(event) {
     const profileId = event.currentTarget.dataset.profileId;
+    this.setData({
+      isShowAllMedications: false,
+      isShowHistoricalMedications: false,
+    });
     store.setCurrentProfileId(profileId);
   },
 
   handleReturnToProfileList() {
+    this.setData({
+      isShowAllMedications: false,
+      isShowHistoricalMedications: false,
+    });
     store.setCurrentProfileId(null);
+  },
+
+  handleViewAllMedications() {
+    this.setData({
+      isShowAllMedications: true,
+    });
+    this.applyMedicationGroups(this.data.activeMedications, this.data.historicalMedications);
+  },
+
+  handleToggleHistoricalMedications() {
+    this.setData({
+      isShowHistoricalMedications: !this.data.isShowHistoricalMedications,
+    });
+  },
+
+  handleMedicationTap(event) {
+    const medication = event.detail && event.detail.medication;
+    const profile = this.data.activeProfile;
+
+    if (!medication || !medication._id || !profile || !profile._id) {
+      wx.showToast({
+        title: '用药不存在，请刷新',
+        icon: 'none',
+      });
+      return;
+    }
+
+    wx.navigateTo({
+      url: `/pages/medication-edit/medication-edit?mode=edit&profileId=${profile._id}&medicationId=${medication._id}`,
+    });
   },
 
   async handleRetryLogin() {
