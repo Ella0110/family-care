@@ -55,9 +55,34 @@ function parseOptionalClientDateInput(value, fieldName) {
   return parseClientDateInput(value, fieldName);
 }
 
+/**
+ * Formats a date into YYYY-MM-DD in China timezone (UTC+8).
+ *
+ * @param {Date} [value=new Date()]
+ * @returns {string}
+ */
+function formatDateInChinaTimezone(value = new Date()) {
+  const date = value instanceof Date ? value : new Date(value);
+  const chinaTime = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+  const year = chinaTime.getUTCFullYear();
+  const month = String(chinaTime.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(chinaTime.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * @param {Date} [value=new Date()]
+ * @returns {string}
+ */
+function getTodayInChinaTimezone(value = new Date()) {
+  return formatDateInChinaTimezone(value);
+}
+
 module.exports = {
   MIN_CLIENT_TIMESTAMP,
   MAX_FUTURE_SKEW_MS,
   parseClientDateInput,
   parseOptionalClientDateInput,
+  formatDateInChinaTimezone,
+  getTodayInChinaTimezone,
 };

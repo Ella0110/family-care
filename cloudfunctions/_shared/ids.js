@@ -61,8 +61,16 @@ function generateInvitationId() {
   return generatePrefixedId('inv_');
 }
 
+/**
+ * @returns {string}
+ */
+function generateMedicationId() {
+  return generatePrefixedId('m_');
+}
+
 module.exports = {
   generateProfileId,
   generateRelationshipId,
   generateInvitationId,
+  generateMedicationId,
 };
