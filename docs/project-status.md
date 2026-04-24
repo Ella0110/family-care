@@ -1,0 +1,77 @@
+# 来自儿女的关心（family-care）项目状态
+
+## 当前阶段
+- 已完成：T0、T1、T2.1-T2.6、T3.1a
+- 当前切入点：T3.1b（medication 前端接入，尚未开始编码）
+- 未开始：T3.1b、T3.2、T3.3、T4、T5、T6
+
+## 核心模型（Path B）
+- 三表核心：`users`、`profiles`、`relationships`
+- 一个用户可通过 `relationships` 关联多个 `profile`
+- 无“家庭”中间层，关系直接挂在用户与档案之间
+- 选 Path B 而不是 Path C：没有历史用户包袱，可以直接按新模型重开
+
+## 数据模型
+- `users`：`_id/openId`、`nickname`、`avatarUrl`、`settings`、`createdAt`、`updatedAt`、`lastActiveAt`
+- `profiles`：`_id`、`name`、`relation`、`gender`、`birthDate`、`note`、`emergencyContact`、`settings.bp`、`createdBy`、`createdAt`、`updatedAt`、`deletedAt`
+- `relationships`：`_id`、`userId`、`profileId`、`role`、`permissions`、`subscribeAlerts`、`createdAt`、`updatedAt`
+- `records`：`_id`、`profileId`、`type`、`measuredAt`、`payload`、`period`、`note`、`recordedBy`、`recordedByName`、`createdAt`、`updatedAt`、`deletedAt`
+- `medications`：`_id`、`profileId`、`drug`、`dose`、`frequency`、`timing`、`startDate`、`endDate`、`note`、`addedBy`、`createdAt`、`updatedAt`、`deletedAt`
+- `invitations`：`_id`、`profileId`、`token`、`status`、`role`、`permissions`、`expiresAt`、`createdBy`、`createdAt`、`updatedAt`
+
+详细契约见 [t1-contracts.md](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/docs/t1-contracts.md:1)。
+
+## 云函数清单
+- `login`：按 `OPENID` 查或建用户，返回用户、关系和已 join 的档案
+- `createProfile`：创建档案，并在同一事务内创建 owner relationship
+- `updateProfile`：更新档案基本资料
+- `deleteProfile`：软删除档案
+- `updateProfileSettings`：更新档案 `settings`
+- `saveRecord`：保存血压记录并返回 `alertTriggered/alertSentTo`
+- `getRecords`：读取血压记录列表
+- `updateRecord`：更新单条血压记录
+- `deleteRecord`：软删除单条血压记录
+- `listMedications`：按东八区“今天”把用药分为 active / historical
+- `saveMedication`：创建或更新用药
+- `deleteMedication`：软删除用药
+
+云函数部署与打包约定见 [deployment-notes.md](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/docs/deployment-notes.md:1)。
+
+## 前端架构
+- 页面：
+  - 已接业务：`home`、`profile-edit`、`record`、`records-list`
+  - 骨架待接：`medication-edit`、`profile-detail`、`profile-settings`、`profile-members`、`invite-create`、`invite-accept`、`report`、`user-settings`
+- 服务层：`services/request.js`、`services/profile-service.js`、`services/record-service.js`
+- 全局 store：手写轻量订阅式 store，提供 `getState / setState / subscribe`
+- 缓存策略：T2.5 引入 SWR，缓存按 `profileId` 隔离，首页与记录列表先读缓存再后台刷新
+- 错误处理：T2.6 引入统一错误文案映射与开发环境请求风暴告警
+
+## 关键工程约定
+- 云函数 `_shared` 源码保留在 `cloudfunctions/_shared/`，部署前通过构建脚本复制到每个函数目录
+- 前端绝不引用云函数代码或 `cloudfunctions/_shared/*`
+- 三层自验 gate：
+  - 本地逻辑层
+  - 部署单元层
+  - DevTools 真实环境烟测层
+- 写操作优先做本地缓存即时更新，避免整包失效带来的明显 loading 回退
+- 仅在开发环境开启请求频率告警，生产环境不做额外监控输出
+
+## 踩过的坑与教训
+- T1 打包坑：微信云函数上传只打包当前函数目录，`../_shared` 在云端会失效
+- T1 依赖坑：曾出现跨目录依赖（`deleteRecord` 依赖 `updateRecord`），必须改成 shared helper
+- T1 运行时坑：函数目录未带 `wx-server-sdk` manifest 时，前端会看到“服务端 SDK 不可用”类报错
+- T1 真实语义坑：本地 fake runtime 早期与真实云数据库行为不一致，掩盖了 `doc().get()` 和 `doc().set()` 边界问题
+- T2.5 请求风暴：把 cache 写进 store 后若订阅逻辑不收敛，会触发首页循环刷新和调用量异常放大
+
+## 产品决策记录
+- Path B vs Path C：选 B，因为没有历史用户，可以按新模型干净重开
+- 用药采用“长期用药清单”模式，不做服药打卡；避免把“计划”与“日志”两种模型混在 V1
+- V1 不做 PDF 导出、不做血糖记录、不做漏服药提醒，先把血压与档案主链路跑通
+
+## 已决定但未实施的优化
+- 候选性能优化见 [future-optimizations.md](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/docs/future-optimizations.md:1)
+- 当前已记录：多档案首页批量查询 `getHomeSummary`，启动条件是日均调用接近免费额度 50%
+
+## 视觉设计决策
+- 视觉整体打磨推迟到 T6
+- T2.6 只做产品细节与话术统一，不做颜色、字号、间距、动画层面的统一重构
