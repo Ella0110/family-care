@@ -3,6 +3,35 @@ const authModule = require('./_shared/auth');
 const { assertNonEmptyString } = require('./_shared/validation');
 const { normalizeProfilePatch } = require('./_shared/profile-utils');
 
+function mergeEmergencyContact(currentEmergencyContact, patchEmergencyContact) {
+  if (patchEmergencyContact === undefined) {
+    return currentEmergencyContact === undefined ? null : currentEmergencyContact;
+  }
+
+  if (patchEmergencyContact === null) {
+    return null;
+  }
+
+  const current = currentEmergencyContact && typeof currentEmergencyContact === 'object'
+    ? currentEmergencyContact
+    : {};
+
+  const next = {
+    name: Object.prototype.hasOwnProperty.call(patchEmergencyContact, 'name')
+      ? patchEmergencyContact.name
+      : (current.name || null),
+    phone: Object.prototype.hasOwnProperty.call(patchEmergencyContact, 'phone')
+      ? patchEmergencyContact.phone
+      : (current.phone || null),
+  };
+
+  if (!next.name && !next.phone) {
+    return null;
+  }
+
+  return next;
+}
+
 /**
  * @param {{ db?: any, auth?: any, now?: () => Date }} [deps]
  * @returns {(event: Object, context: Object) => Promise<Object>}
@@ -20,12 +49,22 @@ function createUpdateProfileHandler(deps = {}) {
     await auth.requireOwnerOrPermission(user._id, profileId, 'canEditProfile');
     const profile = await auth.getActiveProfile(profileId);
 
-    const nextProfile = Object.assign({}, profile, patch, {
+    const nextPatch = Object.assign({}, patch);
+
+    if (Object.prototype.hasOwnProperty.call(nextPatch, 'emergencyContact')) {
+      nextPatch.emergencyContact = mergeEmergencyContact(profile.emergencyContact, nextPatch.emergencyContact);
+    }
+
+    const nextProfile = Object.assign({}, profile, nextPatch, {
+      emergencyContact: mergeEmergencyContact(profile.emergencyContact, nextPatch.emergencyContact),
+      longTermMedication: Object.prototype.hasOwnProperty.call(nextPatch, 'longTermMedication')
+        ? nextPatch.longTermMedication
+        : (profile.longTermMedication === undefined ? null : profile.longTermMedication),
       updatedAt: now(),
     });
 
     await database.collection(COLLECTIONS.PROFILES).doc(profileId).update({
-      data: Object.assign({}, patch, { updatedAt: nextProfile.updatedAt }),
+      data: Object.assign({}, nextPatch, { updatedAt: nextProfile.updatedAt }),
     });
 
     return {

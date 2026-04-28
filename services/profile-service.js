@@ -15,6 +15,22 @@ async function createProfile(data) {
   };
 }
 
+/**
+ * Updates a profile through the unified request layer.
+ *
+ * @param {string} profileId
+ * @param {Object} patch
+ * @returns {Promise<{ profile: Object }>}
+ */
+async function updateProfile(profileId, patch) {
+  const result = await call('updateProfile', { profileId, patch }, { silent: true });
+
+  return {
+    profile: result.profile,
+  };
+}
+
 module.exports = {
   createProfile,
+  updateProfile,
 };

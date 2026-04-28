@@ -5,6 +5,7 @@
  * @property {Array<Object>} relationships
  * @property {string|null} currentProfileId
  * @property {{ profiles: Array<Object>, latestRecords: Object<string, Object>, records: Object<string, Object>, medications: Object<string, Object> }} cache
+ * @property {{ dismissedProfileCompletionHints: Object<string, boolean> }} session
  */
 
 /** @type {StoreState} */
@@ -19,6 +20,9 @@ const state = {
     records: {},
     medications: {},
   },
+  session: {
+    dismissedProfileCompletionHints: {},
+  },
 };
 
 const listeners = new Set();
@@ -29,6 +33,12 @@ function cloneCache(cache) {
     latestRecords: Object.assign({}, cache.latestRecords || {}),
     records: Object.assign({}, cache.records || {}),
     medications: Object.assign({}, cache.medications || {}),
+  };
+}
+
+function cloneSession(session) {
+  return {
+    dismissedProfileCompletionHints: Object.assign({}, session && session.dismissedProfileCompletionHints || {}),
   };
 }
 
@@ -80,6 +90,7 @@ function snapshot() {
     relationships: state.relationships.slice(),
     currentProfileId: state.currentProfileId,
     cache: cloneCache(state.cache),
+    session: cloneSession(state.session),
   };
 }
 
@@ -125,9 +136,17 @@ const store = {
     nextState.profiles = Array.isArray(nextState.profiles) ? nextState.profiles : [];
     nextState.relationships = Array.isArray(nextState.relationships) ? nextState.relationships : [];
     nextState.cache = cloneCache(nextState.cache || state.cache);
+    nextState.session = cloneSession(nextState.session || state.session);
     nextState.cache.profiles = nextState.profiles.slice();
     if (Object.prototype.hasOwnProperty.call(patch, 'profiles')) {
       nextState.cache = pruneCacheForProfiles(nextState.cache, nextState.profiles);
+      const validProfileIds = new Set(nextState.profiles.map((profile) => profile && profile._id).filter(Boolean));
+      nextState.session.dismissedProfileCompletionHints = Object.keys(nextState.session.dismissedProfileCompletionHints)
+        .filter((profileId) => validProfileIds.has(profileId))
+        .reduce((accumulator, profileId) => {
+          accumulator[profileId] = true;
+          return accumulator;
+        }, {});
     }
     nextState.currentProfileId = resolveCurrentProfileId(nextState);
 
@@ -292,6 +311,37 @@ const store = {
 
     state.cache.latestRecords = nextLatestRecords;
     state.cache.records = nextRecords;
+
+    return notify();
+  },
+
+  /**
+   * @param {string} profileId
+   * @returns {boolean}
+   */
+  isProfileCompletionHintDismissed(profileId) {
+    return Boolean(
+      profileId &&
+      state.session &&
+      state.session.dismissedProfileCompletionHints &&
+      state.session.dismissedProfileCompletionHints[profileId],
+    );
+  },
+
+  /**
+   * @param {string} profileId
+   * @returns {StoreState}
+   */
+  dismissProfileCompletionHint(profileId) {
+    if (!profileId) {
+      return snapshot();
+    }
+
+    state.session.dismissedProfileCompletionHints = Object.assign(
+      {},
+      state.session.dismissedProfileCompletionHints,
+      { [profileId]: true },
+    );
 
     return notify();
   },

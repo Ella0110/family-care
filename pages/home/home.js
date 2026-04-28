@@ -90,6 +90,7 @@ Page({
     isLoginFailed: false,
     loginErrorText: '',
     isRetrying: false,
+    showProfileCompletionPrompt: false,
   },
 
   onLoad() {
@@ -140,14 +141,23 @@ Page({
   getHomeStateKey(state) {
     const profiles = Array.isArray(state.profiles) ? state.profiles : [];
     const loginStatus = getLoginStatus();
+    const dismissedHints = state && state.session && state.session.dismissedProfileCompletionHints
+      ? Object.keys(state.session.dismissedProfileCompletionHints).sort().join('|')
+      : '';
 
     return [
       loginStatus.isLoginReady ? 'ready' : 'pending',
       loginStatus.isLoginFailed ? 'failed' : 'ok',
       state.currentProfileId || 'none',
       profiles
-        .map((profile) => [profile && profile._id, profile && profile.name, profile && profile.relation].join(':'))
+        .map((profile) => [
+          profile && profile._id,
+          profile && profile.name,
+          profile && profile.relation,
+          profile && profile.birthDate,
+        ].join(':'))
         .join('|'),
+      dismissedHints,
     ].join('||');
   },
 
@@ -171,7 +181,20 @@ Page({
       isLoginReady: loginStatus.isLoginReady,
       isLoginFailed: loginStatus.isLoginFailed,
       loginErrorText: loginStatus.loginError ? getErrorMessage(loginStatus.loginError) : '',
+      showProfileCompletionPrompt: this.shouldShowProfileCompletionPrompt(view.activeProfile),
     });
+  },
+
+  shouldShowProfileCompletionPrompt(profile) {
+    if (!profile || this.data.viewState === 'multi') {
+      return false;
+    }
+
+    if (store.isProfileCompletionHintDismissed(profile._id)) {
+      return false;
+    }
+
+    return !profile.relation || !profile.birthDate;
   },
 
   resolveHomeView(state) {
@@ -653,6 +676,32 @@ Page({
     wx.navigateTo({
       url: `/pages/medication-edit/medication-edit?mode=create&profileId=${profile._id}`,
     });
+  },
+
+  handleCompleteProfile() {
+    const profile = this.data.activeProfile;
+
+    if (!profile || !profile._id) {
+      wx.showToast({
+        title: '档案不存在',
+        icon: 'none',
+      });
+      return;
+    }
+
+    wx.navigateTo({
+      url: `/pages/profile-edit/profile-edit?mode=edit&profileId=${profile._id}`,
+    });
+  },
+
+  handleDismissProfileCompletionPrompt() {
+    const profile = this.data.activeProfile;
+
+    if (!profile || !profile._id) {
+      return;
+    }
+
+    store.dismissProfileCompletionHint(profile._id);
   },
 
   handleViewRecords() {

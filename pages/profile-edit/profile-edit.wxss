@@ -54,6 +54,16 @@
   line-height: 1.45;
 }
 
+.form-input--name {
+  min-height: 112rpx;
+  font-size: 42rpx;
+  font-weight: 700;
+}
+
+.form-input--spaced {
+  margin-top: 18rpx;
+}
+
 .form-picker {
   display: flex;
   align-items: center;
@@ -96,6 +106,28 @@
 .gender-option--active {
   border-color: #1d4ed8;
   background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.profile-edit__progress {
+  padding: 24rpx;
+  border-radius: 24rpx;
+  background: #f8fbff;
+}
+
+.profile-edit__progress-title {
+  color: #111827;
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.profile-edit__progress-item {
+  margin-top: 12rpx;
+  color: #6b7280;
+  font-size: 28rpx;
+}
+
+.profile-edit__progress-item.is-completed {
   color: #1d4ed8;
 }
 

@@ -192,6 +192,55 @@
   margin-top: 20rpx;
 }
 
+.home-profile-tip {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20rpx;
+  margin-top: 20rpx;
+  background: rgba(219, 234, 254, 0.6);
+}
+
+.home-profile-tip__content {
+  display: flex;
+  align-items: flex-start;
+  gap: 18rpx;
+  flex: 1;
+}
+
+.home-profile-tip__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 999rpx;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 28rpx;
+  font-weight: 800;
+}
+
+.home-profile-tip__title {
+  color: #1e3a8a;
+  font-size: 30rpx;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.home-profile-tip__link {
+  margin-top: 12rpx;
+  color: #1d4ed8;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.home-profile-tip__close {
+  color: #6b7280;
+  font-size: 34rpx;
+  line-height: 1;
+}
+
 .home-record-card__top {
   display: flex;
   align-items: center;

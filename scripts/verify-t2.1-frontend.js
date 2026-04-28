@@ -48,12 +48,15 @@ assertContains('pages/home/home.wxml', /还没有血压记录|血压录入功能
 assertContains('pages/home/home.wxml', /bind:buttontap="handleCreateProfile"/, 'home should handle empty-state button tap');
 
 assertContains('pages/profile-edit/profile-edit.js', /createProfile/, 'profile edit should call profile service');
-assertContains('pages/profile-edit/profile-edit.js', /validateForm/, 'profile edit should validate form before submit');
+assertContains('pages/profile-edit/profile-edit.js', /validateCreateForm/, 'profile edit should validate create form before submit');
 assertContains('pages/profile-edit/profile-edit.js', /请填写姓名/, 'profile edit should handle missing name');
 assertContains('pages/profile-edit/profile-edit.js', /姓名不能超过 20 个字/, 'profile edit should handle long name');
+assertContains('pages/profile-edit/profile-edit.js', /redirectTo\(\{\s*url:\s*`\/pages\/record\/record\?mode=create&profileId=\$\{result\.profile\._id\}`/s, 'profile edit should redirect to record creation after minimal create');
+assertContains('pages/profile-edit/profile-edit.js', /pageTitle:\s*'为家人或自己建一个档案'/, 'profile edit should use the minimal-create title');
+assertContains('pages/profile-edit/profile-edit.js', /pageSubtitle:\s*'只需要 30 秒，先填一个名字就好'/, 'profile edit should use the minimal-create subtitle');
 assertContains('pages/profile-edit/profile-edit.wxml', /姓名/, 'profile edit should render name field');
-assertContains('pages/profile-edit/profile-edit.wxml', /与你的关系/, 'profile edit should render relation picker');
-assertContains('pages/profile-edit/profile-edit.wxml', /出生日期/, 'profile edit should render birth date picker');
+assertContains('pages/profile-edit/profile-edit.wxml', /与你的关系/, 'profile edit should still render relation picker in edit mode');
+assertContains('pages/profile-edit/profile-edit.wxml', /出生日期/, 'profile edit should still render birth date picker in edit mode');
 
 [
   'pages/home/home.js',

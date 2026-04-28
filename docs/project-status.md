@@ -1,9 +1,9 @@
 # 来自儿女的关心（family-care）项目状态
 
 ## 当前阶段
-- 已完成：T0、T1、T2.1-T2.6、T3.1a
-- 当前切入点：T3.1b（medication 前端接入，尚未开始编码）
-- 未开始：T3.1b、T3.2、T3.3、T4、T5、T6
+- 已完成：T0、T1、T2.1-T2.6、T3.1a、T3.1b、T3.2a
+- 当前切入点：T3.2b（档案详情页升级、阈值编辑、危险操作区）
+- 未开始：T3.2b、T3.3、T4、T5、T6
 
 ## 核心模型（Path B）
 - 三表核心：`users`、`profiles`、`relationships`
@@ -13,7 +13,7 @@
 
 ## 数据模型
 - `users`：`_id/openId`、`nickname`、`avatarUrl`、`settings`、`createdAt`、`updatedAt`、`lastActiveAt`
-- `profiles`：`_id`、`name`、`relation`、`gender`、`birthDate`、`note`、`emergencyContact`、`settings.bp`、`createdBy`、`createdAt`、`updatedAt`、`deletedAt`
+- `profiles`：`_id`、`name`、`relation`、`gender`、`birthDate`、`note`、`emergencyContact`、`longTermMedication`、`settings.bp`、`createdBy`、`createdAt`、`updatedAt`、`deletedAt`
 - `relationships`：`_id`、`userId`、`profileId`、`role`、`permissions`、`subscribeAlerts`、`createdAt`、`updatedAt`
 - `records`：`_id`、`profileId`、`type`、`measuredAt`、`payload`、`period`、`note`、`recordedBy`、`recordedByName`、`createdAt`、`updatedAt`、`deletedAt`
 - `medications`：`_id`、`profileId`、`drug`、`dose`、`frequency`、`timing`、`startDate`、`endDate`、`note`、`addedBy`、`createdAt`、`updatedAt`、`deletedAt`
@@ -39,9 +39,9 @@
 
 ## 前端架构
 - 页面：
-  - 已接业务：`home`、`profile-edit`、`record`、`records-list`
-  - 骨架待接：`medication-edit`、`profile-detail`、`profile-settings`、`profile-members`、`invite-create`、`invite-accept`、`report`、`user-settings`
-- 服务层：`services/request.js`、`services/profile-service.js`、`services/record-service.js`
+  - 已接业务：`home`、`profile-edit`、`record`、`records-list`、`medication-edit`
+  - 骨架待接：`profile-detail`、`profile-settings`、`profile-members`、`invite-create`、`invite-accept`、`report`、`user-settings`
+- 服务层：`services/request.js`、`services/profile-service.js`、`services/record-service.js`、`services/medication-service.js`
 - 全局 store：手写轻量订阅式 store，提供 `getState / setState / subscribe`
 - 缓存策略：T2.5 引入 SWR，缓存按 `profileId` 隔离，首页与记录列表先读缓存再后台刷新
 - 错误处理：T2.6 引入统一错误文案映射与开发环境请求风暴告警

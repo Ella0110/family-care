@@ -2,6 +2,7 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
+const { store } = require('../store/index');
 const { ERROR_MESSAGES } = require('../utils/error-messages');
 
 const root = path.resolve(__dirname, '..');
@@ -71,27 +72,53 @@ global.wx = {
 };
 global.getCurrentPages = () => [{ route: 'pages/home/home' }];
 
+store.setState({
+  user: { _id: 'user_owner' },
+  profiles: [
+    {
+      _id: 'profile_t26',
+      name: '测试用户',
+      relation: '',
+      gender: '',
+      birthDate: '',
+      note: '',
+      emergencyContact: null,
+      longTermMedication: null,
+      settings: {
+        bp: {
+          threshold: { systolic: 140, diastolic: 90 },
+          referenceLines: {
+            systolic: { normal: 120, elevated: 140, high: 160 },
+            diastolic: { normal: 80, elevated: 90, high: 100 },
+          },
+        },
+      },
+    },
+  ],
+  relationships: [],
+  currentProfileId: 'profile_t26',
+});
+
 delete require.cache[require.resolve('../pages/profile-edit/profile-edit')];
 require('../pages/profile-edit/profile-edit');
 
 assert.ok(profileEditConfig, 'profile-edit should register Page config');
 
 const page = createPageInstance(profileEditConfig);
-page.onLoad({ mode: 'create' });
-page.onNameInput({ detail: { value: '测试用户' } });
+page.onLoad({ mode: 'edit', profileId: 'profile_t26' });
 
 page.onRelationChange({ detail: { value: 5 } });
 assert.strictEqual(page.data.showCustomRelation, true);
 assert.strictEqual(page.data.form.relationSelection, '其他');
-assert.strictEqual(page.validateForm(), '请填写具体关系');
+assert.strictEqual(page.validateEditForm(), '请填写具体关系');
 
 page.onRelationCustomInput({ detail: { value: '弟弟' } });
-assert.strictEqual(page.buildPayload().relation, '弟弟');
+assert.strictEqual(page.getCurrentRelationValue(), '弟弟');
 
 page.onRelationChange({ detail: { value: 0 } });
 assert.strictEqual(page.data.showCustomRelation, false);
 assert.strictEqual(page.data.form.relationCustom, '');
-assert.strictEqual(page.buildPayload().relation, '父亲');
+assert.strictEqual(page.getCurrentRelationValue(), '父亲');
 
 assert.match(read('pages/record/record.js'), /duration: nextAttention \? 1500 : 800/);
 assert.match(read('pages/record/record.js'), /duration: result\.alertTriggered \? 1500 : 800/);

@@ -19,7 +19,6 @@ assertContains('pages/home/home.js', /setCurrentProfileId/, 'home should switch 
 assertContains('pages/home/home.wxml', /关注的家人/, 'home should render multi-profile list title');
 assertContains('pages/home/home.wxml', /返回档案列表/, 'home should render return-to-list entry in single profile view');
 assertContains('pages/home/home.wxml', /profile-card/, 'home should render profile cards');
-assertContains('pages/profile-edit/profile-edit.js', /state\.profiles\.length === 1/, 'creating a second profile should preserve the original single-profile view');
 
 let homeConfig = null;
 global.Page = (config) => {

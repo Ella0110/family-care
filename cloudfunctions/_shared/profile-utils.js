@@ -8,10 +8,45 @@ const {
   normalizeNullableString,
   clonePlainData,
 } = require('./validation');
-const { invalidArgument } = require('./errors');
+const { createError, invalidArgument } = require('./errors');
 
-const PROFILE_EDITABLE_FIELDS = ['name', 'relation', 'gender', 'birthDate', 'note', 'emergencyContact'];
+const PROFILE_EDITABLE_FIELDS = ['name', 'relation', 'gender', 'birthDate', 'note', 'emergencyContact', 'longTermMedication'];
 const SUPPORTED_GENDERS = ['male', 'female'];
+const CHINA_PHONE_PATTERN = /^1\d{10}$/;
+
+function normalizeProfileName(value, fieldName) {
+  const nextValue = assertNonEmptyString(value, fieldName);
+
+  if (nextValue.length > 20) {
+    throw invalidArgument(`${fieldName} must be at most 20 characters`);
+  }
+
+  return nextValue;
+}
+
+function normalizeOptionalBoolean(value, fieldName) {
+  if (value === undefined) {
+    return null;
+  }
+
+  if (value === null) {
+    return null;
+  }
+
+  if (typeof value !== 'boolean') {
+    throw invalidArgument(`${fieldName} must be a boolean`);
+  }
+
+  return value;
+}
+
+function normalizeEmergencyContactField(value, fieldName) {
+  if (value === undefined || value === null || value === '') {
+    return null;
+  }
+
+  return assertNonEmptyString(value, fieldName);
+}
 
 /**
  * @param {unknown} value
@@ -29,23 +64,47 @@ function normalizeEmergencyContact(value) {
   const nextValue = assertPlainObject(value, 'emergencyContact');
   assertAllowedKeys(nextValue, ['name', 'phone'], 'emergencyContact');
 
-  return {
-    name: normalizeNullableString(nextValue.name, 'emergencyContact.name'),
-    phone: normalizeNullableString(nextValue.phone, 'emergencyContact.phone'),
-  };
+  if (Object.keys(nextValue).length === 0) {
+    return null;
+  }
+
+  const normalized = {};
+
+  if (Object.prototype.hasOwnProperty.call(nextValue, 'name')) {
+    normalized.name = normalizeEmergencyContactField(nextValue.name, 'emergencyContact.name');
+  }
+
+  if (Object.prototype.hasOwnProperty.call(nextValue, 'phone')) {
+    normalized.phone = normalizeEmergencyContactField(nextValue.phone, 'emergencyContact.phone');
+
+    if (normalized.phone && !CHINA_PHONE_PATTERN.test(normalized.phone)) {
+      throw createError('INVALID_PHONE', 'emergencyContact.phone must be a valid China mobile number');
+    }
+  }
+
+  if (
+    Object.keys(normalized).length === 0 ||
+    Object.keys(normalized).every((key) => !normalized[key])
+  ) {
+    return null;
+  }
+
+  return normalized;
 }
 
 /**
  * @param {Object} event
- * @returns {{ name: string, relation: string|null, gender: string|null, birthDate: string|null, note: string|null }}
+ * @returns {{ name: string, relation: string|null, gender: string|null, birthDate: string|null, note: string|null, emergencyContact: { name: string|null, phone: string|null }|null, longTermMedication: boolean|null }}
  */
 function normalizeCreateProfileInput(event) {
   return {
-    name: assertNonEmptyString(event.name, 'name'),
+    name: normalizeProfileName(event.name, 'name'),
     relation: normalizeNullableString(event.relation, 'relation'),
     gender: normalizeNullableEnum(event.gender, SUPPORTED_GENDERS, 'gender'),
     birthDate: normalizeBirthDate(event.birthDate, 'birthDate'),
     note: normalizeNullableString(event.note, 'note'),
+    emergencyContact: normalizeEmergencyContact(event.emergencyContact),
+    longTermMedication: normalizeOptionalBoolean(event.longTermMedication, 'longTermMedication'),
   };
 }
 
@@ -64,7 +123,7 @@ function normalizeProfilePatch(patch) {
   const normalized = {};
 
   if (Object.prototype.hasOwnProperty.call(nextPatch, 'name')) {
-    normalized.name = assertNonEmptyString(nextPatch.name, 'patch.name');
+    normalized.name = normalizeProfileName(nextPatch.name, 'patch.name');
   }
   if (Object.prototype.hasOwnProperty.call(nextPatch, 'relation')) {
     normalized.relation = normalizeNullableString(nextPatch.relation, 'patch.relation');
@@ -80,6 +139,9 @@ function normalizeProfilePatch(patch) {
   }
   if (Object.prototype.hasOwnProperty.call(nextPatch, 'emergencyContact')) {
     normalized.emergencyContact = normalizeEmergencyContact(nextPatch.emergencyContact);
+  }
+  if (Object.prototype.hasOwnProperty.call(nextPatch, 'longTermMedication')) {
+    normalized.longTermMedication = normalizeOptionalBoolean(nextPatch.longTermMedication, 'patch.longTermMedication');
   }
 
   return normalized;
@@ -110,6 +172,8 @@ function mergeProfileSettings(currentSettings, patch) {
 
 module.exports = {
   PROFILE_EDITABLE_FIELDS,
+  normalizeProfileName,
+  normalizeOptionalBoolean,
   normalizeEmergencyContact,
   normalizeCreateProfileInput,
   normalizeProfilePatch,

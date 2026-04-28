@@ -84,6 +84,17 @@
       <button class="home-profile__add" bindtap="handleCreateProfile">添加档案</button>
     </view>
 
+    <view wx:if="{{showProfileCompletionPrompt}}" class="card home-profile-tip">
+      <view class="home-profile-tip__content">
+        <view class="home-profile-tip__icon">i</view>
+        <view class="home-profile-tip__text">
+          <view class="home-profile-tip__title">完善档案信息，获得更准确的健康建议</view>
+          <view class="home-profile-tip__link" bindtap="handleCompleteProfile">去完善 →</view>
+        </view>
+      </view>
+      <view class="home-profile-tip__close" bindtap="handleDismissProfileCompletionPrompt">×</view>
+    </view>
+
     <view wx:if="{{isLoadingLatestRecord}}" class="card home-record-card">
       <view class="home-profile__placeholder">正在读取最近一次血压...</view>
     </view>
