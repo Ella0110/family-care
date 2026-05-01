@@ -1,3 +1,5 @@
+const { getRoleDefaults, ROLE_PERMISSIONS, ROLE_DEFAULT_SUBSCRIBE_ALERTS } = require('./permissions');
+
 const DEFAULT_BP_THRESHOLD = Object.freeze({
   systolic: 140,
   diastolic: 90,
@@ -29,42 +31,6 @@ const DEFAULT_PROFILE_SETTINGS = Object.freeze({
   },
 });
 
-const ROLE_DEFAULTS = Object.freeze({
-  owner: {
-    role: 'owner',
-    permissions: {
-      canView: true,
-      canWrite: true,
-      canEditProfile: true,
-      canInvite: true,
-      canManage: true,
-    },
-    subscribeAlerts: true,
-  },
-  collaborator: {
-    role: 'collaborator',
-    permissions: {
-      canView: true,
-      canWrite: true,
-      canEditProfile: false,
-      canInvite: false,
-      canManage: false,
-    },
-    subscribeAlerts: true,
-  },
-  viewer: {
-    role: 'viewer',
-    permissions: {
-      canView: true,
-      canWrite: false,
-      canEditProfile: false,
-      canInvite: false,
-      canManage: false,
-    },
-    subscribeAlerts: false,
-  },
-});
-
 const DEFAULT_USER_SETTINGS = Object.freeze({
   fontScale: 1.0,
   theme: null,
@@ -92,19 +58,13 @@ function getDefaultUserSettings() {
   return clone(DEFAULT_USER_SETTINGS);
 }
 
-/**
- * @param {'owner'|'collaborator'|'viewer'} role
- * @returns {{ role: string, permissions: Object, subscribeAlerts: boolean }}
- */
-function getRoleDefaults(role) {
-  return clone(ROLE_DEFAULTS[role]);
-}
-
 module.exports = {
   DEFAULT_BP_THRESHOLD,
   DEFAULT_BP_REFERENCE_LINES,
   DEFAULT_PROFILE_SETTINGS,
   DEFAULT_USER_SETTINGS,
+  ROLE_PERMISSIONS,
+  ROLE_DEFAULT_SUBSCRIBE_ALERTS,
   getDefaultProfileSettings,
   getDefaultUserSettings,
   getRoleDefaults,

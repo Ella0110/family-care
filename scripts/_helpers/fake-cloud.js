@@ -119,6 +119,16 @@ class FakeDocRef {
     collection[this.id] = Object.assign({}, collection[this.id], cloneValue(data));
     return { updated: 1 };
   }
+
+  async remove() {
+    const collection = (this.store[this.collectionName] = this.store[this.collectionName] || {});
+    if (!collection[this.id]) {
+      return { deleted: 0 };
+    }
+
+    delete collection[this.id];
+    return { deleted: 1 };
+  }
 }
 
 class FakeQuery {

@@ -1,15 +1,23 @@
 const crypto = require('crypto');
 
 const ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const INVITATION_TOKEN_ALPHABET = '23456789abcdefghjkmnpqrstuvwxyz';
 const SEGMENT_LENGTH = 10;
+const INVITATION_TOKEN_LENGTH = 8;
 
 let createNanoId = null;
+let createInvitationTokenId = null;
 
 try {
   const { customAlphabet } = require('nanoid');
   createNanoId = customAlphabet(ALPHABET, SEGMENT_LENGTH);
+  createInvitationTokenId = customAlphabet(
+    INVITATION_TOKEN_ALPHABET,
+    INVITATION_TOKEN_LENGTH,
+  );
 } catch (error) {
   createNanoId = null;
+  createInvitationTokenId = null;
 }
 
 /**
@@ -68,9 +76,27 @@ function generateMedicationId() {
   return generatePrefixedId('m_');
 }
 
+function generateInvitationToken() {
+  if (typeof createInvitationTokenId === 'function') {
+    return createInvitationTokenId();
+  }
+
+  const bytes = crypto.randomBytes(INVITATION_TOKEN_LENGTH);
+  let result = '';
+
+  for (let index = 0; index < INVITATION_TOKEN_LENGTH; index += 1) {
+    result += INVITATION_TOKEN_ALPHABET[
+      bytes[index] % INVITATION_TOKEN_ALPHABET.length
+    ];
+  }
+
+  return result;
+}
+
 module.exports = {
   generateProfileId,
   generateRelationshipId,
   generateInvitationId,
   generateMedicationId,
+  generateInvitationToken,
 };

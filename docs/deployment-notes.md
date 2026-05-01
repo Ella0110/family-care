@@ -15,6 +15,22 @@
 
 生成的 `cloudfunctions/*/_shared/` 是部署产物，已加入 `.gitignore`，不提交到 git。
 
+## T4 Invitations Schema Note
+
+T4 阶段对 `invitations` 的业务 schema 做了扩展：
+
+- `status`
+- `profileIds`
+- `defaultRole`
+- `inviterNickname`
+- `inviterAvatarUrl`
+- `inviteeUserId`
+- `message`
+- `acceptedAt`
+- `revokedAt`
+
+集合本身不需要重建，但如果你有手工维护的测试数据，请按新字段补齐。
+
 ## Deploy Steps
 
 每次修改以下任一内容后，都应重新执行构建再上传云函数：

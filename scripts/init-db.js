@@ -88,6 +88,26 @@ const TTL_INDEX_OPERATION = {
     },
 };
 
+const COLLECTION_SCHEMA_NOTES = {
+    invitations: {
+        stage: "T4",
+        fields: [
+            "token",
+            "status",
+            "profileIds",
+            "defaultRole",
+            "inviterUserId",
+            "inviterNickname",
+            "inviterAvatarUrl",
+            "inviteeUserId",
+            "message",
+            "expiresAt",
+            "acceptedAt",
+            "revokedAt",
+        ],
+    },
+};
+
 function loadLocalConfig() {
     const localConfigPath = path.resolve(process.cwd(), "local.config.js");
     try {
@@ -265,6 +285,7 @@ async function main() {
         collections: COLLECTIONS,
         indexes: INDEX_OPERATIONS,
         ttlIndex: TTL_INDEX_OPERATION,
+        schemaNotes: COLLECTION_SCHEMA_NOTES,
     };
 
     if (!args.execute) {

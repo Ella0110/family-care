@@ -24,22 +24,12 @@ function createDeleteMedicationHandler(deps = {}) {
       throw createError('MEDICATION_NOT_FOUND', 'Medication does not exist');
     }
 
-    const relationship = await auth.getRelationship(user._id, medication.profileId);
-    const canWrite = Boolean(
-      relationship &&
-      relationship.permissions &&
-      relationship.permissions.canWrite === true,
-    );
-    const isAddedByCurrentUser = medication.addedBy === user._id;
-
-    if (!canWrite && !isAddedByCurrentUser) {
-      throw createError('PERMISSION_DENIED', 'Medication delete permission is denied');
-    }
-
     const profile = await auth.getActiveProfile(medication.profileId);
     if (!profile) {
       throw createError('PROFILE_NOT_FOUND', 'Profile does not exist or has been deleted');
     }
+
+    await auth.requirePermission(user._id, medication.profileId, 'canWrite');
 
     const timestamp = now();
     await database.collection(COLLECTIONS.MEDICATIONS).doc(medicationId).update({

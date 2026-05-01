@@ -1,9 +1,9 @@
 # 来自儿女的关心（family-care）项目状态
 
 ## 当前阶段
-- 已完成：T0、T1、T2.1-T2.6、T3.1a、T3.1b、T3.2、T3.3
-- 当前切入点：T4（协作邀请与关系管理）
-- 未开始：T4、T5、T6
+- 已完成：T0、T1、T2.1-T2.6、T3.1a、T3.1b、T3.2、T3.3、T4.1
+- 当前切入点：T4.2（协作邀请前端接入与成员管理页）
+- 未开始：T4.2、T5、T6
 
 ## 核心模型（Path B）
 - 三表核心：`users`、`profiles`、`relationships`
@@ -14,10 +14,10 @@
 ## 数据模型
 - `users`：`_id/openId`、`nickname`、`avatarUrl`、`settings`、`createdAt`、`updatedAt`、`lastActiveAt`
 - `profiles`：`_id`、`name`、`relation`、`gender`、`birthDate`、`note`、`emergencyContact`、`longTermMedication`、`settings.bp`、`createdBy`、`createdAt`、`updatedAt`、`deletedAt`
-- `relationships`：`_id`、`userId`、`profileId`、`role`、`permissions`、`subscribeAlerts`、`createdAt`、`updatedAt`
+- `relationships`：`_id`、`userId`、`profileId`、`role`、`permissions`、`subscribeAlerts`、`createdAt`、`updatedAt`、`acceptedAt`、`invitedBy`
 - `records`：`_id`、`profileId`、`type`、`measuredAt`、`payload`、`period`、`note`、`recordedBy`、`recordedByName`、`createdAt`、`updatedAt`、`deletedAt`
 - `medications`：`_id`、`profileId`、`drug`、`dose`、`frequency`、`timing`、`startDate`、`endDate`、`note`、`addedBy`、`createdAt`、`updatedAt`、`deletedAt`
-- `invitations`：`_id`、`profileId`、`token`、`status`、`role`、`permissions`、`expiresAt`、`createdBy`、`createdAt`、`updatedAt`
+- `invitations`：`_id`、`token`、`status`、`profileIds`、`defaultRole`、`inviterUserId`、`inviterNickname`、`inviterAvatarUrl`、`inviteeUserId`、`message`、`expiresAt`、`createdAt`、`acceptedAt`、`revokedAt`
 
 详细契约见 [t1-contracts.md](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/docs/t1-contracts.md:1)。
 
@@ -35,6 +35,13 @@
 - `listMedications`：按东八区“今天”把用药分为 active / historical
 - `saveMedication`：创建或更新用药
 - `deleteMedication`：软删除用药
+- `createInvitation`：按多档案授权创建一次性邀请链接，记录邀请人快照
+- `getInvitationInfo`：按 token 读取邀请详情与失效状态，不消耗使用次数
+- `acceptInvitation`：事务性创建 relationship 并消耗邀请
+- `updateRelationship`：更新成员角色或异常提醒订阅
+- `removeRelationship`：移除成员或成员主动退出，保护最后一个 owner
+- `transferOwnership`：事务性转让管理员角色
+- `listProfileMembers`：返回档案成员及昵称/头像信息
 
 云函数部署与打包约定见 [deployment-notes.md](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/docs/deployment-notes.md:1)。
 
@@ -48,6 +55,7 @@
 - 错误处理：T2.6 引入统一错误文案映射与开发环境请求风暴告警
 - 单档案首页：T3.2 升级为“档案详情页”，含档案信息卡片、阈值调整入口和危险操作区
 - 用户设置：T3.3 新增字号切换和关于页，`fontScale` 支持 `1.0 / 1.15 / 1.3`
+- 协作邀请：T4.1 完成邀请、接受、成员角色、管理员转让的数据层 API；前端接入待 T4.2
 
 ## 关键工程约定
 - 云函数 `_shared` 源码保留在 `cloudfunctions/_shared/`，部署前通过构建脚本复制到每个函数目录

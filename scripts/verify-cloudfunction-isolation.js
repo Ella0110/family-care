@@ -7,6 +7,13 @@ const path = require("path");
 const FUNCTION_NAMES = [
   "login",
   "createProfile",
+  "createInvitation",
+  "getInvitationInfo",
+  "acceptInvitation",
+  "updateRelationship",
+  "removeRelationship",
+  "transferOwnership",
+  "listProfileMembers",
   "updateProfile",
   "deleteProfile",
   "updateProfileSettings",
