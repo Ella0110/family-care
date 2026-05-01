@@ -1,6 +1,7 @@
 require('./_helpers/ensure-cloudfunctions-built');
 
 const assert = require('assert');
+const fs = require('fs');
 const path = require('path');
 
 const { createCloudFunction } = require('../cloudfunctions/_shared/function');
@@ -10,6 +11,12 @@ const { createLoginHandler } = require('../cloudfunctions/login/handler');
 const { createCreateProfileHandler } = require('../cloudfunctions/createProfile/handler');
 const { createUpdateProfileHandler } = require('../cloudfunctions/updateProfile/handler');
 const { store } = require('../store/index');
+
+const root = path.resolve(__dirname, '..');
+
+function read(relativePath) {
+  return fs.readFileSync(path.join(root, relativePath), 'utf8');
+}
 
 function buildFunction(factory, runtime, extra = {}) {
   const auth = createAuthService({ db: runtime.db, cloud: runtime.cloud });
@@ -252,10 +259,15 @@ async function verifyFrontendBehavior() {
 
   let redirectedUrl = '';
   let navigatedBack = false;
+  let navigatedUrl = '';
   let shownToast = '';
+  let appConfig = null;
   let profileEditConfig = null;
   let homeConfig = null;
 
+  global.App = (config) => {
+    appConfig = config;
+  };
   global.Page = (config) => {
     if (!profileEditConfig) {
       profileEditConfig = config;
@@ -275,7 +287,9 @@ async function verifyFrontendBehavior() {
     navigateBack() {
       navigatedBack = true;
     },
-    navigateTo() {},
+    navigateTo({ url }) {
+      navigatedUrl = url;
+    },
     showLoading() {},
     hideLoading() {},
     cloud: {
@@ -285,9 +299,12 @@ async function verifyFrontendBehavior() {
 
   delete require.cache[require.resolve('../pages/profile-edit/profile-edit')];
   delete require.cache[require.resolve('../pages/home/home')];
+  delete require.cache[require.resolve('../app')];
+  require('../app');
   require('../pages/profile-edit/profile-edit');
   require('../pages/home/home');
 
+  assert.ok(appConfig, 'app should register');
   assert.ok(profileEditConfig, 'profile-edit should register');
   assert.ok(homeConfig, 'home should register');
 
@@ -323,8 +340,15 @@ async function verifyFrontendBehavior() {
   const homePage = createPageInstance(homeConfig);
   homePage.renderState();
   assert.strictEqual(homePage.shouldShowProfileCompletionPrompt(store.getState().profiles[0]), true);
+  assert.match(read('pages/home/home.wxml'), /编辑档案/, 'home should render a stable profile edit entry');
+  assert.strictEqual(typeof homePage.handleEditProfile, 'function', 'home should expose profile edit handler');
+  homePage.data.activeProfile = store.getState().profiles[0];
+  homePage.handleEditProfile();
+  assert.match(navigatedUrl, /\/pages\/profile-edit\/profile-edit\?mode=edit&profileId=profile_a/, 'edit entry should navigate to profile edit page');
   store.dismissProfileCompletionHint('profile_a');
   assert.strictEqual(homePage.shouldShowProfileCompletionPrompt(store.getState().profiles[0]), false);
+  appConfig.onShow.call({ globalData: { store } });
+  assert.strictEqual(homePage.shouldShowProfileCompletionPrompt(store.getState().profiles[0]), true);
   assert.strictEqual(navigatedBack, false);
   assert.ok(shownToast === '' || typeof shownToast === 'string');
 }

@@ -81,7 +81,10 @@
         <view class="home-profile__eyebrow">当前档案</view>
         <view class="home-profile__title">已建档：{{activeProfile.name}}</view>
       </view>
-      <button class="home-profile__add" bindtap="handleCreateProfile">添加档案</button>
+      <view class="home-profile__actions">
+        <button class="home-profile__edit" bindtap="handleEditProfile">编辑档案</button>
+        <button class="home-profile__add" bindtap="handleCreateProfile">添加档案</button>
+      </view>
     </view>
 
     <view wx:if="{{showProfileCompletionPrompt}}" class="card home-profile-tip">

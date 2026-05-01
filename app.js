@@ -45,6 +45,10 @@ App({
     loginError: null,
   },
 
+  onShow() {
+    store.resetSessionDismissals();
+  },
+
   async login() {
     try {
       const result = await call('login', {}, { silent: true });

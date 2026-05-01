@@ -347,6 +347,16 @@ const store = {
   },
 
   /**
+   * Clears transient in-memory UI dismissals for the current app session.
+   *
+   * @returns {StoreState}
+   */
+  resetSessionDismissals() {
+    state.session.dismissedProfileCompletionHints = {};
+    return notify();
+  },
+
+  /**
    * Subscribes to store changes.
    *
    * @param {(nextState: StoreState) => void} listener

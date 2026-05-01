@@ -694,6 +694,10 @@ Page({
     });
   },
 
+  handleEditProfile() {
+    this.handleCompleteProfile();
+  },
+
   handleDismissProfileCompletionPrompt() {
     const profile = this.data.activeProfile;
 
