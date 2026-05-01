@@ -1,4 +1,4 @@
-<view class="page">
+<view class="page page-root" style="--font-scale: {{fontScale}};">
   <view wx:if="{{!isLoginReady}}" class="home-loading card">
     <view class="home-loading__title">正在加载档案</view>
     <view class="home-loading__text">请稍候...</view>
@@ -17,13 +17,17 @@
     </button>
   </view>
 
-  <empty-state
-    wx:elif="{{isEmptyState}}"
-    title="记录家人的血压，从第一条开始"
-    subtitle="先建一个档案吧"
-    buttonText="为家人或自己建档案"
-    bind:buttontap="handleCreateProfile"
-  />
+  <view wx:elif="{{isEmptyState}}">
+    <view class="home-empty-actions">
+      <view class="home-settings-entry" bindtap="handleOpenUserSettings">⚙</view>
+    </view>
+    <empty-state
+      title="记录家人的血压，从第一条开始"
+      subtitle="先建一个档案吧"
+      buttonText="为家人或自己建档案"
+      bind:buttontap="handleCreateProfile"
+    />
+  </view>
 
   <view wx:elif="{{isMultiProfileList}}" class="home-profile-list">
     <view class="home-profile-list__header">
@@ -31,7 +35,10 @@
         <view class="home-profile-list__title">关注的家人</view>
         <view class="home-profile-list__subtitle">一眼查看每个档案的最近血压</view>
       </view>
-      <button class="home-profile-list__add" bindtap="handleCreateProfile">+</button>
+      <view class="home-profile-list__header-actions">
+        <view class="home-settings-entry" bindtap="handleOpenUserSettings">⚙</view>
+        <button class="home-profile-list__add" bindtap="handleCreateProfile">+</button>
+      </view>
     </view>
 
     <view class="home-profile-list__cards">
@@ -80,6 +87,7 @@
         </view>
       </view>
       <view class="home-profile__actions">
+        <view class="home-settings-entry" bindtap="handleOpenUserSettings">⚙</view>
         <button class="home-profile__add" bindtap="handleCreateProfile">添加档案</button>
       </view>
     </view>

@@ -16,12 +16,12 @@
   margin: 0 auto 32rpx;
   border-radius: 64rpx;
   background: #dbeafe;
-  font-size: 64rpx;
+  font-size: calc(64rpx * var(--font-scale));
 }
 
 .empty-state__title {
   color: #111827;
-  font-size: 44rpx;
+  font-size: calc(44rpx * var(--font-scale));
   font-weight: 700;
   line-height: 1.35;
 }
@@ -29,7 +29,7 @@
 .empty-state__subtitle {
   margin-top: 18rpx;
   color: #4b5563;
-  font-size: 32rpx;
+  font-size: calc(32rpx * var(--font-scale));
   line-height: 1.5;
 }
 
@@ -43,7 +43,7 @@
   border-radius: 28rpx;
   background: #1d4ed8;
   color: #ffffff;
-  font-size: 36rpx;
+  font-size: calc(36rpx * var(--font-scale));
   font-weight: 700;
   line-height: 1.2;
 }

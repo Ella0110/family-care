@@ -2,6 +2,7 @@ const { store } = require('../../store/index');
 const recordService = require('../../services/record-service');
 const { getErrorMessage } = require('../../utils/error-messages');
 const { getReferenceLines } = require('../../utils/bp-status');
+const { DEFAULT_FONT_SCALE, normalizeFontScale } = require('../../utils/font-scale');
 
 const MIN_MEASURED_AT_MS = 946684800000;
 const MAX_FUTURE_SKEW_MS = 5 * 60 * 1000;
@@ -92,8 +93,14 @@ function isAboveThreshold(payload, profile) {
   return Number(payload.systolic) > threshold.systolic || Number(payload.diastolic) > threshold.diastolic;
 }
 
+function getCurrentFontScale() {
+  const app = getApp();
+  return normalizeFontScale(app && app.globalData ? app.globalData.fontScale : DEFAULT_FONT_SCALE);
+}
+
 Page({
   data: {
+    fontScale: DEFAULT_FONT_SCALE,
     mode: 'create',
     profileId: '',
     recordId: '',
@@ -119,6 +126,7 @@ Page({
   },
 
   onLoad(options = {}) {
+    this.syncFontScale();
     const nowParts = getNowParts();
     const profileId = options.profileId || '';
     const recordId = options.recordId || '';
@@ -149,6 +157,16 @@ Page({
     if (mode === 'edit') {
       this.loadEditRecord();
     }
+  },
+
+  onShow() {
+    this.syncFontScale();
+  },
+
+  syncFontScale() {
+    this.setData({
+      fontScale: getCurrentFontScale(),
+    });
   },
 
   async loadEditRecord() {

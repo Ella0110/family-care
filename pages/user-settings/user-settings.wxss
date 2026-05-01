@@ -1,1 +1,114 @@
+.page-root {
+  min-height: 100vh;
+}
 
+.settings-header {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.settings-header__back {
+  color: #1d4ed8;
+  font-size: calc(30rpx * var(--font-scale));
+  font-weight: 700;
+}
+
+.settings-header__title {
+  color: #111827;
+  font-size: calc(42rpx * var(--font-scale));
+  font-weight: 800;
+}
+
+.settings-section + .settings-section {
+  margin-top: 24rpx;
+}
+
+.settings-section__title {
+  color: #111827;
+  font-size: calc(36rpx * var(--font-scale));
+  font-weight: 800;
+}
+
+.settings-field__label {
+  margin-top: 20rpx;
+  color: #111827;
+  font-size: calc(30rpx * var(--font-scale));
+  font-weight: 700;
+}
+
+.settings-field__hint {
+  margin-top: 14rpx;
+  color: #4b5563;
+  font-size: calc(28rpx * var(--font-scale));
+}
+
+.font-scale-control {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 20rpx;
+  padding: 12rpx;
+  border-radius: 24rpx;
+  background: #eff6ff;
+}
+
+.font-scale-control__item {
+  flex: 1;
+  min-height: 76rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18rpx;
+  color: #1d4ed8;
+  font-size: calc(30rpx * var(--font-scale));
+  font-weight: 700;
+  background: transparent;
+}
+
+.font-scale-control__item--active {
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+.settings-preview {
+  margin-top: 28rpx;
+}
+
+.settings-preview__label {
+  color: #4b5563;
+  font-size: calc(28rpx * var(--font-scale));
+}
+
+.settings-preview__card {
+  margin-top: 16rpx;
+  padding: 24rpx;
+  border-radius: 24rpx;
+  background: #f8fafc;
+}
+
+.settings-preview__value {
+  color: #111827;
+  font-size: calc(42rpx * var(--font-scale));
+  font-weight: 800;
+}
+
+.settings-preview__meta {
+  margin-top: 12rpx;
+  color: #4b5563;
+  font-size: calc(30rpx * var(--font-scale));
+}
+
+.settings-about__name {
+  margin-top: 20rpx;
+  color: #111827;
+  font-size: calc(34rpx * var(--font-scale));
+  font-weight: 700;
+}
+
+.settings-about__version {
+  margin-top: 12rpx;
+  color: #6b7280;
+  font-size: calc(28rpx * var(--font-scale));
+}

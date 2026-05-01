@@ -2,6 +2,7 @@ const { store } = require('../../store/index');
 const recordService = require('../../services/record-service');
 const { getErrorMessage } = require('../../utils/error-messages');
 const { getBPStatusDisplay, getReferenceLines } = require('../../utils/bp-status');
+const { DEFAULT_FONT_SCALE, normalizeFontScale } = require('../../utils/font-scale');
 
 function pad(value) {
   return String(value).padStart(2, '0');
@@ -52,8 +53,14 @@ function findProfile(profileId) {
   return (state.profiles || []).find((profile) => profile && profile._id === profileId) || null;
 }
 
+function getCurrentFontScale() {
+  const app = getApp();
+  return normalizeFontScale(app && app.globalData ? app.globalData.fontScale : DEFAULT_FONT_SCALE);
+}
+
 Page({
   data: {
+    fontScale: DEFAULT_FONT_SCALE,
     profileId: '',
     profileName: '当前档案',
     referenceLines: getReferenceLines(),
@@ -65,6 +72,7 @@ Page({
   },
 
   onLoad(options = {}) {
+    this.syncFontScale();
     const profileId = options.profileId || '';
     const profile = profileId ? findProfile(profileId) : null;
 
@@ -81,7 +89,14 @@ Page({
   },
 
   onShow() {
+    this.syncFontScale();
     this.loadRecords();
+  },
+
+  syncFontScale() {
+    this.setData({
+      fontScale: getCurrentFontScale(),
+    });
   },
 
   groupRecords(records) {

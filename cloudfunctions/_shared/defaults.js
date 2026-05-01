@@ -67,6 +67,7 @@ const ROLE_DEFAULTS = Object.freeze({
 
 const DEFAULT_USER_SETTINGS = Object.freeze({
   fontScale: 1.0,
+  theme: null,
 });
 
 /**

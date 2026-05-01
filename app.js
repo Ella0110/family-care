@@ -1,5 +1,13 @@
 const { call } = require('./services/request');
+const userService = require('./services/user-service');
 const { store } = require('./store/index');
+const {
+  DEFAULT_FONT_SCALE,
+  normalizeFontScale,
+  persistLocalFontScale,
+  readLocalFontScale,
+  resolveFontScaleSync,
+} = require('./utils/font-scale');
 
 let localConfig = null;
 
@@ -43,10 +51,61 @@ App({
     store,
     loginReady: false,
     loginError: null,
+    fontScale: DEFAULT_FONT_SCALE,
   },
 
   onShow() {
     store.resetSessionDismissals();
+  },
+
+  applyFontScale(fontScale, options = {}) {
+    const { persist = true, syncStoreUser = true } = options;
+    const nextFontScale = normalizeFontScale(fontScale);
+
+    this.globalData.fontScale = nextFontScale;
+    if (persist) {
+      persistLocalFontScale(nextFontScale);
+    }
+
+    if (syncStoreUser) {
+      const state = store.getState();
+      if (state.user) {
+        store.setState({
+          user: Object.assign({}, state.user, {
+            settings: Object.assign({}, state.user.settings || {}, {
+              fontScale: nextFontScale,
+            }),
+          }),
+        });
+      }
+    }
+
+    return nextFontScale;
+  },
+
+  async syncFontScaleWithUser(user) {
+    const localFontScale = readLocalFontScale();
+    const remoteFontScale = user && user.settings ? user.settings.fontScale : null;
+    const decision = resolveFontScaleSync({
+      localFontScale,
+      remoteFontScale,
+    });
+
+    this.applyFontScale(decision.fontScale, {
+      persist: decision.shouldPersistLocal,
+      syncStoreUser: true,
+    });
+
+    if (decision.shouldSyncRemote) {
+      try {
+        const result = await userService.updateSettings({ fontScale: decision.fontScale });
+        store.setState({
+          user: result.user,
+        });
+      } catch (error) {
+        console.warn('Font scale sync failed during login.', error);
+      }
+    }
   },
 
   async login() {
@@ -57,6 +116,7 @@ App({
       this.globalData.loginReady = true;
       this.globalData.loginError = null;
       store.setState(nextState);
+      await this.syncFontScaleWithUser(nextState.user);
 
       return nextState;
     } catch (error) {
@@ -82,6 +142,7 @@ App({
     }
 
     this.globalData.store = store;
+    this.globalData.fontScale = readLocalFontScale() || DEFAULT_FONT_SCALE;
 
     try {
       wx.cloud.init({

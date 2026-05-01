@@ -10,6 +10,7 @@ const FUNCTION_NAMES = [
   "updateProfile",
   "deleteProfile",
   "updateProfileSettings",
+  "updateUserSettings",
   "saveRecord",
   "listMedications",
   "saveMedication",

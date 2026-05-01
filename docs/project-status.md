@@ -1,9 +1,9 @@
 # 来自儿女的关心（family-care）项目状态
 
 ## 当前阶段
-- 已完成：T0、T1、T2.1-T2.6、T3.1a、T3.1b、T3.2
-- 当前切入点：T3.3（用户设置：字号、关于）
-- 未开始：T3.3、T4、T5、T6
+- 已完成：T0、T1、T2.1-T2.6、T3.1a、T3.1b、T3.2、T3.3
+- 当前切入点：T4（协作邀请与关系管理）
+- 未开始：T4、T5、T6
 
 ## 核心模型（Path B）
 - 三表核心：`users`、`profiles`、`relationships`
@@ -27,6 +27,7 @@
 - `updateProfile`：更新档案基本资料
 - `deleteProfile`：软删除档案
 - `updateProfileSettings`：更新档案 `settings`
+- `updateUserSettings`：更新用户级设置，当前用于字号 `fontScale`
 - `saveRecord`：保存血压记录并返回 `alertTriggered/alertSentTo`
 - `getRecords`：读取血压记录列表
 - `updateRecord`：更新单条血压记录
@@ -39,13 +40,14 @@
 
 ## 前端架构
 - 页面：
-  - 已接业务：`home`、`profile-edit`、`profile-threshold-edit`、`record`、`records-list`、`medication-edit`
-  - 骨架待接：`profile-detail`、`profile-settings`、`profile-members`、`invite-create`、`invite-accept`、`report`、`user-settings`
-- 服务层：`services/request.js`、`services/profile-service.js`、`services/record-service.js`、`services/medication-service.js`
+  - 已接业务：`home`、`profile-edit`、`profile-threshold-edit`、`record`、`records-list`、`medication-edit`、`user-settings`
+  - 骨架待接：`profile-detail`、`profile-settings`、`profile-members`、`invite-create`、`invite-accept`、`report`
+- 服务层：`services/request.js`、`services/profile-service.js`、`services/record-service.js`、`services/medication-service.js`、`services/user-service.js`
 - 全局 store：手写轻量订阅式 store，提供 `getState / setState / subscribe`
 - 缓存策略：T2.5 引入 SWR，缓存按 `profileId` 隔离，首页与记录列表先读缓存再后台刷新
 - 错误处理：T2.6 引入统一错误文案映射与开发环境请求风暴告警
 - 单档案首页：T3.2 升级为“档案详情页”，含档案信息卡片、阈值调整入口和危险操作区
+- 用户设置：T3.3 新增字号切换和关于页，`fontScale` 支持 `1.0 / 1.15 / 1.3`
 
 ## 关键工程约定
 - 云函数 `_shared` 源码保留在 `cloudfunctions/_shared/`，部署前通过构建脚本复制到每个函数目录

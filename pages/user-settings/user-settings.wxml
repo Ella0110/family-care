@@ -1,3 +1,37 @@
-<view class="page">
-  <view>user-settings page</view>
+<view class="page page-root" style="--font-scale: {{fontScale}};">
+  <view class="settings-header">
+    <view class="settings-header__back" bindtap="handleBack">返回</view>
+    <view class="settings-header__title">设置</view>
+  </view>
+
+  <view class="card settings-section">
+    <view class="settings-section__title">显示偏好</view>
+    <view class="settings-field__label">字号大小</view>
+    <view class="font-scale-control">
+      <view
+        wx:for="{{fontScaleOptions}}"
+        wx:key="value"
+        class="font-scale-control__item {{selectedFontScale === item.value ? 'font-scale-control__item--active' : ''}}"
+        data-scale="{{item.value}}"
+        bindtap="handleSelectScale"
+      >
+        {{item.label}}
+      </view>
+    </view>
+    <view class="settings-field__hint">当前选中：{{selectedLabel}}</view>
+
+    <view class="settings-preview">
+      <view class="settings-preview__label">预览：</view>
+      <view class="settings-preview__card">
+        <view class="settings-preview__value">示例血压：158 / 88</view>
+        <view class="settings-preview__meta">今天 15:30 · 偏高</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card settings-section">
+    <view class="settings-section__title">关于</view>
+    <view class="settings-about__name">来自儿女的关心</view>
+    <view class="settings-about__version">Version 1.0.0 (Build 2026.0418)</view>
+  </view>
 </view>

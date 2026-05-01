@@ -4,7 +4,7 @@
   min-height: 52rpx;
   padding: 0 20rpx;
   border-radius: 999rpx;
-  font-size: 28rpx;
+  font-size: calc(28rpx * var(--font-scale));
   font-weight: 700;
 }
 

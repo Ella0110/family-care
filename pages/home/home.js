@@ -4,6 +4,7 @@ const medicationService = require('../../services/medication-service');
 const profileService = require('../../services/profile-service');
 const { getErrorMessage } = require('../../utils/error-messages');
 const { getBPStatusDisplay, getReferenceLines } = require('../../utils/bp-status');
+const { DEFAULT_FONT_SCALE, normalizeFontScale } = require('../../utils/font-scale');
 const {
   buildProfileDetailDisplay,
   isDeleteNameMatched,
@@ -61,8 +62,14 @@ function getLoginStatus() {
   };
 }
 
+function getCurrentFontScale() {
+  const app = getApp();
+  return normalizeFontScale(app && app.globalData ? app.globalData.fontScale : DEFAULT_FONT_SCALE);
+}
+
 Page({
   data: {
+    fontScale: DEFAULT_FONT_SCALE,
     profiles: [],
     activeProfile: null,
     profileCards: [],
@@ -114,6 +121,7 @@ Page({
 
   onLoad() {
     this.isPageVisible = false;
+    this.syncFontScale();
     this.lastHomeStateKey = this.getHomeStateKey(store.getState());
     this.unsubscribeStore = store.subscribe((nextState) => {
       const nextHomeStateKey = this.getHomeStateKey(nextState);
@@ -134,9 +142,16 @@ Page({
 
   onShow() {
     this.isPageVisible = true;
+    this.syncFontScale();
     this.lastHomeStateKey = this.getHomeStateKey(store.getState());
     this.renderState();
     this.loadRecordsForCurrentView();
+  },
+
+  syncFontScale() {
+    this.setData({
+      fontScale: getCurrentFontScale(),
+    });
   },
 
   onHide() {
@@ -822,6 +837,12 @@ Page({
 
     wx.navigateTo({
       url: `/pages/medication-edit/medication-edit?mode=edit&profileId=${profile._id}&medicationId=${medication._id}`,
+    });
+  },
+
+  handleOpenUserSettings() {
+    wx.navigateTo({
+      url: '/pages/user-settings/user-settings',
     });
   },
 

@@ -1,7 +1,14 @@
 page {
-  --font-base: 32rpx;
-  --font-lg: 40rpx;
-  --font-xl: 48rpx;
+  --font-scale: 1;
+  --font-xs: calc(20rpx * var(--font-scale));
+  --font-sm: calc(24rpx * var(--font-scale));
+  --font-base: calc(28rpx * var(--font-scale));
+  --font-md: calc(32rpx * var(--font-scale));
+  --font-lg: calc(40rpx * var(--font-scale));
+  --font-xl: calc(48rpx * var(--font-scale));
+  --font-2xl: calc(56rpx * var(--font-scale));
+  --font-3xl: calc(64rpx * var(--font-scale));
+  --font-4xl: calc(80rpx * var(--font-scale));
   --color-primary: #1d4ed8;
   --color-danger: #b42318;
   --color-text: #111827;
@@ -10,10 +17,14 @@ page {
   --color-card: #ffffff;
 
   min-height: 100%;
-  font-size: var(--font-base);
+  font-size: var(--font-md);
   line-height: 1.6;
   color: var(--color-text);
   background: var(--color-bg);
+}
+
+.page-root {
+  min-height: 100vh;
 }
 
 .page {
