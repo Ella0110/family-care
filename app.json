@@ -5,6 +5,7 @@
     "pages/records-list/records-list",
     "pages/profile-detail/profile-detail",
     "pages/profile-edit/profile-edit",
+    "pages/profile-threshold-edit/profile-threshold-edit",
     "pages/profile-settings/profile-settings",
     "pages/profile-members/profile-members",
     "pages/medication-edit/medication-edit",

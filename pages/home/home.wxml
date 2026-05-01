@@ -78,12 +78,29 @@
         >
           ← 返回档案列表
         </view>
-        <view class="home-profile__eyebrow">当前档案</view>
-        <view class="home-profile__title">已建档：{{activeProfile.name}}</view>
       </view>
       <view class="home-profile__actions">
-        <button class="home-profile__edit" bindtap="handleEditProfile">编辑档案</button>
         <button class="home-profile__add" bindtap="handleCreateProfile">添加档案</button>
+      </view>
+    </view>
+
+    <view class="card home-profile-detail">
+      <view class="home-profile-detail__top">
+        <view class="home-profile-detail__title">档案：{{profileDetail.title}}</view>
+        <view class="home-profile-detail__edit" bindtap="handleEditProfile">⚙ 编辑档案</view>
+      </view>
+
+      <view wx:if="{{profileDetail.metaLine}}" class="home-profile-detail__meta">
+        {{profileDetail.metaLine}}
+      </view>
+
+      <view wx:if="{{profileDetail.emergencyLine}}" class="home-profile-detail__contact">
+        紧急联系人：{{profileDetail.emergencyLine}}
+      </view>
+
+      <view class="home-profile-detail__bottom">
+        <view class="home-profile-detail__threshold">阈值：{{profileDetail.thresholdLine}}</view>
+        <view class="home-profile-detail__adjust" bindtap="handleOpenThresholdEditor">📊 调整</view>
       </view>
     </view>
 
@@ -193,6 +210,51 @@
               bind:tapitem="handleMedicationTap"
             />
           </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="home-danger-zone">
+      <view class="home-danger-zone__toggle" bindtap="handleToggleDangerZone">
+        ⚙ 高级设置 {{isDangerZoneExpanded ? '▲' : '▼'}}
+      </view>
+
+      <view wx:if="{{isDangerZoneExpanded}}" class="home-danger-zone__content">
+        <view class="card home-danger-zone__item" bindtap="handleTransferOwnership">
+          <view class="home-danger-zone__item-title">转让管理员</view>
+          <view class="home-danger-zone__item-text">把档案管理权转给其他家人</view>
+        </view>
+
+        <view class="card home-danger-zone__item home-danger-zone__item--danger" bindtap="handleDeleteProfile">
+          <view class="home-danger-zone__item-title home-danger-zone__item-title--danger">⚠️ 删除档案</view>
+          <view class="home-danger-zone__item-text">删除后所有记录无法恢复</view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{isDeleteConfirmVisible}}" class="home-delete-modal">
+      <view class="home-delete-modal__mask"></view>
+      <view class="home-delete-modal__panel card">
+        <view class="home-delete-modal__title">再次确认删除</view>
+        <view class="home-delete-modal__text">{{deleteConfirmMessage}}</view>
+        <input
+          class="home-delete-modal__input"
+          value="{{deleteConfirmInput}}"
+          placeholder="请输入档案名"
+          bindinput="onDeleteConfirmInput"
+        />
+        <view class="home-delete-modal__actions">
+          <button class="btn-secondary home-delete-modal__button" bindtap="handleCancelDeleteProfile" disabled="{{isDeletingProfile}}">
+            取消
+          </button>
+          <button
+            class="btn-primary home-delete-modal__button home-delete-modal__button--danger"
+            bindtap="handleConfirmDeleteProfile"
+            loading="{{isDeletingProfile}}"
+            disabled="{{!isDeleteConfirmReady || isDeletingProfile}}"
+          >
+            删除
+          </button>
         </view>
       </view>
     </view>

@@ -1,0 +1,33 @@
+<view class="page">
+  <view class="card threshold-card">
+    <view class="threshold-card__title">高压阈值</view>
+    <view class="threshold-stepper">
+      <button class="threshold-stepper__button" bindtap="handleAdjustSystolic" data-delta="-5">-</button>
+      <view class="threshold-stepper__value">{{systolicThreshold}}</view>
+      <button class="threshold-stepper__button" bindtap="handleAdjustSystolic" data-delta="5">+</button>
+    </view>
+    <view class="threshold-card__help">超过此值视为偏高，会触发健康提醒</view>
+  </view>
+
+  <view class="card threshold-card">
+    <view class="threshold-card__title">低压阈值</view>
+    <view class="threshold-stepper">
+      <button class="threshold-stepper__button" bindtap="handleAdjustDiastolic" data-delta="-5">-</button>
+      <view class="threshold-stepper__value">{{diastolicThreshold}}</view>
+      <button class="threshold-stepper__button" bindtap="handleAdjustDiastolic" data-delta="5">+</button>
+    </view>
+    <view class="threshold-card__help">超过此值视为偏高，会触发健康提醒</view>
+  </view>
+
+  <view class="card threshold-card threshold-card--info">
+    <view class="threshold-card__info-title">ℹ️ 阈值仅用于个性化提醒</view>
+    <view class="threshold-card__info-text">血压分级标准由系统按医学指南判断，不可调整。</view>
+  </view>
+
+  <view wx:if="{{errorText}}" class="threshold-error">{{errorText}}</view>
+
+  <view class="threshold-actions">
+    <button class="btn-primary threshold-actions__button" bindtap="handleSave" loading="{{isSaving}}" disabled="{{isSaving}}">保存</button>
+    <button class="btn-secondary threshold-actions__button" bindtap="handleRestoreDefault" disabled="{{isSaving}}">恢复默认</button>
+  </view>
+</view>

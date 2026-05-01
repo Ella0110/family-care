@@ -164,7 +164,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 24rpx;
-  margin-bottom: 28rpx;
+  margin-bottom: 20rpx;
 }
 
 .home-profile__actions {
@@ -188,6 +188,49 @@
   line-height: 64rpx;
 }
 
+.home-profile-detail {
+  margin-top: 12rpx;
+}
+
+.home-profile-detail__top,
+.home-profile-detail__bottom {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24rpx;
+}
+
+.home-profile-detail__title {
+  color: #111827;
+  font-size: 40rpx;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.home-profile-detail__edit,
+.home-profile-detail__adjust {
+  flex-shrink: 0;
+  color: #1d4ed8;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.home-profile-detail__meta,
+.home-profile-detail__contact {
+  margin-top: 16rpx;
+  color: #4b5563;
+  font-size: 30rpx;
+  line-height: 1.6;
+}
+
+.home-profile-detail__threshold {
+  margin-top: 18rpx;
+  color: #111827;
+  font-size: 30rpx;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
 .home-profile__edit {
   background: #eff6ff;
 }
@@ -203,6 +246,99 @@
 
 .home-medication-card {
   margin-top: 20rpx;
+}
+
+.home-danger-zone {
+  margin-top: 24rpx;
+}
+
+.home-danger-zone__toggle {
+  color: #6b7280;
+  font-size: 28rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+.home-danger-zone__content {
+  margin-top: 20rpx;
+}
+
+.home-danger-zone__item + .home-danger-zone__item {
+  margin-top: 20rpx;
+}
+
+.home-danger-zone__item-title {
+  color: #111827;
+  font-size: 32rpx;
+  font-weight: 800;
+}
+
+.home-danger-zone__item-title--danger {
+  color: #b42318;
+}
+
+.home-danger-zone__item-text {
+  margin-top: 10rpx;
+  color: #6b7280;
+  font-size: 28rpx;
+  line-height: 1.5;
+}
+
+.home-delete-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+}
+
+.home-delete-modal__mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+}
+
+.home-delete-modal__panel {
+  position: absolute;
+  left: 32rpx;
+  right: 32rpx;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.home-delete-modal__title {
+  color: #111827;
+  font-size: 36rpx;
+  font-weight: 800;
+}
+
+.home-delete-modal__text {
+  margin-top: 16rpx;
+  color: #4b5563;
+  font-size: 28rpx;
+  line-height: 1.6;
+}
+
+.home-delete-modal__input {
+  height: 92rpx;
+  margin-top: 20rpx;
+  padding: 0 24rpx;
+  border-radius: 24rpx;
+  background: #f8fafc;
+  color: #111827;
+  font-size: 30rpx;
+}
+
+.home-delete-modal__actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 24rpx;
+}
+
+.home-delete-modal__button {
+  flex: 1;
+}
+
+.home-delete-modal__button--danger {
+  background: #b42318;
 }
 
 .home-profile-tip {

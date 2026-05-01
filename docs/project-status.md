@@ -1,9 +1,9 @@
 # 来自儿女的关心（family-care）项目状态
 
 ## 当前阶段
-- 已完成：T0、T1、T2.1-T2.6、T3.1a、T3.1b、T3.2a
-- 当前切入点：T3.2b（档案详情页升级、阈值编辑、危险操作区）
-- 未开始：T3.2b、T3.3、T4、T5、T6
+- 已完成：T0、T1、T2.1-T2.6、T3.1a、T3.1b、T3.2
+- 当前切入点：T3.3（用户设置：字号、关于）
+- 未开始：T3.3、T4、T5、T6
 
 ## 核心模型（Path B）
 - 三表核心：`users`、`profiles`、`relationships`
@@ -39,12 +39,13 @@
 
 ## 前端架构
 - 页面：
-  - 已接业务：`home`、`profile-edit`、`record`、`records-list`、`medication-edit`
+  - 已接业务：`home`、`profile-edit`、`profile-threshold-edit`、`record`、`records-list`、`medication-edit`
   - 骨架待接：`profile-detail`、`profile-settings`、`profile-members`、`invite-create`、`invite-accept`、`report`、`user-settings`
 - 服务层：`services/request.js`、`services/profile-service.js`、`services/record-service.js`、`services/medication-service.js`
 - 全局 store：手写轻量订阅式 store，提供 `getState / setState / subscribe`
 - 缓存策略：T2.5 引入 SWR，缓存按 `profileId` 隔离，首页与记录列表先读缓存再后台刷新
 - 错误处理：T2.6 引入统一错误文案映射与开发环境请求风暴告警
+- 单档案首页：T3.2 升级为“档案详情页”，含档案信息卡片、阈值调整入口和危险操作区
 
 ## 关键工程约定
 - 云函数 `_shared` 源码保留在 `cloudfunctions/_shared/`，部署前通过构建脚本复制到每个函数目录

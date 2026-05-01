@@ -1,8 +1,13 @@
 const { store } = require('../../store/index');
 const recordService = require('../../services/record-service');
 const medicationService = require('../../services/medication-service');
+const profileService = require('../../services/profile-service');
 const { getErrorMessage } = require('../../utils/error-messages');
 const { getBPStatusDisplay, getReferenceLines } = require('../../utils/bp-status');
+const {
+  buildProfileDetailDisplay,
+  isDeleteNameMatched,
+} = require('../../utils/profile-detail');
 
 function pad(value) {
   return String(value).padStart(2, '0');
@@ -91,6 +96,20 @@ Page({
     loginErrorText: '',
     isRetrying: false,
     showProfileCompletionPrompt: false,
+    profileDetail: {
+      title: '',
+      metaLine: '',
+      emergencyLine: '',
+      thresholdLine: '',
+      threshold: null,
+    },
+    isDangerZoneExpanded: false,
+    isDeleteConfirmVisible: false,
+    isDeletingProfile: false,
+    deleteConfirmName: '',
+    deleteConfirmInput: '',
+    deleteConfirmMessage: '',
+    isDeleteConfirmReady: false,
   },
 
   onLoad() {
@@ -126,6 +145,12 @@ Page({
     this.setData({
       isShowAllMedications: false,
       isShowHistoricalMedications: false,
+      isDangerZoneExpanded: false,
+      isDeleteConfirmVisible: false,
+      deleteConfirmName: '',
+      deleteConfirmInput: '',
+      deleteConfirmMessage: '',
+      isDeleteConfirmReady: false,
     });
   },
 
@@ -155,6 +180,11 @@ Page({
           profile && profile.name,
           profile && profile.relation,
           profile && profile.birthDate,
+          profile && profile.longTermMedication === true ? 'ltm1' : 'ltm0',
+          profile && profile.emergencyContact && profile.emergencyContact.name,
+          profile && profile.emergencyContact && profile.emergencyContact.phone,
+          profile && profile.settings && profile.settings.bp && profile.settings.bp.threshold && profile.settings.bp.threshold.systolic,
+          profile && profile.settings && profile.settings.bp && profile.settings.bp.threshold && profile.settings.bp.threshold.diastolic,
         ].join(':'))
         .join('|'),
       dismissedHints,
@@ -170,6 +200,7 @@ Page({
     this.setData({
       profiles,
       activeProfile: view.activeProfile,
+      profileDetail: buildProfileDetailDisplay(view.activeProfile),
       profileCards: view.profileCards,
       referenceLines: getReferenceLines(view.activeProfile && view.activeProfile.settings && view.activeProfile.settings.bp && view.activeProfile.settings.bp.referenceLines),
       hasProfiles: profiles.length > 0,
@@ -678,6 +709,22 @@ Page({
     });
   },
 
+  handleOpenThresholdEditor() {
+    const profile = this.data.activeProfile;
+
+    if (!profile || !profile._id) {
+      wx.showToast({
+        title: '档案不存在',
+        icon: 'none',
+      });
+      return;
+    }
+
+    wx.navigateTo({
+      url: `/pages/profile-threshold-edit/profile-threshold-edit?profileId=${profile._id}`,
+    });
+  },
+
   handleCompleteProfile() {
     const profile = this.data.activeProfile;
 
@@ -729,6 +776,8 @@ Page({
     this.setData({
       isShowAllMedications: false,
       isShowHistoricalMedications: false,
+      isDangerZoneExpanded: false,
+      isDeleteConfirmVisible: false,
     });
     store.setCurrentProfileId(profileId);
   },
@@ -737,6 +786,8 @@ Page({
     this.setData({
       isShowAllMedications: false,
       isShowHistoricalMedications: false,
+      isDangerZoneExpanded: false,
+      isDeleteConfirmVisible: false,
     });
     store.setCurrentProfileId(null);
   },
@@ -769,6 +820,170 @@ Page({
     wx.navigateTo({
       url: `/pages/medication-edit/medication-edit?mode=edit&profileId=${profile._id}&medicationId=${medication._id}`,
     });
+  },
+
+  handleToggleDangerZone() {
+    this.setData({
+      isDangerZoneExpanded: !this.data.isDangerZoneExpanded,
+    });
+  },
+
+  handleTransferOwnership() {
+    wx.showToast({
+      title: '管理员转让功能将在协作邀请上线时启用',
+      icon: 'none',
+    });
+  },
+
+  async getDeleteSummary(profileId) {
+    let recordCount = null;
+    let medicationCount = null;
+
+    if (store.hasCachedRecords(profileId)) {
+      const cachedRecords = store.getCachedRecords(profileId) || [];
+      recordCount = cachedRecords.length;
+    } else {
+      try {
+        const result = await recordService.fetchRecords(profileId, { limit: 200 });
+        recordCount = result.hasMore ? `${result.records.length}+` : result.records.length;
+      } catch (error) {
+        recordCount = '所有';
+      }
+    }
+
+    if (store.hasCachedMedications(profileId)) {
+      const cachedMedications = store.getCachedMedications(profileId);
+      medicationCount = (cachedMedications.active || []).length + (cachedMedications.historical || []).length;
+    } else {
+      try {
+        const result = await medicationService.fetchMedications(profileId);
+        medicationCount = (result.activeMedications || []).length + (result.historicalMedications || []).length;
+      } catch (error) {
+        medicationCount = '所有';
+      }
+    }
+
+    return {
+      recordCount: recordCount === null ? '所有' : recordCount,
+      medicationCount: medicationCount === null ? '所有' : medicationCount,
+    };
+  },
+
+  async handleDeleteProfile() {
+    const profile = this.data.activeProfile;
+
+    if (!profile || !profile._id) {
+      wx.showToast({
+        title: '档案不存在',
+        icon: 'none',
+      });
+      return;
+    }
+
+    const summary = await this.getDeleteSummary(profile._id);
+    const modalResult = await new Promise((resolve) => {
+      wx.showModal({
+        title: `确定删除「${profile.name}」的档案？`,
+        content: `· 此档案的 ${summary.recordCount} 条血压记录将被删除\n· 此档案的 ${summary.medicationCount} 条用药记录将被删除\n· 删除后无法恢复`,
+        confirmText: '继续删除',
+        confirmColor: '#b42318',
+        success: resolve,
+        fail() {
+          resolve({ confirm: false, cancel: true });
+        },
+      });
+    });
+
+    if (!modalResult || !modalResult.confirm) {
+      return;
+    }
+
+    this.setData({
+      isDeleteConfirmVisible: true,
+      deleteConfirmName: profile.name,
+      deleteConfirmInput: '',
+      deleteConfirmMessage: `请输入档案名“${profile.name}”以继续删除`,
+      isDangerZoneExpanded: true,
+      isDeleteConfirmReady: false,
+    });
+  },
+
+  onDeleteConfirmInput(event) {
+    const value = event.detail.value;
+    this.setData({
+      deleteConfirmInput: value,
+      isDeleteConfirmReady: isDeleteNameMatched(this.data.deleteConfirmName, value),
+    });
+  },
+
+  isDeleteConfirmReady() {
+    return isDeleteNameMatched(this.data.deleteConfirmName, this.data.deleteConfirmInput);
+  },
+
+  handleCancelDeleteProfile() {
+    this.setData({
+      isDeleteConfirmVisible: false,
+      deleteConfirmInput: '',
+      deleteConfirmMessage: '',
+      isDeleteConfirmReady: false,
+    });
+  },
+
+  async handleConfirmDeleteProfile() {
+    const profile = this.data.activeProfile;
+
+    if (!profile || !profile._id) {
+      wx.showToast({
+        title: '档案不存在',
+        icon: 'none',
+      });
+      return;
+    }
+
+    if (!this.isDeleteConfirmReady()) {
+      return;
+    }
+
+    this.setData({ isDeletingProfile: true });
+
+    try {
+      await profileService.deleteProfile(profile._id);
+      const state = store.getState();
+      const nextProfiles = (state.profiles || []).filter((item) => item && item._id !== profile._id);
+      const nextRelationships = (state.relationships || []).filter((item) => item && item.profileId !== profile._id);
+      const nextCurrentProfileId = nextProfiles.length === 1 ? nextProfiles[0]._id : null;
+
+      store.setState({
+        profiles: nextProfiles,
+        relationships: nextRelationships,
+        currentProfileId: nextCurrentProfileId,
+      });
+
+      wx.showToast({
+        title: `已删除「${profile.name}」`,
+        icon: 'none',
+        duration: 1200,
+      });
+
+      setTimeout(() => {
+        wx.reLaunch({
+          url: '/pages/home/home',
+        });
+      }, 1200);
+    } catch (error) {
+      wx.showToast({
+        title: getErrorMessage(error),
+        icon: 'none',
+      });
+    } finally {
+      this.setData({
+        isDeletingProfile: false,
+        isDeleteConfirmVisible: false,
+        deleteConfirmInput: '',
+        deleteConfirmMessage: '',
+        isDeleteConfirmReady: false,
+      });
+    }
   },
 
   async handleRetryLogin() {
