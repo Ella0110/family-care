@@ -304,6 +304,14 @@ async function main() {
 
   const homePage = createPageInstance(homePageConfig);
   homePage.renderState();
+  homePage.setData({ viewState: 'multi' });
+  store.setState({ currentProfileId: 'profile_b' });
+  homePage.renderState();
+  assert.strictEqual(
+    homePage.data.showProfileCompletionPrompt,
+    true,
+    'profile completion prompt should appear when entering single-profile view from multi-profile list',
+  );
   homePage.setData({
     activeProfile: store.getState().profiles[0],
     viewState: 'single',

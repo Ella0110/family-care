@@ -212,12 +212,15 @@ Page({
       isLoginReady: loginStatus.isLoginReady,
       isLoginFailed: loginStatus.isLoginFailed,
       loginErrorText: loginStatus.loginError ? getErrorMessage(loginStatus.loginError) : '',
-      showProfileCompletionPrompt: this.shouldShowProfileCompletionPrompt(view.activeProfile),
+      showProfileCompletionPrompt: this.shouldShowProfileCompletionPrompt(
+        view.activeProfile,
+        view.viewState,
+      ),
     });
   },
 
-  shouldShowProfileCompletionPrompt(profile) {
-    if (!profile || this.data.viewState === 'multi') {
+  shouldShowProfileCompletionPrompt(profile, viewState) {
+    if (!profile || viewState === 'multi') {
       return false;
     }
 
