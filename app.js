@@ -8,6 +8,10 @@ const {
   readLocalFontScale,
   resolveFontScaleSync,
 } = require('./utils/font-scale');
+const {
+  getInviteLaunchToken,
+  normalizeGrantedUserProfile,
+} = require('./utils/invitation');
 
 let localConfig = null;
 
@@ -46,12 +50,26 @@ function normalizeLoginPayload(result = {}) {
   };
 }
 
+function pickGrantedUserProfile(user) {
+  if (!user || !user.nickname) {
+    return null;
+  }
+
+  return {
+    nickname: user.nickname,
+    avatarUrl: user.avatarUrl || '',
+  };
+}
+
 App({
   globalData: {
     store,
     loginReady: false,
     loginError: null,
     fontScale: DEFAULT_FONT_SCALE,
+    userProfileGranted: false,
+    userProfile: null,
+    inviteLaunchToken: null,
   },
 
   onShow() {
@@ -81,6 +99,34 @@ App({
     }
 
     return nextFontScale;
+  },
+
+  cacheGrantedUserProfile(profile) {
+    const normalized = normalizeGrantedUserProfile(profile);
+    if (!normalized) {
+      return null;
+    }
+
+    this.globalData.userProfileGranted = true;
+    this.globalData.userProfile = normalized;
+
+    const state = store.getState();
+    if (state.user) {
+      store.setState({
+        user: Object.assign({}, state.user, {
+          nickname: normalized.nickname,
+          avatarUrl: normalized.avatarUrl || state.user.avatarUrl || '',
+        }),
+      });
+    }
+
+    return normalized;
+  },
+
+  syncUserProfileGrantState(user) {
+    const grantedProfile = pickGrantedUserProfile(user);
+    this.globalData.userProfileGranted = Boolean(grantedProfile);
+    this.globalData.userProfile = grantedProfile;
   },
 
   async syncFontScaleWithUser(user) {
@@ -116,12 +162,14 @@ App({
       this.globalData.loginReady = true;
       this.globalData.loginError = null;
       store.setState(nextState);
+      this.syncUserProfileGrantState(nextState.user);
       await this.syncFontScaleWithUser(nextState.user);
 
       return nextState;
     } catch (error) {
       this.globalData.loginReady = true;
       this.globalData.loginError = error;
+      this.syncUserProfileGrantState(null);
       store.setState({
         user: null,
         profiles: [],
@@ -133,7 +181,7 @@ App({
     }
   },
 
-  async onLaunch() {
+  async onLaunch(options = {}) {
     if (!wx.cloud) {
       console.error('wx.cloud is not available in the current environment.');
       this.globalData.loginReady = true;
@@ -143,6 +191,10 @@ App({
 
     this.globalData.store = store;
     this.globalData.fontScale = readLocalFontScale() || DEFAULT_FONT_SCALE;
+    this.globalData.inviteLaunchToken = getInviteLaunchToken(options);
+    if (this.globalData.inviteLaunchToken) {
+      console.log('[invite] cold start with token:', this.globalData.inviteLaunchToken);
+    }
 
     try {
       wx.cloud.init({

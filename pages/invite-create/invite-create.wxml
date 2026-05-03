@@ -1,3 +1,77 @@
-<view class="page">
-  <view>invite-create page</view>
+<view class="page page-root" style="--font-scale: {{fontScale}};">
+  <view wx:if="{{!isGenerated}}" class="invite-page">
+    <view class="card invite-section">
+      <view class="invite-section__title">选择要分享的档案</view>
+      <view
+        wx:for="{{invitableProfiles}}"
+        wx:key="profile._id"
+        class="invite-profile-item"
+        data-profile-id="{{item.profile._id}}"
+        bindtap="onToggleProfile"
+      >
+        <view class="invite-profile-item__check">{{item.checked ? '☑' : '☐'}}</view>
+        <view class="invite-profile-item__content">
+          <view class="invite-profile-item__label">{{item.label}}</view>
+          <view class="invite-profile-item__summary">{{item.latestSummary}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="card invite-section">
+      <view class="invite-section__title">对方可以做什么</view>
+      <view class="invite-role-selector">
+        <view
+          wx:for="{{roleOptions}}"
+          wx:key="value"
+          class="invite-role-selector__option {{defaultRole === item.value ? 'invite-role-selector__option--active' : ''}}"
+          data-role="{{item.value}}"
+          bindtap="onRoleChange"
+        >
+          {{item.label}}
+        </view>
+      </view>
+      <view class="invite-section__hint">{{roleDescription}}</view>
+    </view>
+
+    <view class="card invite-section">
+      <view class="invite-section__title">想说点什么（可选）</view>
+      <textarea
+        class="invite-message"
+        value="{{message}}"
+        maxlength="50"
+        placeholder="请输入邀请留言"
+        bindinput="onMessageInput"
+      />
+      <view class="invite-section__count">{{message.length}} / 50</view>
+    </view>
+
+    <button
+      class="btn-primary invite-page__button"
+      bindtap="handleGenerateInvitation"
+      loading="{{isGenerating}}"
+      disabled="{{isGenerating || selectedCount < 1}}"
+    >
+      生成邀请卡片
+    </button>
+    <button class="btn-secondary invite-page__secondary" bindtap="handleCancel">取消</button>
+  </view>
+
+  <view wx:else class="card invite-generated">
+    <view class="invite-generated__title">✓ 邀请已生成</view>
+    <view class="invite-generated__preview">
+      <view class="invite-generated__preview-title">{{shareCardTitle}}</view>
+      <view class="invite-generated__preview-subtitle">{{generatedProfileSummary}}</view>
+    </view>
+    <view class="invite-generated__hint">⏰ 7 天内有效，仅限 1 人接受</view>
+    <button
+      class="btn-primary invite-generated__button"
+      open-type="share"
+      data-token="{{generatedInvitation.token}}"
+    >
+      立即分享给家人
+    </button>
+    <button class="btn-secondary invite-generated__secondary" bindtap="handleCopyInvitationLink">
+      复制邀请链接
+    </button>
+  </view>
 </view>

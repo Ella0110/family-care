@@ -67,6 +67,12 @@ function getCurrentFontScale() {
   return normalizeFontScale(app && app.globalData ? app.globalData.fontScale : DEFAULT_FONT_SCALE);
 }
 
+function getRelationshipForProfile(profileId, relationships) {
+  return (relationships || []).find(
+    (relationship) => relationship && relationship.profileId === profileId,
+  ) || null;
+}
+
 Page({
   data: {
     fontScale: DEFAULT_FONT_SCALE,
@@ -103,6 +109,7 @@ Page({
     loginErrorText: '',
     isRetrying: false,
     showProfileCompletionPrompt: false,
+    canInviteCurrentProfile: false,
     profileDetail: {
       title: '',
       metaLine: '',
@@ -211,6 +218,9 @@ Page({
     const view = this.resolveHomeView(state);
     const profiles = Array.isArray(state.profiles) ? state.profiles : [];
     const loginStatus = getLoginStatus();
+    const activeRelationship = view.activeProfile
+      ? getRelationshipForProfile(view.activeProfile._id, state.relationships)
+      : null;
 
     this.setData({
       profiles,
@@ -227,6 +237,11 @@ Page({
       isLoginReady: loginStatus.isLoginReady,
       isLoginFailed: loginStatus.isLoginFailed,
       loginErrorText: loginStatus.loginError ? getErrorMessage(loginStatus.loginError) : '',
+      canInviteCurrentProfile: Boolean(
+        activeRelationship
+        && activeRelationship.permissions
+        && activeRelationship.permissions.canInvite,
+      ),
       showProfileCompletionPrompt: this.shouldShowProfileCompletionPrompt(
         view.activeProfile,
         view.viewState,
@@ -724,6 +739,22 @@ Page({
 
     wx.navigateTo({
       url: `/pages/medication-edit/medication-edit?mode=create&profileId=${profile._id}`,
+    });
+  },
+
+  handleCreateInvitation() {
+    const profile = this.data.activeProfile;
+
+    if (!profile || !profile._id) {
+      wx.showToast({
+        title: '档案不存在',
+        icon: 'none',
+      });
+      return;
+    }
+
+    wx.navigateTo({
+      url: `/pages/invite-create/invite-create?profileId=${profile._id}`,
     });
   },
 

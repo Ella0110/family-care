@@ -228,6 +228,11 @@
       </view>
 
       <view wx:if="{{isDangerZoneExpanded}}" class="home-danger-zone__content">
+        <view wx:if="{{canInviteCurrentProfile}}" class="card home-danger-zone__item" bindtap="handleCreateInvitation">
+          <view class="home-danger-zone__item-title">邀请家人查看</view>
+          <view class="home-danger-zone__item-text">让家人共同关注 TA 的健康</view>
+        </view>
+
         <view class="card home-danger-zone__item" bindtap="handleTransferOwnership">
           <view class="home-danger-zone__item-title">转让管理员</view>
           <view class="home-danger-zone__item-text">把档案管理权转给其他家人</view>
