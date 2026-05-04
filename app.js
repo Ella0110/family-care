@@ -14,6 +14,7 @@ const {
 } = require('./utils/invitation');
 
 let localConfig = null;
+const GRANTED_USER_PROFILE_STORAGE_KEY = 'grantedUserProfile';
 
 try {
   localConfig = require('./local.config');
@@ -21,12 +22,6 @@ try {
   localConfig = null;
 }
 
-/**
- * Splits joined login payload into store-friendly user, profiles, and relationships.
- *
- * @param {{ user?: Object, relationships?: Array<Object> }} [result={}]
- * @returns {{ user: Object|null, profiles: Array<Object>, relationships: Array<Object>, currentProfileId: string|null }}
- */
 function normalizeLoginPayload(result = {}) {
   const profiles = [];
   const relationships = Array.isArray(result.relationships)
@@ -50,14 +45,107 @@ function normalizeLoginPayload(result = {}) {
   };
 }
 
-function pickGrantedUserProfile(user) {
-  if (!user || !user.nickname) {
+function buildInviterProfileFromUser(user) {
+  if (!user || typeof user !== 'object') {
     return null;
   }
 
-  return {
+  return normalizeGrantedUserProfile({
     nickname: user.nickname,
-    avatarUrl: user.avatarUrl || '',
+    avatarUrl: user.avatarUrl,
+  });
+}
+
+function readGrantedUserProfileFromStorage() {
+  if (typeof wx === 'undefined' || typeof wx.getStorageSync !== 'function') {
+    return null;
+  }
+
+  try {
+    return normalizeGrantedUserProfile(wx.getStorageSync(GRANTED_USER_PROFILE_STORAGE_KEY));
+  } catch (error) {
+    console.warn('Read granted user profile from storage failed.', error);
+    return null;
+  }
+}
+
+function persistGrantedUserProfileToStorage(profile) {
+  if (typeof wx === 'undefined' || typeof wx.setStorageSync !== 'function') {
+    return;
+  }
+
+  try {
+    wx.setStorageSync(GRANTED_USER_PROFILE_STORAGE_KEY, profile);
+  } catch (error) {
+    console.warn('Persist granted user profile failed.', error);
+  }
+}
+
+function clearGrantedUserProfileFromStorage() {
+  if (typeof wx === 'undefined' || typeof wx.removeStorageSync !== 'function') {
+    return;
+  }
+
+  try {
+    wx.removeStorageSync(GRANTED_USER_PROFILE_STORAGE_KEY);
+  } catch (error) {
+    console.warn('Clear granted user profile failed.', error);
+  }
+}
+
+function applyGrantedUserProfileState(app, profile) {
+  const normalized = normalizeGrantedUserProfile(profile);
+  if (!normalized) {
+    app.globalData.userProfileGranted = false;
+    app.globalData.userProfile = null;
+    return null;
+  }
+
+  app.globalData.userProfileGranted = true;
+  app.globalData.userProfile = normalized;
+  return normalized;
+}
+
+function syncGrantedUserProfileStateFromStorage(app) {
+  const cachedProfile = readGrantedUserProfileFromStorage();
+  const normalized = applyGrantedUserProfileState(app, cachedProfile);
+  if (!normalized) {
+    clearGrantedUserProfileFromStorage();
+  }
+  return normalized;
+}
+
+function syncGrantedUserProfileIntoStore(profile) {
+  const normalized = normalizeGrantedUserProfile(profile);
+  if (!normalized) {
+    return null;
+  }
+
+  const state = store.getState();
+  if (state.user) {
+    store.setState({
+      user: Object.assign({}, state.user, {
+        nickname: normalized.nickname,
+        avatarUrl: normalized.avatarUrl || state.user.avatarUrl || '',
+      }),
+    });
+  }
+
+  return normalized;
+}
+
+function cacheGrantedUserProfile(app, profile) {
+  const normalized = applyGrantedUserProfileState(app, profile);
+  if (!normalized) {
+    clearGrantedUserProfileFromStorage();
+    return null;
+  }
+
+  persistGrantedUserProfileToStorage(normalized);
+  syncGrantedUserProfileIntoStore(normalized);
+  return {
+    nickname: normalized.nickname,
+    avatarUrl: normalized.avatarUrl || '',
   };
 }
 
@@ -102,31 +190,27 @@ App({
   },
 
   cacheGrantedUserProfile(profile) {
-    const normalized = normalizeGrantedUserProfile(profile);
-    if (!normalized) {
+    return cacheGrantedUserProfile(this, profile);
+  },
+
+  syncUserProfileGrantState() {
+    syncGrantedUserProfileStateFromStorage(this);
+  },
+
+  syncInviterProfileState(user) {
+    const normalizedFromUser = buildInviterProfileFromUser(user);
+    if (normalizedFromUser) {
+      cacheGrantedUserProfile(this, normalizedFromUser);
+      return normalizedFromUser;
+    }
+
+    if (user && user._id) {
+      clearGrantedUserProfileFromStorage();
+      applyGrantedUserProfileState(this, null);
       return null;
     }
 
-    this.globalData.userProfileGranted = true;
-    this.globalData.userProfile = normalized;
-
-    const state = store.getState();
-    if (state.user) {
-      store.setState({
-        user: Object.assign({}, state.user, {
-          nickname: normalized.nickname,
-          avatarUrl: normalized.avatarUrl || state.user.avatarUrl || '',
-        }),
-      });
-    }
-
-    return normalized;
-  },
-
-  syncUserProfileGrantState(user) {
-    const grantedProfile = pickGrantedUserProfile(user);
-    this.globalData.userProfileGranted = Boolean(grantedProfile);
-    this.globalData.userProfile = grantedProfile;
+    return syncGrantedUserProfileStateFromStorage(this);
   },
 
   async syncFontScaleWithUser(user) {
@@ -162,14 +246,14 @@ App({
       this.globalData.loginReady = true;
       this.globalData.loginError = null;
       store.setState(nextState);
-      this.syncUserProfileGrantState(nextState.user);
+      this.syncInviterProfileState(nextState.user);
       await this.syncFontScaleWithUser(nextState.user);
 
       return nextState;
     } catch (error) {
       this.globalData.loginReady = true;
       this.globalData.loginError = error;
-      this.syncUserProfileGrantState(null);
+      this.syncInviterProfileState(null);
       store.setState({
         user: null,
         profiles: [],
@@ -191,6 +275,7 @@ App({
 
     this.globalData.store = store;
     this.globalData.fontScale = readLocalFontScale() || DEFAULT_FONT_SCALE;
+    this.syncInviterProfileState();
     this.globalData.inviteLaunchToken = getInviteLaunchToken(options);
     if (this.globalData.inviteLaunchToken) {
       console.log('[invite] cold start with token:', this.globalData.inviteLaunchToken);

@@ -7,6 +7,7 @@ const {
   normalizeInvitationRole,
   normalizeInvitationMessage,
   normalizeInviterProfile,
+  normalizeInvitationNicknameValue,
   INVITATION_STATUSES,
 } = require('./_shared/invitation-utils');
 
@@ -46,13 +47,13 @@ function createCreateInvitationHandler(deps = {}) {
       }
     }
 
-    let inviterNickname = user.nickname || null;
+    let inviterNickname = normalizeInvitationNicknameValue(user.nickname) || null;
     let inviterAvatarUrl = user.avatarUrl || null;
     let shouldSyncInviterProfile = false;
 
     if (inviterProfile) {
       if (Object.prototype.hasOwnProperty.call(inviterProfile, 'nickname')) {
-        inviterNickname = inviterProfile.nickname;
+        inviterNickname = normalizeInvitationNicknameValue(inviterProfile.nickname) || null;
         shouldSyncInviterProfile = true;
       }
       if (Object.prototype.hasOwnProperty.call(inviterProfile, 'avatarUrl')) {

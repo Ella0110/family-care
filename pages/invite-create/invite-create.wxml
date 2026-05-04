@@ -45,6 +45,62 @@
       <view class="invite-section__count">{{message.length}} / 50</view>
     </view>
 
+    <view class="card invite-section">
+      <view class="invite-section__title">邀请人信息</view>
+      <view wx:if="{{hasInviterProfile && !isEditingInviterProfile}}" class="invite-inviter invite-inviter--summary">
+        <view class="invite-inviter__summary-main">
+          <view class="invite-inviter__summary-avatar">
+            <image
+              wx:if="{{currentInviterProfile.avatarUrl}}"
+              class="invite-inviter__avatar-image"
+              src="{{currentInviterProfile.avatarUrl}}"
+              mode="aspectFill"
+            />
+            <view wx:else class="invite-inviter__avatar-placeholder invite-inviter__avatar-placeholder--initial">
+              {{currentInviterInitial}}
+            </view>
+          </view>
+          <view class="invite-inviter__summary-copy">
+            <view class="invite-inviter__summary-name">{{currentInviterProfile.nickname}}</view>
+            <view class="invite-section__hint">邀请卡片会显示这个昵称。头像可选，不选时会用昵称首字作为默认头像。</view>
+          </view>
+        </view>
+        <view class="invite-inviter__summary-action" bindtap="handleEditInviterProfile">修改</view>
+      </view>
+
+      <view wx:else>
+        <view class="invite-section__hint">请先填写一个家人能认出来的昵称，再生成邀请卡片。头像可选，不选时会自动显示昵称首字。</view>
+        <view class="invite-inviter">
+          <button
+            class="invite-inviter__avatar-button"
+            open-type="chooseAvatar"
+            bindchooseavatar="onChooseInviterAvatar"
+          >
+            <image
+              wx:if="{{inviterProfileDraft.avatarUrl}}"
+              class="invite-inviter__avatar-image"
+              src="{{inviterProfileDraft.avatarUrl}}"
+              mode="aspectFill"
+            />
+            <view wx:else class="invite-inviter__avatar-placeholder invite-inviter__avatar-placeholder--initial">
+              {{inviterProfileDraftInitial}}
+            </view>
+          </button>
+          <input
+            class="invite-inviter__nickname"
+            type="nickname"
+            maxlength="20"
+            placeholder="请输入你的昵称"
+            value="{{inviterProfileDraft.nickname}}"
+            bindinput="onInviterNicknameInput"
+          />
+        </view>
+        <view wx:if="{{hasInviterProfile}}" class="invite-inviter__editor-actions">
+          <view class="invite-inviter__editor-action" bindtap="handleCancelInviterProfileEdit">取消修改</view>
+        </view>
+      </view>
+    </view>
+
     <button
       class="btn-primary invite-page__button"
       bindtap="handleGenerateInvitation"
@@ -59,8 +115,23 @@
   <view wx:else class="card invite-generated">
     <view class="invite-generated__title">✓ 邀请已生成</view>
     <view class="invite-generated__preview">
-      <view class="invite-generated__preview-title">{{shareCardTitle}}</view>
-      <view class="invite-generated__preview-subtitle">{{generatedProfileSummary}}</view>
+      <view class="invite-generated__preview-header">
+        <view class="invite-generated__preview-avatar">
+          <image
+            wx:if="{{generatedInviterDisplay && generatedInviterDisplay.avatarUrl}}"
+            class="invite-generated__preview-avatar-image"
+            src="{{generatedInviterDisplay.avatarUrl}}"
+            mode="aspectFill"
+          />
+          <view wx:else class="invite-generated__preview-avatar-fallback">
+            {{generatedInviterDisplay ? generatedInviterDisplay.initial : '家'}}
+          </view>
+        </view>
+        <view class="invite-generated__preview-copy">
+          <view class="invite-generated__preview-title">{{shareCardTitle}}</view>
+          <view class="invite-generated__preview-subtitle">{{generatedProfileSummary}}</view>
+        </view>
+      </view>
     </view>
     <view class="invite-generated__hint">⏰ 7 天内有效，仅限 1 人接受</view>
     <button

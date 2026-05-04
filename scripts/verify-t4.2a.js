@@ -50,6 +50,7 @@ async function main() {
     buildInvitationExpiryText,
     getInviteLaunchToken,
     buildInvitationPermissionSummary,
+    normalizeGrantedUserProfile,
   } = invitationUtils;
 
   assert.strictEqual(buildDefaultInvitationMessage([{ name: '爸爸' }]), '想请你帮我一起关注爸爸的血压');
@@ -78,8 +79,11 @@ async function main() {
   );
   assert.deepStrictEqual(buildInvitationPermissionSummary('viewer').enabled, ['查看血压记录', '查看用药情况']);
   assert.deepStrictEqual(buildInvitationPermissionSummary('collaborator').disabled, ['删除档案']);
+  assert.strictEqual(normalizeGrantedUserProfile({ nickName: '微信用户', avatarUrl: '' }), null);
   assert.match(read('pages/invite-create/invite-create.js'), /handleGenerateInvitation\(\)\s*\{/);
-  assert.match(read('pages/invite-create/invite-create.js'), /wx\.getUserProfile\(/);
+  assert.match(read('pages/invite-create/invite-create.wxml'), /type="nickname"/);
+  assert.match(read('pages/invite-create/invite-create.wxml'), /open-type="chooseAvatar"/);
+  assert.match(read('pages/invite-create/invite-create.wxml'), /修改/);
 
   store.setState({
     user: { _id: 'user_owner', nickname: 'Ella', avatarUrl: 'https://example.com/a.png' },
@@ -142,6 +146,13 @@ async function main() {
           };
         }
 
+        if (name === 'updateUserProfile') {
+          return {
+            success: true,
+            user: Object.assign({}, store.getState().user || {}, data.patch || {}),
+          };
+        }
+
         if (name === 'getInvitationInfo') {
           return {
             success: true,
@@ -196,7 +207,7 @@ async function main() {
     inviteAcceptConfig = config;
   };
 
-  global.getApp = () => ({
+  const appInstance = {
     globalData: {
       fontScale: 1,
       loginReady: true,
@@ -206,12 +217,17 @@ async function main() {
       store,
     },
     login: async () => store.getState(),
+    syncUserProfileGrantState() {
+      this.globalData.userProfileGranted = false;
+      this.globalData.userProfile = null;
+    },
     cacheGrantedUserProfile(profile) {
       this.globalData.userProfileGranted = Boolean(profile && profile.nickname);
       this.globalData.userProfile = profile || null;
       return profile || null;
     },
-  });
+  };
+  global.getApp = () => appInstance;
   global.getCurrentPages = () => [{ route: 'pages/home/home' }, { route: 'pages/invite-create/invite-create' }];
   global.wx = {
     showToast() {},
@@ -219,14 +235,6 @@ async function main() {
     reLaunch() {},
     showModal({ success }) {
       success({ confirm: true, cancel: false });
-    },
-    getUserProfile({ success }) {
-      success({
-        userInfo: {
-          nickName: 'Ella',
-          avatarUrl: 'https://example.com/a.png',
-        },
-      });
     },
     setClipboardData() {},
   };
@@ -245,10 +253,49 @@ async function main() {
   assert.strictEqual(inviteCreatePage.data.selectedCount, 1);
   assert.strictEqual(inviteCreatePage.data.defaultRole, 'viewer');
   assert.strictEqual(inviteCreatePage.data.message, '想请你帮我一起关注爸爸的血压');
+  assert.strictEqual(inviteCreatePage.data.hasInviterProfile, true);
+  assert.strictEqual(inviteCreatePage.data.isEditingInviterProfile, false);
   const shareConfig = inviteCreatePage.onShareAppMessage({
     target: { dataset: { token: 'invite123' } },
   });
   assert.match(shareConfig.path, /token=invite123/);
+
+  const toastCalls = [];
+  global.wx.showToast = (payload) => {
+    toastCalls.push(payload);
+  };
+
+  store.setState({
+    user: { _id: 'user_owner', nickname: '微信用户', avatarUrl: '' },
+  });
+  const inviteCreateFallbackPage = createPageInstance(inviteCreateConfig);
+  appInstance.globalData.userProfileGranted = true;
+  appInstance.globalData.userProfile = {
+    nickname: '微信用户',
+    avatarUrl: '',
+  };
+  inviteCreateFallbackPage.onLoad({ profileId: 'profile_a' });
+  assert.strictEqual(inviteCreateFallbackPage.data.hasInviterProfile, false);
+  assert.strictEqual(inviteCreateFallbackPage.data.isEditingInviterProfile, true);
+  const createInvitationCallCountBeforeFallback = requestCalls.length;
+  inviteCreateFallbackPage.handleGenerateInvitation();
+  assert.strictEqual(requestCalls.length, createInvitationCallCountBeforeFallback);
+  assert.strictEqual(toastCalls[toastCalls.length - 1].title, '请先填写昵称');
+
+  inviteCreateFallbackPage.onInviterNicknameInput({
+    detail: { value: 'Ella' },
+  });
+  inviteCreateFallbackPage.onChooseInviterAvatar({
+    detail: { avatarUrl: 'https://example.com/a.png' },
+  });
+  inviteCreateFallbackPage.handleGenerateInvitation();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.strictEqual(requestCalls.length, createInvitationCallCountBeforeFallback + 2);
+  assert.strictEqual(requestCalls[requestCalls.length - 2].name, 'updateUserProfile');
+  assert.deepStrictEqual(
+    requestCalls[requestCalls.length - 1].data.inviterProfile,
+    { nickname: 'Ella', avatarUrl: 'https://example.com/a.png' },
+  );
 
   const inviteAcceptPage = createPageInstance(inviteAcceptConfig);
   inviteAcceptPage.onLoad({});

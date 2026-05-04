@@ -99,6 +99,14 @@ async function main() {
   assert.strictEqual(requiresNickname.success, false);
   assert.strictEqual(requiresNickname.code, 'NICKNAME_REQUIRED');
 
+  runtime.db.store.users.owner_user.nickname = '微信用户';
+  const placeholderNicknameRejected = await createInvitation({
+    profileIds: [profileA._id],
+  }, {});
+  assert.strictEqual(placeholderNicknameRejected.success, false);
+  assert.strictEqual(placeholderNicknameRejected.code, 'NICKNAME_REQUIRED');
+  runtime.db.store.users.owner_user.nickname = null;
+
   const invitationCreated = await createInvitation({
     profileIds: [profileA._id, profileB._id],
     defaultRole: 'viewer',

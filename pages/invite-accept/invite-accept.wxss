@@ -46,6 +46,15 @@
   background: rgba(37, 99, 235, 0.12);
 }
 
+.invite-accept-card__avatar--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
 .invite-accept-card__inviter-name {
   font-size: 30rpx;
   font-weight: 600;

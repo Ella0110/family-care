@@ -7,7 +7,7 @@ const ERROR_MESSAGES = Object.freeze({
   PROFILE_NOT_FOUND: '档案不存在',
   RECORD_NOT_FOUND: '记录不存在',
   MEDICATION_NOT_FOUND: '用药记录不存在',
-  NICKNAME_REQUIRED: '请先完成昵称授权',
+  NICKNAME_REQUIRED: '请先填写昵称',
   INVITATION_EXPIRED: '这个邀请已经过期了',
   INVITATION_USED: '这个邀请已经被使用',
   INVITATION_REVOKED: '邀请人撤销了这次邀请',

@@ -13,6 +13,20 @@ async function updateSettings(patch) {
   };
 }
 
+/**
+ * Updates inviter-facing profile fields such as nickname and avatarUrl.
+ *
+ * @param {{ nickname?: string, avatarUrl?: string }} patch
+ * @returns {Promise<{ user: Object }>}
+ */
+async function updateProfile(patch) {
+  const result = await call('updateUserProfile', { patch }, { silent: true });
+  return {
+    user: result.user,
+  };
+}
+
 module.exports = {
   updateSettings,
+  updateProfile,
 };

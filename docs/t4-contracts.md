@@ -24,17 +24,20 @@
 | 接收异常推送（T5） | ✓ | ✓ | 默认订阅 |
 
 ## 邀请流程契约
-1. 邀请人触发 wx.getUserProfile（已授权则跳过），保证 nickname 已落库
-2. 邀请人调 createInvitation，传 profileIds（默认勾选当前档案，可多选）和默认角色（默认 viewer）
-3. 服务端生成 invitation 记录（含 token、过期时间、profileIds、role），返回邀请信息
-4. 前端通过 wx.shareAppMessage 分享邀请卡片，路径携带 token
-5. 被邀请人点开卡片 → 小程序冷启动到 invite-accept 页 → token 从 query 拿
-6. 调 getInvitationInfo 展示邀请详情（不消耗使用次数）
-7. 用户点接受 → 调 acceptInvitation → 创建对应 relationship 记录
-8. 一次性邀请：acceptInvitation 后 token 失效
+1. 邀请人在 `invite-create` 页填写昵称，并可选选择头像；如果已经填过，下次自动复用
+2. 邀请人调 `updateUserProfile` 同步 `users.nickname / users.avatarUrl`，再调 `createInvitation`
+3. 邀请人调 `createInvitation`，传 `profileIds`（默认勾选当前档案，可多选）和默认角色（默认 viewer）
+4. 服务端生成 invitation 记录（含 token、过期时间、profileIds、role），返回邀请信息
+5. 前端通过 `wx.shareAppMessage` 分享邀请卡片，路径携带 token
+6. 被邀请人点开卡片 → 小程序冷启动到 `invite-accept` 页 → token 从 query 拿
+7. 调 `getInvitationInfo` 展示邀请详情（不消耗使用次数）
+8. 用户点接受 → 调 `acceptInvitation` → 创建对应 relationship 记录
+9. 一次性邀请：`acceptInvitation` 后 token 失效
 
 实现约定：
-- 如果邀请人当前 `user.nickname` 为空，前端在拿到 `wx.getUserProfile` 后，重试 `createInvitation` 时附带 `inviterProfile.nickname/avatarUrl`，服务端先落库再创建邀请
+- 邀请人昵称会长期复用。第一次填写后，后续邀请默认显示当前昵称和头像，并提供“修改”入口
+- 头像是可选项；未选择头像时，邀请卡片前端显示默认灰色头像或昵称首字
+- `微信用户` 是占位昵称，前后端都视为无效，不允许用这个值生成邀请
 
 ## 关键约束
 - 邀请人不能邀请自己（被邀请的 user 必须 != 邀请人 user）

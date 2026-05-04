@@ -5,6 +5,7 @@ const { DEFAULT_FONT_SCALE, normalizeFontScale } = require('../../utils/font-sca
 const {
   buildInvitationPermissionSummary,
   buildInvitationExpiryText,
+  buildInvitationNicknameInitial,
   buildInvitationProfileLabel,
   buildLatestBpSummary,
 } = require('../../utils/invitation');
@@ -28,6 +29,7 @@ function buildInvitationDisplay(invitation) {
   return {
     inviterNickname: invitation.inviterNickname || '家人',
     inviterAvatarUrl: invitation.inviterAvatarUrl || '',
+    inviterInitial: buildInvitationNicknameInitial(invitation.inviterNickname, '家'),
     profiles: (invitation.profiles || []).map((profile) => ({
       _id: profile._id,
       label: buildInvitationProfileLabel(profile, new Date()),

@@ -27,6 +27,7 @@
 - `updateProfile`：更新档案基本资料
 - `deleteProfile`：软删除档案
 - `updateProfileSettings`：更新档案 `settings`
+- `updateUserProfile`：更新用户昵称和头像，当前主要给邀请卡片复用
 - `updateUserSettings`：更新用户级设置，当前用于字号 `fontScale`
 - `saveRecord`：保存血压记录并返回 `alertTriggered/alertSentTo`
 - `getRecords`：读取血压记录列表
@@ -55,7 +56,7 @@
 - 错误处理：T2.6 引入统一错误文案映射与开发环境请求风暴告警
 - 单档案首页：T3.2 升级为“档案详情页”，含档案信息卡片、阈值调整入口和危险操作区
 - 用户设置：T3.3 新增字号切换和关于页，`fontScale` 支持 `1.0 / 1.15 / 1.3`
-- 协作邀请：T4.1 完成邀请、接受、成员角色、管理员转让的数据层 API；T4.2a 已接通邀请发起、邀请预览、接受和分享路径，成员管理待 T4.2b
+- 协作邀请：T4.1 完成邀请、接受、成员角色、管理员转让的数据层 API；T4.2a 已接通邀请发起、邀请预览、接受和分享路径，并改为 invite-create 页主动填写昵称（+ 可选头像），成员管理待 T4.2b
 
 ## 关键工程约定
 - 云函数 `_shared` 源码保留在 `cloudfunctions/_shared/`，部署前通过构建脚本复制到每个函数目录
@@ -73,6 +74,7 @@
 - T1 运行时坑：函数目录未带 `wx-server-sdk` manifest 时，前端会看到“服务端 SDK 不可用”类报错
 - T1 真实语义坑：本地 fake runtime 早期与真实云数据库行为不一致，掩盖了 `doc().get()` 和 `doc().set()` 边界问题
 - T2.5 请求风暴：把 cache 写进 store 后若订阅逻辑不收敛，会触发首页循环刷新和调用量异常放大
+- T4.2a 微信能力坑：`wx.getUserProfile` 在 2026 年新版微信基础库里不再稳定返回真实昵称，实际常出现 `微信用户` 占位值。邀请流程已改为 invite-create 页主动填写昵称（`input type="nickname"`）+ 可选头像（`open-type="chooseAvatar"`）。
 
 ## 产品决策记录
 - Path B vs Path C：选 B，因为没有历史用户，可以按新模型干净重开

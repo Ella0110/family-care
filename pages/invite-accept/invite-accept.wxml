@@ -9,6 +9,7 @@
       <view class="invite-accept-card__title">收到家人邀请</view>
       <view class="invite-accept-card__inviter">
         <image wx:if="{{invitationDisplay.inviterAvatarUrl}}" class="invite-accept-card__avatar" src="{{invitationDisplay.inviterAvatarUrl}}" mode="aspectFill" />
+        <view wx:else class="invite-accept-card__avatar invite-accept-card__avatar--fallback">{{invitationDisplay.inviterInitial}}</view>
         <view class="invite-accept-card__inviter-name">{{invitationDisplay.inviterNickname}} 邀请你</view>
       </view>
 

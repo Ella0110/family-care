@@ -24,6 +24,16 @@ const INVITATION_ROLE_OPTIONS = Object.freeze(['viewer', 'collaborator']);
 const MAX_INVITATION_PROFILES = 10;
 const MAX_INVITATION_MESSAGE_LENGTH = 100;
 const MAX_NICKNAME_LENGTH = 50;
+const ANONYMOUS_NICKNAMES = new Set(['微信用户']);
+
+function normalizeInvitationNicknameValue(value) {
+  const nickname = normalizeNullableString(value, 'invitation.nickname');
+  if (!nickname || ANONYMOUS_NICKNAMES.has(nickname)) {
+    return null;
+  }
+
+  return nickname;
+}
 
 function normalizeInvitationProfileIds(value) {
   if (!Array.isArray(value) || value.length === 0) {
@@ -95,7 +105,11 @@ function normalizeInviterProfile(value) {
         `inviterProfile.nickname must be at most ${MAX_NICKNAME_LENGTH} characters`,
       );
     }
-    normalized.nickname = nickname;
+    const normalizedNickname = normalizeInvitationNicknameValue(nickname);
+    if (!normalizedNickname) {
+      throw invalidArgument('inviterProfile.nickname is invalid');
+    }
+    normalized.nickname = normalizedNickname;
   }
 
   if (Object.prototype.hasOwnProperty.call(profile, 'avatarUrl')) {
@@ -151,6 +165,7 @@ module.exports = {
   normalizeInvitationRole,
   normalizeInvitationMessage,
   normalizeInviterProfile,
+  normalizeInvitationNicknameValue,
   getEffectiveInvitationStatus,
   getInvitationErrorCodeByStatus,
   findInvitationByToken,

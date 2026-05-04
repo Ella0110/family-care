@@ -5,6 +5,7 @@ const INVITATION_ROLE_LABELS = Object.freeze({
   viewer: '只看',
   collaborator: '共同记录',
 });
+const ANONYMOUS_NICKNAMES = new Set(['微信用户']);
 
 function pad(value) {
   return String(value).padStart(2, '0');
@@ -24,6 +25,19 @@ function toDate(value) {
 
 function trimText(value) {
   return String(value || '').trim();
+}
+
+function isAnonymousInvitationNickname(value) {
+  return ANONYMOUS_NICKNAMES.has(trimText(value));
+}
+
+function buildInvitationNicknameInitial(value, fallback = '家') {
+  const nickname = trimText(value);
+  if (!nickname) {
+    return fallback;
+  }
+
+  return nickname.slice(0, 1).toUpperCase();
 }
 
 function isSameDay(left, right) {
@@ -199,7 +213,7 @@ function normalizeGrantedUserProfile(userInfo) {
   }
 
   const nickname = trimText(userInfo.nickName || userInfo.nickname);
-  if (!nickname) {
+  if (!nickname || isAnonymousInvitationNickname(nickname)) {
     return null;
   }
 
@@ -230,4 +244,6 @@ module.exports = {
   buildInvitationPermissionSummary,
   normalizeGrantedUserProfile,
   getInviteLaunchToken,
+  isAnonymousInvitationNickname,
+  buildInvitationNicknameInitial,
 };

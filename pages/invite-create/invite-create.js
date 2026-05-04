@@ -1,11 +1,13 @@
 const { store } = require('../../store/index');
 const invitationService = require('../../services/invitation-service');
+const userService = require('../../services/user-service');
 const { getErrorMessage } = require('../../utils/error-messages');
 const { DEFAULT_FONT_SCALE, normalizeFontScale } = require('../../utils/font-scale');
 const {
   INVITATION_MAX_PROFILE_SELECTION,
   buildInvitableProfiles,
   buildDefaultInvitationMessage,
+  buildInvitationNicknameInitial,
   buildInvitationShareTitle,
   normalizeGrantedUserProfile,
 } = require('../../utils/invitation');
@@ -59,21 +61,55 @@ Page({
     generatedInvitation: null,
     generatedProfileSummary: '',
     shareCardTitle: '',
+    generatedInviterDisplay: null,
+    hasInviterProfile: false,
+    currentInviterProfile: null,
+    currentInviterInitial: '家',
+    inviterProfileDraft: {
+      nickname: '',
+      avatarUrl: '',
+    },
+    inviterProfileDraftInitial: '家',
+    isEditingInviterProfile: true,
   },
 
   onLoad(options = {}) {
     this.defaultProfileId = options.profileId || '';
     this.syncFontScale();
+    this.syncInviterProfileState();
     this.buildProfileOptions();
   },
 
   onShow() {
     this.syncFontScale();
+    this.syncInviterProfileState();
   },
 
   syncFontScale() {
     this.setData({
       fontScale: getCurrentFontScale(),
+    });
+  },
+
+  syncInviterProfileState() {
+    const inviterProfile = this.getAvailableInviterProfile();
+    const nextDraft = inviterProfile
+      ? {
+          nickname: inviterProfile.nickname,
+          avatarUrl: inviterProfile.avatarUrl || '',
+        }
+      : (this.data && this.data.inviterProfileDraft
+        ? this.data.inviterProfileDraft
+        : { nickname: '', avatarUrl: '' });
+    const shouldEdit = inviterProfile ? false : true;
+
+    this.setData({
+      hasInviterProfile: Boolean(inviterProfile),
+      currentInviterProfile: inviterProfile,
+      currentInviterInitial: buildInvitationNicknameInitial(inviterProfile && inviterProfile.nickname, '家'),
+      inviterProfileDraft: nextDraft,
+      inviterProfileDraftInitial: buildInvitationNicknameInitial(nextDraft.nickname, '家'),
+      isEditingInviterProfile: shouldEdit,
     });
   },
 
@@ -179,6 +215,25 @@ Page({
     });
   },
 
+  onInviterNicknameInput(event) {
+    const nickname = String(event.detail.value || '').slice(0, 20);
+    this.setData({
+      'inviterProfileDraft.nickname': nickname,
+      inviterProfileDraftInitial: buildInvitationNicknameInitial(nickname, '家'),
+      isEditingInviterProfile: true,
+    });
+  },
+
+  onChooseInviterAvatar(event) {
+    const avatarUrl = String(
+      (event && event.detail && event.detail.avatarUrl) || '',
+    ).trim();
+    this.setData({
+      'inviterProfileDraft.avatarUrl': avatarUrl,
+      isEditingInviterProfile: true,
+    });
+  },
+
   validateForm() {
     if ((this.data.selectedCount || 0) < 1) {
       return '至少选择 1 个档案';
@@ -189,6 +244,74 @@ Page({
     }
 
     return '';
+  },
+
+  getAvailableInviterProfile() {
+    const app = getApp();
+    const globalProfile = normalizeGrantedUserProfile(
+      app && app.globalData ? app.globalData.userProfile : null,
+    );
+    if (globalProfile) {
+      return globalProfile;
+    }
+
+    const storeUser = store.getState().user || null;
+    return normalizeGrantedUserProfile({
+      nickname: storeUser && storeUser.nickname,
+      avatarUrl: storeUser && storeUser.avatarUrl,
+    });
+  },
+
+  handleEditInviterProfile() {
+    const current = this.data.currentInviterProfile || this.getAvailableInviterProfile();
+    this.setData({
+      isEditingInviterProfile: true,
+      inviterProfileDraft: {
+        nickname: current ? current.nickname : '',
+        avatarUrl: current ? current.avatarUrl || '' : '',
+      },
+      inviterProfileDraftInitial: buildInvitationNicknameInitial(current && current.nickname, '家'),
+    });
+  },
+
+  handleCancelInviterProfileEdit() {
+    const current = this.data.currentInviterProfile || this.getAvailableInviterProfile();
+    this.setData({
+      isEditingInviterProfile: false,
+      inviterProfileDraft: {
+        nickname: current ? current.nickname : '',
+        avatarUrl: current ? current.avatarUrl || '' : '',
+      },
+      inviterProfileDraftInitial: buildInvitationNicknameInitial(current && current.nickname, '家'),
+    });
+  },
+
+  async persistInviterProfile(inviterProfile) {
+    const app = getApp();
+    const result = await userService.updateProfile(inviterProfile);
+    store.setState({
+      user: result.user,
+    });
+
+    if (app && typeof app.syncInviterProfileState === 'function') {
+      app.syncInviterProfileState(result.user);
+    } else if (app && typeof app.cacheGrantedUserProfile === 'function') {
+      app.cacheGrantedUserProfile(inviterProfile);
+    }
+
+    return result.user;
+  },
+
+  shouldSyncInviterProfile(inviterProfile) {
+    const current = this.getAvailableInviterProfile();
+    if (!current) {
+      return true;
+    }
+
+    return (
+      current.nickname !== inviterProfile.nickname
+      || String(current.avatarUrl || '') !== String(inviterProfile.avatarUrl || '')
+    );
   },
 
   handleGenerateInvitation() {
@@ -203,27 +326,26 @@ Page({
     }
 
     const app = getApp();
-    if (app && app.globalData && app.globalData.userProfileGranted) {
-      const inviterProfile = app.globalData.userProfile || null;
+    if (app && typeof app.syncInviterProfileState === 'function') {
+      app.syncInviterProfileState(store.getState().user || null);
+    } else if (app && typeof app.syncUserProfileGrantState === 'function') {
+      app.syncUserProfileGrantState();
+    }
+    let inviterProfile = null;
+    if (this.data.hasInviterProfile && !this.data.isEditingInviterProfile) {
+      inviterProfile = this.getAvailableInviterProfile();
+    }
+
+    if (!inviterProfile) {
+      inviterProfile = normalizeGrantedUserProfile(this.data.inviterProfileDraft);
+    }
+
+    if (inviterProfile) {
       this.continueGenerateInvitation(inviterProfile);
       return;
     }
 
-    this.setData({ isGenerating: true });
-    wx.getUserProfile({
-      desc: '用于让家人识别邀请人',
-      success: (result) => {
-        const inviterProfile = normalizeGrantedUserProfile(result && result.userInfo);
-        if (app && typeof app.cacheGrantedUserProfile === 'function') {
-          app.cacheGrantedUserProfile(inviterProfile);
-        }
-        this.continueGenerateInvitation(inviterProfile);
-      },
-      fail: () => {
-        this.setData({ isGenerating: false });
-        showToast('需要授权才能邀请家人，请重试');
-      },
-    });
+    showToast('请先填写昵称');
   },
 
   async continueGenerateInvitation(inviterProfile) {
@@ -233,18 +355,20 @@ Page({
     this.setData({ isGenerating: true });
 
     try {
+      if (this.shouldSyncInviterProfile(inviterProfile)) {
+        await this.persistInviterProfile(inviterProfile);
+      } else if (app && typeof app.cacheGrantedUserProfile === 'function') {
+        app.cacheGrantedUserProfile(inviterProfile);
+      }
+
       const payload = {
         profileIds: selectedProfiles.map((item) => item._id),
         defaultRole: this.data.defaultRole,
+        inviterProfile,
       };
       const message = String(this.data.message || '').trim();
       if (message) {
         payload.message = message;
-      }
-
-      const storeUser = store.getState().user || null;
-      if ((!storeUser || !storeUser.nickname) && inviterProfile) {
-        payload.inviterProfile = inviterProfile;
       }
 
       const result = await invitationService.createInvitation(payload);
@@ -259,11 +383,16 @@ Page({
         generatedInvitation: result.invitation,
         generatedProfileSummary: this.getGeneratedProfileSummary(selectedProfiles),
         shareCardTitle,
+        generatedInviterDisplay: {
+          nickname: result.invitation.inviterNickname || inviterProfile.nickname,
+          avatarUrl: result.invitation.inviterAvatarUrl || inviterProfile.avatarUrl || '',
+          initial: buildInvitationNicknameInitial(
+            result.invitation.inviterNickname || inviterProfile.nickname,
+            '家',
+          ),
+        },
       });
-
-      if (app && typeof app.cacheGrantedUserProfile === 'function' && inviterProfile) {
-        app.cacheGrantedUserProfile(inviterProfile);
-      }
+      this.syncInviterProfileState();
     } catch (error) {
       if (error && error.code === 'NICKNAME_REQUIRED') {
         this.setData({ isGenerating: false });
