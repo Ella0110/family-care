@@ -44,6 +44,12 @@
   margin-top: 24rpx;
 }
 
+.records-viewer-tip {
+  margin: 0 0 20rpx;
+  color: #6b7280;
+  font-size: calc(24rpx * var(--font-scale));
+}
+
 .records-state__title {
   color: #111827;
   font-size: calc(40rpx * var(--font-scale));

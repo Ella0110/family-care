@@ -95,7 +95,23 @@ store.setState({
       },
     },
   ],
-  relationships: [],
+  relationships: [
+    {
+      _id: 'r_owner_t26',
+      userId: 'user_owner',
+      profileId: 'profile_t26',
+      role: 'owner',
+      permissions: {
+        canView: true,
+        canWrite: true,
+        canEditProfile: true,
+        canManage: true,
+        canInvite: true,
+      },
+      subscribeAlerts: true,
+      createdAt: new Date().toISOString(),
+    },
+  ],
   currentProfileId: 'profile_t26',
 });
 

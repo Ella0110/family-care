@@ -18,7 +18,23 @@ store.setState({
     { _id: 'profile_a', name: '爸爸' },
     { _id: 'profile_b', name: '妈妈' },
   ],
-  relationships: [],
+  relationships: [
+    {
+      _id: 'rel_owner_profile_a',
+      userId: 'user_owner',
+      profileId: 'profile_a',
+      role: 'owner',
+      permissions: {
+        canView: true,
+        canWrite: true,
+        canEditProfile: true,
+        canManage: true,
+        canInvite: true,
+      },
+      subscribeAlerts: true,
+      createdAt: '2026-04-20T08:00:00.000Z',
+    },
+  ],
   currentProfileId: null,
 });
 

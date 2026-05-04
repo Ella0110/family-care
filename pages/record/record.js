@@ -3,6 +3,7 @@ const recordService = require('../../services/record-service');
 const { getErrorMessage } = require('../../utils/error-messages');
 const { getReferenceLines } = require('../../utils/bp-status');
 const { DEFAULT_FONT_SCALE, normalizeFontScale } = require('../../utils/font-scale');
+const { canWrite, isOwner } = require('../../utils/permission-helpers');
 
 const MIN_MEASURED_AT_MS = 946684800000;
 const MAX_FUTURE_SKEW_MS = 5 * 60 * 1000;
@@ -98,6 +99,19 @@ function getCurrentFontScale() {
   return normalizeFontScale(app && app.globalData ? app.globalData.fontScale : DEFAULT_FONT_SCALE);
 }
 
+function goBackOrHome() {
+  const pages = getCurrentPages();
+
+  if (pages.length > 1) {
+    wx.navigateBack({ delta: 1 });
+    return;
+  }
+
+  wx.redirectTo({
+    url: '/pages/home/home',
+  });
+}
+
 Page({
   data: {
     fontScale: DEFAULT_FONT_SCALE,
@@ -112,6 +126,7 @@ Page({
     isLoadingRecord: false,
     isSaving: false,
     isDeleting: false,
+    canDeleteRecord: true,
     errorText: '',
     minMeasuredDate: '2000-01-01',
     maxMeasuredDate: '',
@@ -132,6 +147,8 @@ Page({
     const recordId = options.recordId || '';
     const mode = options.mode === 'edit' ? 'edit' : 'create';
     const profile = profileId ? findProfile(profileId) : null;
+    const state = store.getState();
+    const canWriteCurrentProfile = profileId ? canWrite(state, profileId) : false;
 
     this.currentProfile = profile;
     this.originalRecord = null;
@@ -152,6 +169,16 @@ Page({
 
     if (!profileId) {
       this.setData({ errorText: '档案不存在' });
+      return;
+    }
+
+    if (mode === 'create' && !canWriteCurrentProfile) {
+      wx.showToast({
+        title: '你没有权限录入血压',
+        icon: 'none',
+      });
+      goBackOrHome();
+      return;
     }
 
     if (mode === 'edit') {
@@ -180,6 +207,9 @@ Page({
     if (cachedRecord) {
       this.originalRecord = cachedRecord;
       this.fillFormFromRecord(cachedRecord);
+      if (!this.ensureEditPermission(cachedRecord)) {
+        return;
+      }
       return;
     }
 
@@ -200,6 +230,7 @@ Page({
 
       this.originalRecord = record;
       this.fillFormFromRecord(record);
+      this.ensureEditPermission(record);
     } catch (error) {
       this.setData({ errorText: getErrorMessage(error) });
     } finally {
@@ -219,6 +250,32 @@ Page({
       'form.measuredTime': dateTime.time,
       'form.note': record && record.note ? record.note : '',
     });
+  },
+
+  ensureEditPermission(record) {
+    const state = store.getState();
+    const currentUserId = state.user && state.user._id;
+    const profileId = this.data.profileId;
+    const owner = profileId ? isOwner(state, profileId) : false;
+    const canModifyOwnRecord = Boolean(
+      canWrite(state, profileId) &&
+      record &&
+      record.recordedBy === currentUserId,
+    );
+
+    if (!owner && !canModifyOwnRecord) {
+      wx.showToast({
+        title: '你没有权限编辑这条记录',
+        icon: 'none',
+      });
+      goBackOrHome();
+      return false;
+    }
+
+    this.setData({
+      canDeleteRecord: true,
+    });
+    return true;
   },
 
   onBPChange(event) {

@@ -3,6 +3,7 @@ const recordService = require('../../services/record-service');
 const { getErrorMessage } = require('../../utils/error-messages');
 const { getBPStatusDisplay, getReferenceLines } = require('../../utils/bp-status');
 const { DEFAULT_FONT_SCALE, normalizeFontScale } = require('../../utils/font-scale');
+const { canWrite, isViewer } = require('../../utils/permission-helpers');
 
 function pad(value) {
   return String(value).padStart(2, '0');
@@ -69,6 +70,8 @@ Page({
     hasMore: false,
     isLoading: false,
     errorText: '',
+    canWriteCurrentProfile: false,
+    isViewerMode: false,
   },
 
   onLoad(options = {}) {
@@ -77,10 +80,13 @@ Page({
     const profile = profileId ? findProfile(profileId) : null;
 
     this.recordsById = {};
+    const state = store.getState();
     this.setData({
       profileId,
       profileName: profile ? profile.name : '当前档案',
       referenceLines: getReferenceLines(profile && profile.settings && profile.settings.bp && profile.settings.bp.referenceLines),
+      canWriteCurrentProfile: profileId ? canWrite(state, profileId) : false,
+      isViewerMode: profileId ? isViewer(state, profileId) : false,
     });
 
     if (!profileId) {
@@ -207,12 +213,24 @@ Page({
       return;
     }
 
+    if (!this.data.canWriteCurrentProfile) {
+      wx.showToast({
+        title: '你没有权限录入血压',
+        icon: 'none',
+      });
+      return;
+    }
+
     wx.navigateTo({
       url: `/pages/record/record?mode=create&profileId=${this.data.profileId}`,
     });
   },
 
   handleRecordTap(event) {
+    if (this.data.isViewerMode) {
+      return;
+    }
+
     const recordId = event.currentTarget.dataset.recordId;
     const record = this.recordsById && this.recordsById[recordId];
 

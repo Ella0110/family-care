@@ -1,3 +1,152 @@
-<view class="page">
-  <view>profile-members page</view>
+<view class="page members-page">
+  <view class="members-header">
+    <view class="members-header__back" bindtap="handleBack">返回</view>
+    <view class="members-header__text">
+      <view class="members-header__title">{{pageTitle}}</view>
+      <view class="members-header__subtitle">{{profileName}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{isLoading}}" class="card members-state">
+    正在读取成员...
+  </view>
+
+  <view wx:elif="{{errorText}}" class="card members-state">
+    <view class="members-state__title">暂时无法加载</view>
+    <view class="members-state__text">{{errorText}}</view>
+  </view>
+
+  <view wx:elif="{{isTransferMode}}" class="members-transfer">
+    <view class="card members-transfer__intro">
+      <view class="members-transfer__title">转让后，你将变为“共同记录”</view>
+      <view class="members-transfer__text">转让后将无法继续管理档案设置。</view>
+    </view>
+
+    <view class="card members-list">
+      <view
+        wx:for="{{transferCandidates}}"
+        wx:key="relationship._id"
+        class="member-row {{selectedNewOwnerUserId === item.user._id ? 'member-row--selected' : ''}}"
+        data-user-id="{{item.user._id}}"
+        bindtap="handleSelectTransferCandidate"
+      >
+        <view class="member-row__choice">{{selectedNewOwnerUserId === item.user._id ? '●' : '○'}}</view>
+        <view wx:if="{{item.user.avatarUrl}}" class="member-row__avatar member-row__avatar--image">
+          <image class="member-row__avatar-image" src="{{item.user.avatarUrl}}" mode="aspectFill" />
+        </view>
+        <view wx:else class="member-row__avatar">{{item.avatarFallback}}</view>
+        <view class="member-row__body">
+          <view class="member-row__top">
+            <view class="member-row__name">{{item.user.nickname || '未命名成员'}}</view>
+            <view class="member-row__badge">{{item.roleLabel}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="members-actions">
+      <button
+        class="btn-primary members-actions__button"
+        bindtap="handleConfirmTransfer"
+        loading="{{isSubmitting}}"
+        disabled="{{!selectedNewOwnerUserId || isSubmitting}}"
+      >
+        确认转让
+      </button>
+      <button class="btn-secondary members-actions__button" bindtap="handleCancelTransferMode" disabled="{{isSubmitting}}">
+        取消
+      </button>
+    </view>
+  </view>
+
+  <view wx:else class="members-content">
+    <view class="card members-list">
+      <view
+        wx:for="{{members}}"
+        wx:key="relationship._id"
+        class="member-row"
+      >
+        <view wx:if="{{item.user.avatarUrl}}" class="member-row__avatar member-row__avatar--image">
+          <image class="member-row__avatar-image" src="{{item.user.avatarUrl}}" mode="aspectFill" />
+        </view>
+        <view wx:else class="member-row__avatar">{{item.avatarFallback}}</view>
+
+        <view class="member-row__body">
+          <view class="member-row__top">
+            <view class="member-row__name">
+              {{item.user.nickname || '未命名成员'}}<text wx:if="{{item.isSelf}}">（你）</text>
+            </view>
+            <view class="member-row__badge">{{item.roleLabel}}</view>
+          </view>
+          <view class="member-row__meta">{{item.joinedText}}</view>
+          <view wx:if="{{item.showSubscribeAlerts}}" class="member-row__alerts">
+            <view class="member-row__alerts-label">异常时通知</view>
+            <switch
+              checked="{{item.relationship.subscribeAlerts}}"
+              disabled="{{!item.canToggleSubscribeAlerts}}"
+              data-relationship-id="{{item.relationship._id}}"
+              bindchange="handleToggleSubscribeAlerts"
+            />
+          </view>
+        </view>
+
+        <view
+          wx:if="{{item.showActions}}"
+          class="member-row__menu"
+          data-relationship-id="{{item.relationship._id}}"
+          bindtap="handleOpenMemberActions"
+        >
+          ⋯
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{canManageMembers}}" class="members-actions">
+      <button class="btn-primary members-actions__button" bindtap="handleInviteNewMember">
+        + 邀请新成员
+      </button>
+      <button
+        wx:if="{{members.length >= 2}}"
+        class="btn-secondary members-actions__button"
+        bindtap="handleOpenTransferMode"
+      >
+        转让管理员
+      </button>
+    </view>
+  </view>
+
+  <view wx:if="{{isRoleDialogVisible}}" class="members-role-dialog">
+    <view class="members-role-dialog__mask" bindtap="handleCloseRoleDialog"></view>
+    <view class="members-role-dialog__panel card">
+      <view class="members-role-dialog__title">为「{{roleDialogMemberName}}」调整角色</view>
+      <view class="members-role-dialog__option members-role-dialog__option--disabled">
+        <view>管理员</view>
+        <view class="members-role-dialog__hint">暂不支持，请使用“转让管理员”</view>
+      </view>
+      <view
+        class="members-role-dialog__option {{roleDialogSelection === 'collaborator' ? 'is-active' : ''}}"
+        data-role="collaborator"
+        bindtap="handleSelectRoleOption"
+      >
+        <view class="members-role-dialog__radio">{{roleDialogSelection === 'collaborator' ? '●' : '○'}}</view>
+        <view>共同记录</view>
+      </view>
+      <view
+        class="members-role-dialog__option {{roleDialogSelection === 'viewer' ? 'is-active' : ''}}"
+        data-role="viewer"
+        bindtap="handleSelectRoleOption"
+      >
+        <view class="members-role-dialog__radio">{{roleDialogSelection === 'viewer' ? '●' : '○'}}</view>
+        <view>仅查看</view>
+      </view>
+      <view class="members-role-dialog__actions">
+        <button class="btn-primary members-role-dialog__button" bindtap="handleConfirmRoleUpdate" loading="{{isSubmitting}}" disabled="{{isSubmitting}}">
+          确认调整
+        </button>
+        <button class="btn-secondary members-role-dialog__button" bindtap="handleCloseRoleDialog" disabled="{{isSubmitting}}">
+          取消
+        </button>
+      </view>
+    </view>
+  </view>
 </view>

@@ -1,6 +1,7 @@
 const { store } = require('../../store/index');
 const profileService = require('../../services/profile-service');
 const { getErrorMessage } = require('../../utils/error-messages');
+const { isOwner } = require('../../utils/permission-helpers');
 const {
   DEFAULT_BP_THRESHOLD,
   THRESHOLD_LIMITS,
@@ -22,6 +23,19 @@ function findProfile(profileId) {
   return (state.profiles || []).find((profile) => profile && profile._id === profileId) || null;
 }
 
+function goBackOrHome() {
+  const pages = getCurrentPages();
+
+  if (pages.length > 1) {
+    wx.navigateBack({ delta: 1 });
+    return;
+  }
+
+  wx.redirectTo({
+    url: '/pages/home/home',
+  });
+}
+
 Page({
   data: {
     profileId: '',
@@ -38,6 +52,12 @@ Page({
 
   onLoad(options = {}) {
     const profileId = options.profileId || '';
+    if (profileId && !isOwner(store.getState(), profileId)) {
+      showToast('你没有权限编辑档案');
+      goBackOrHome();
+      return;
+    }
+
     const profile = findProfile(profileId);
     const threshold = getThreshold(profile);
 

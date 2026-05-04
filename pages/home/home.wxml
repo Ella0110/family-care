@@ -95,7 +95,7 @@
     <view class="card home-profile-detail">
       <view class="home-profile-detail__top">
         <view class="home-profile-detail__title">档案：{{profileDetail.title}}</view>
-        <view class="home-profile-detail__edit" bindtap="handleEditProfile">⚙ 编辑档案</view>
+        <view wx:if="{{canEditCurrentProfile}}" class="home-profile-detail__edit" bindtap="handleEditProfile">⚙ 编辑档案</view>
       </view>
 
       <view wx:if="{{profileDetail.metaLine}}" class="home-profile-detail__meta">
@@ -108,7 +108,7 @@
 
       <view class="home-profile-detail__bottom">
         <view class="home-profile-detail__threshold">阈值：{{profileDetail.thresholdLine}}</view>
-        <view class="home-profile-detail__adjust" bindtap="handleOpenThresholdEditor">📊 调整</view>
+        <view wx:if="{{canManageCurrentProfile}}" class="home-profile-detail__adjust" bindtap="handleOpenThresholdEditor">📊 调整</view>
       </view>
     </view>
 
@@ -150,13 +150,13 @@
       <view wx:if="{{latestRecordDisplay.heartRate}}" class="home-record-card__heart">
         心率 {{latestRecordDisplay.heartRate}} bpm
       </view>
-      <button class="btn-primary home-profile__button" bindtap="handleAddRecord">录入血压</button>
+      <button wx:if="{{canWriteCurrentProfile}}" class="btn-primary home-profile__button" bindtap="handleAddRecord">录入血压</button>
       <view class="home-record-card__link" bindtap="handleViewRecords">查看所有记录</view>
     </view>
 
     <view wx:else class="card home-record-card">
-      <view class="home-profile__placeholder">还没有血压记录，先录入一条吧。</view>
-      <button class="btn-primary home-profile__button" bindtap="handleAddRecord">录入血压</button>
+      <view class="home-profile__placeholder">{{canWriteCurrentProfile ? '还没有血压记录，先录入一条吧。' : '还没有血压记录'}}</view>
+      <button wx:if="{{canWriteCurrentProfile}}" class="btn-primary home-profile__button" bindtap="handleAddRecord">录入血压</button>
       <view class="home-record-card__link" bindtap="handleViewRecords">查看所有记录</view>
     </view>
 
@@ -166,7 +166,7 @@
           <view class="home-medication-card__title">用药管理</view>
           <view class="home-medication-card__subtitle">长期用药会显示在这里</view>
         </view>
-        <view class="home-medication-card__add" bindtap="handleAddMedication">+ 添加用药</view>
+        <view wx:if="{{canWriteCurrentProfile}}" class="home-medication-card__add" bindtap="handleAddMedication">+ 添加用药</view>
       </view>
 
       <view wx:if="{{isLoadingMedications}}" class="home-medication-card__placeholder">正在读取用药...</view>
@@ -186,6 +186,7 @@
             wx:for="{{visibleActiveMedications}}"
             wx:key="_id"
             medication="{{item}}"
+            clickable="{{canWriteCurrentProfile}}"
             bind:tapitem="handleMedicationTap"
           />
         </view>
@@ -215,6 +216,7 @@
               wx:for="{{historicalMedications}}"
               wx:key="_id"
               medication="{{item}}"
+              clickable="{{canWriteCurrentProfile}}"
               bind:tapitem="handleMedicationTap"
             />
           </view>
@@ -233,14 +235,24 @@
           <view class="home-danger-zone__item-text">让家人共同关注 TA 的健康</view>
         </view>
 
-        <view class="card home-danger-zone__item" bindtap="handleTransferOwnership">
+        <view wx:if="{{canManageCurrentProfile}}" class="card home-danger-zone__item" bindtap="handleManageMembers">
+          <view class="home-danger-zone__item-title">管理成员</view>
+          <view class="home-danger-zone__item-text">查看成员、调整角色和通知设置</view>
+        </view>
+
+        <view wx:if="{{canManageCurrentProfile}}" class="card home-danger-zone__item" bindtap="handleTransferOwnership">
           <view class="home-danger-zone__item-title">转让管理员</view>
           <view class="home-danger-zone__item-text">把档案管理权转给其他家人</view>
         </view>
 
-        <view class="card home-danger-zone__item home-danger-zone__item--danger" bindtap="handleDeleteProfile">
+        <view wx:if="{{canManageCurrentProfile}}" class="card home-danger-zone__item home-danger-zone__item--danger" bindtap="handleDeleteProfile">
           <view class="home-danger-zone__item-title home-danger-zone__item-title--danger">⚠️ 删除档案</view>
           <view class="home-danger-zone__item-text">删除后所有记录无法恢复</view>
+        </view>
+
+        <view wx:if="{{canExitCurrentProfile}}" class="card home-danger-zone__item" bindtap="handleExitProfile">
+          <view class="home-danger-zone__item-title">退出此档案</view>
+          <view class="home-danger-zone__item-text">退出后将无法继续查看，可请管理员重新邀请</view>
         </view>
       </view>
     </view>

@@ -7,6 +7,10 @@
     </view>
   </view>
 
+  <view wx:if="{{isViewerMode}}" class="records-viewer-tip">
+    你以查看者身份访问，不可修改记录
+  </view>
+
   <view wx:if="{{isLoading}}" class="card records-state">
     <view class="records-state__title">正在加载记录</view>
     <view class="records-state__text">请稍候...</view>
@@ -20,7 +24,7 @@
 
   <view wx:elif="{{!hasRecords}}" class="card records-state">
     <view class="records-state__title">还没有记录，去录入第一条</view>
-    <button class="btn-primary records-state__button" bindtap="handleAddRecord">录入血压</button>
+    <button wx:if="{{canWriteCurrentProfile}}" class="btn-primary records-state__button" bindtap="handleAddRecord">录入血压</button>
   </view>
 
   <view wx:else class="records-groups">
@@ -45,7 +49,7 @@
             diastolic="{{record.payload.diastolic}}"
             reference-lines="{{referenceLines}}"
           />
-          <view class="record-row__arrow">›</view>
+          <view wx:if="{{!isViewerMode}}" class="record-row__arrow">›</view>
         </view>
       </view>
     </view>

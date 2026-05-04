@@ -1,6 +1,7 @@
 const { store } = require('../../store/index');
 const profileService = require('../../services/profile-service');
 const { getErrorMessage } = require('../../utils/error-messages');
+const { isOwner } = require('../../utils/permission-helpers');
 
 const RELATION_OPTIONS = ['父亲', '母亲', '本人', '配偶', '子女', '其他'];
 const GENDER_OPTIONS = [
@@ -136,6 +137,11 @@ Page({
     });
 
     if (mode === 'edit') {
+      if (!isOwner(store.getState(), profileId)) {
+        showToast('你没有权限编辑档案');
+        goBackOrHome();
+        return;
+      }
       this.loadProfileForEdit(profileId);
       return;
     }

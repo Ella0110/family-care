@@ -1,6 +1,7 @@
 const { store } = require('../../store/index');
 const medicationService = require('../../services/medication-service');
 const { getErrorMessage } = require('../../utils/error-messages');
+const { canWrite } = require('../../utils/permission-helpers');
 const {
   OTHER_OPTION,
   FREQUENCY_OPTIONS,
@@ -48,6 +49,14 @@ function findProfile(profileId) {
 
 function trimText(value) {
   return String(value || '').trim();
+}
+
+function canAccessMedicationEdit(profileId) {
+  if (!profileId) {
+    return false;
+  }
+
+  return canWrite(store.getState(), profileId);
 }
 
 Page({
@@ -106,6 +115,12 @@ Page({
 
     if (!profileId) {
       this.setData({ errorText: '档案不存在' });
+      return;
+    }
+
+    if (!canAccessMedicationEdit(profileId)) {
+      showToast('你没有权限管理用药');
+      goBackOrHome();
       return;
     }
 

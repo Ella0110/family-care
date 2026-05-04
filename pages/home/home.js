@@ -2,9 +2,19 @@ const { store } = require('../../store/index');
 const recordService = require('../../services/record-service');
 const medicationService = require('../../services/medication-service');
 const profileService = require('../../services/profile-service');
+const memberService = require('../../services/member-service');
 const { getErrorMessage } = require('../../utils/error-messages');
 const { getBPStatusDisplay, getReferenceLines } = require('../../utils/bp-status');
 const { DEFAULT_FONT_SCALE, normalizeFontScale } = require('../../utils/font-scale');
+const {
+  getCurrentRelationship,
+  isOwner,
+  isViewer,
+  canWrite,
+  canManage,
+  canInvite,
+  canEditProfile,
+} = require('../../utils/permission-helpers');
 const {
   buildProfileDetailDisplay,
   isDeleteNameMatched,
@@ -67,12 +77,6 @@ function getCurrentFontScale() {
   return normalizeFontScale(app && app.globalData ? app.globalData.fontScale : DEFAULT_FONT_SCALE);
 }
 
-function getRelationshipForProfile(profileId, relationships) {
-  return (relationships || []).find(
-    (relationship) => relationship && relationship.profileId === profileId,
-  ) || null;
-}
-
 Page({
   data: {
     fontScale: DEFAULT_FONT_SCALE,
@@ -109,7 +113,14 @@ Page({
     loginErrorText: '',
     isRetrying: false,
     showProfileCompletionPrompt: false,
+    activeRelationshipId: '',
+    activeRelationshipRole: '',
     canInviteCurrentProfile: false,
+    canWriteCurrentProfile: false,
+    canManageCurrentProfile: false,
+    canEditCurrentProfile: false,
+    canExitCurrentProfile: false,
+    isViewerCurrentProfile: false,
     profileDetail: {
       title: '',
       metaLine: '',
@@ -196,6 +207,16 @@ Page({
       loginStatus.isLoginReady ? 'ready' : 'pending',
       loginStatus.isLoginFailed ? 'failed' : 'ok',
       state.currentProfileId || 'none',
+      (state.relationships || [])
+        .map((relationship) => [
+          relationship && relationship._id,
+          relationship && relationship.profileId,
+          relationship && relationship.role,
+          relationship && relationship.permissions && relationship.permissions.canWrite ? 'w1' : 'w0',
+          relationship && relationship.permissions && relationship.permissions.canManage ? 'm1' : 'm0',
+          relationship && relationship.permissions && relationship.permissions.canInvite ? 'i1' : 'i0',
+        ].join(':'))
+        .join('|'),
       profiles
         .map((profile) => [
           profile && profile._id,
@@ -218,9 +239,16 @@ Page({
     const view = this.resolveHomeView(state);
     const profiles = Array.isArray(state.profiles) ? state.profiles : [];
     const loginStatus = getLoginStatus();
-    const activeRelationship = view.activeProfile
-      ? getRelationshipForProfile(view.activeProfile._id, state.relationships)
+    const activeProfileId = view.activeProfile && view.activeProfile._id;
+    const activeRelationship = activeProfileId
+      ? getCurrentRelationship(state, activeProfileId)
       : null;
+    const canWriteCurrentProfile = activeProfileId ? canWrite(state, activeProfileId) : false;
+    const canManageCurrentProfile = activeProfileId ? canManage(state, activeProfileId) : false;
+    const canEditCurrentProfile = activeProfileId ? canEditProfile(state, activeProfileId) : false;
+    const canInviteCurrentProfile = activeProfileId ? canInvite(state, activeProfileId) : false;
+    const isOwnerCurrentProfile = activeProfileId ? isOwner(state, activeProfileId) : false;
+    const isViewerCurrentProfile = activeProfileId ? isViewer(state, activeProfileId) : false;
 
     this.setData({
       profiles,
@@ -237,20 +265,24 @@ Page({
       isLoginReady: loginStatus.isLoginReady,
       isLoginFailed: loginStatus.isLoginFailed,
       loginErrorText: loginStatus.loginError ? getErrorMessage(loginStatus.loginError) : '',
-      canInviteCurrentProfile: Boolean(
-        activeRelationship
-        && activeRelationship.permissions
-        && activeRelationship.permissions.canInvite,
-      ),
+      activeRelationshipId: activeRelationship ? activeRelationship._id : '',
+      activeRelationshipRole: activeRelationship ? activeRelationship.role : '',
+      canInviteCurrentProfile,
+      canWriteCurrentProfile,
+      canManageCurrentProfile,
+      canEditCurrentProfile,
+      canExitCurrentProfile: Boolean(activeRelationship && !isOwnerCurrentProfile),
+      isViewerCurrentProfile,
       showProfileCompletionPrompt: this.shouldShowProfileCompletionPrompt(
         view.activeProfile,
         view.viewState,
+        isOwnerCurrentProfile,
       ),
     });
   },
 
-  shouldShowProfileCompletionPrompt(profile, viewState) {
-    if (!profile || viewState === 'multi') {
+  shouldShowProfileCompletionPrompt(profile, viewState, isOwnerCurrentProfile) {
+    if (!profile || viewState === 'multi' || !isOwnerCurrentProfile) {
       return false;
     }
 
@@ -721,6 +753,14 @@ Page({
       return;
     }
 
+    if (!this.data.canWriteCurrentProfile) {
+      wx.showToast({
+        title: '你没有权限录入血压',
+        icon: 'none',
+      });
+      return;
+    }
+
     wx.navigateTo({
       url: `/pages/record/record?mode=create&profileId=${profile._id}`,
     });
@@ -732,6 +772,14 @@ Page({
     if (!profile || !profile._id) {
       wx.showToast({
         title: '请先创建档案',
+        icon: 'none',
+      });
+      return;
+    }
+
+    if (!this.data.canWriteCurrentProfile) {
+      wx.showToast({
+        title: '你没有权限管理用药',
         icon: 'none',
       });
       return;
@@ -753,6 +801,14 @@ Page({
       return;
     }
 
+    if (!this.data.canInviteCurrentProfile) {
+      wx.showToast({
+        title: '你没有权限邀请家人',
+        icon: 'none',
+      });
+      return;
+    }
+
     wx.navigateTo({
       url: `/pages/invite-create/invite-create?profileId=${profile._id}`,
     });
@@ -769,6 +825,14 @@ Page({
       return;
     }
 
+    if (!this.data.canManageCurrentProfile) {
+      wx.showToast({
+        title: '你没有权限调整阈值',
+        icon: 'none',
+      });
+      return;
+    }
+
     wx.navigateTo({
       url: `/pages/profile-threshold-edit/profile-threshold-edit?profileId=${profile._id}`,
     });
@@ -780,6 +844,14 @@ Page({
     if (!profile || !profile._id) {
       wx.showToast({
         title: '档案不存在',
+        icon: 'none',
+      });
+      return;
+    }
+
+    if (!this.data.canEditCurrentProfile) {
+      wx.showToast({
+        title: '你没有权限编辑档案',
         icon: 'none',
       });
       return;
@@ -866,6 +938,10 @@ Page({
       return;
     }
 
+    if (!this.data.canWriteCurrentProfile) {
+      return;
+    }
+
     wx.navigateTo({
       url: `/pages/medication-edit/medication-edit?mode=edit&profileId=${profile._id}&medicationId=${medication._id}`,
     });
@@ -883,11 +959,92 @@ Page({
     });
   },
 
-  handleTransferOwnership() {
-    wx.showToast({
-      title: '管理员转让功能将在协作邀请上线时启用',
-      icon: 'none',
+  handleManageMembers() {
+    const profile = this.data.activeProfile;
+
+    if (!profile || !profile._id) {
+      wx.showToast({
+        title: '档案不存在',
+        icon: 'none',
+      });
+      return;
+    }
+
+    wx.navigateTo({
+      url: `/pages/profile-members/profile-members?profileId=${profile._id}`,
     });
+  },
+
+  handleTransferOwnership() {
+    const profile = this.data.activeProfile;
+
+    if (!profile || !profile._id) {
+      wx.showToast({
+        title: '档案不存在',
+        icon: 'none',
+      });
+      return;
+    }
+
+    wx.navigateTo({
+      url: `/pages/profile-members/profile-members?profileId=${profile._id}&mode=transfer`,
+    });
+  },
+
+  async handleExitProfile() {
+    const profile = this.data.activeProfile;
+
+    if (!profile || !profile._id || !this.data.activeRelationshipId) {
+      wx.showToast({
+        title: '档案不存在',
+        icon: 'none',
+      });
+      return;
+    }
+
+    const result = await new Promise((resolve) => {
+      wx.showModal({
+        title: `确定退出「${profile.name}」的档案？`,
+        content: '退出后你将无法继续查看，可以请管理员重新邀请你',
+        confirmText: '确定退出',
+        confirmColor: '#b42318',
+        success: resolve,
+        fail() {
+          resolve({ confirm: false, cancel: true });
+        },
+      });
+    });
+
+    if (!result || !result.confirm) {
+      return;
+    }
+
+    try {
+      await memberService.removeRelationship(this.data.activeRelationshipId, {
+        relationship: {
+          _id: this.data.activeRelationshipId,
+          profileId: profile._id,
+          userId: store.getState().user && store.getState().user._id,
+        },
+      });
+
+      wx.showToast({
+        title: '已退出此档案',
+        icon: 'success',
+        duration: 800,
+      });
+
+      setTimeout(() => {
+        wx.reLaunch({
+          url: '/pages/home/home',
+        });
+      }, 800);
+    } catch (error) {
+      wx.showToast({
+        title: getErrorMessage(error),
+        icon: 'none',
+      });
+    }
   },
 
   async getDeleteSummary(profileId) {
@@ -930,6 +1087,14 @@ Page({
     if (!profile || !profile._id) {
       wx.showToast({
         title: '档案不存在',
+        icon: 'none',
+      });
+      return;
+    }
+
+    if (!this.data.canManageCurrentProfile) {
+      wx.showToast({
+        title: '你没有权限删除档案',
         icon: 'none',
       });
       return;

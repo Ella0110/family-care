@@ -95,7 +95,7 @@
       {{isEditMode ? '保存修改' : '保存'}}
     </button>
     <button
-      wx:if="{{isEditMode}}"
+      wx:if="{{isEditMode && canDeleteRecord}}"
       class="record-delete-button"
       loading="{{isDeleting}}"
       disabled="{{isSaving || isDeleting || isLoadingRecord}}"

@@ -217,7 +217,22 @@ async function verifyFrontendBehavior() {
         },
       },
     ],
-    relationships: [{ _id: 'rel_a', profileId: 'profile_a', role: 'owner' }],
+    relationships: [
+      {
+        _id: 'rel_a',
+        userId: 'user_owner',
+        profileId: 'profile_a',
+        role: 'owner',
+        permissions: {
+          canView: true,
+          canWrite: true,
+          canEditProfile: true,
+          canManage: true,
+          canInvite: true,
+        },
+        subscribeAlerts: true,
+      },
+    ],
     currentProfileId: 'profile_a',
     session: {
       dismissedProfileCompletionHints: {},
@@ -337,18 +352,72 @@ async function verifyFrontendBehavior() {
   });
   assert.strictEqual(editPage.buildEditPatch().emergencyContact, null);
 
+  store.setState({
+    user: { _id: 'user_owner' },
+    profiles: [
+      {
+        _id: 'profile_a',
+        name: '爸爸',
+        relation: null,
+        gender: null,
+        birthDate: null,
+        note: null,
+        emergencyContact: null,
+        longTermMedication: null,
+        settings: {
+          bp: {
+            threshold: { systolic: 140, diastolic: 90 },
+            referenceLines: {
+              systolic: { normal: 120, elevated: 140, high: 160 },
+              diastolic: { normal: 80, elevated: 90, high: 100 },
+            },
+          },
+        },
+      },
+    ],
+    relationships: [
+      {
+        _id: 'rel_a',
+        userId: 'user_owner',
+        profileId: 'profile_a',
+        role: 'owner',
+        permissions: {
+          canView: true,
+          canWrite: true,
+          canEditProfile: true,
+          canManage: true,
+          canInvite: true,
+        },
+        subscribeAlerts: true,
+      },
+    ],
+    currentProfileId: 'profile_a',
+    session: {
+      dismissedProfileCompletionHints: {},
+    },
+  });
+
   const homePage = createPageInstance(homeConfig);
   homePage.renderState();
-  assert.strictEqual(homePage.shouldShowProfileCompletionPrompt(store.getState().profiles[0]), true);
+  assert.strictEqual(
+    homePage.shouldShowProfileCompletionPrompt(store.getState().profiles[0], 'single', true),
+    true,
+  );
   assert.match(read('pages/home/home.wxml'), /编辑档案/, 'home should render a stable profile edit entry');
   assert.strictEqual(typeof homePage.handleEditProfile, 'function', 'home should expose profile edit handler');
   homePage.data.activeProfile = store.getState().profiles[0];
   homePage.handleEditProfile();
   assert.match(navigatedUrl, /\/pages\/profile-edit\/profile-edit\?mode=edit&profileId=profile_a/, 'edit entry should navigate to profile edit page');
   store.dismissProfileCompletionHint('profile_a');
-  assert.strictEqual(homePage.shouldShowProfileCompletionPrompt(store.getState().profiles[0]), false);
+  assert.strictEqual(
+    homePage.shouldShowProfileCompletionPrompt(store.getState().profiles[0], 'single', true),
+    false,
+  );
   appConfig.onShow.call({ globalData: { store } });
-  assert.strictEqual(homePage.shouldShowProfileCompletionPrompt(store.getState().profiles[0]), true);
+  assert.strictEqual(
+    homePage.shouldShowProfileCompletionPrompt(store.getState().profiles[0], 'single', true),
+    true,
+  );
   assert.strictEqual(navigatedBack, false);
   assert.ok(shownToast === '' || typeof shownToast === 'string');
 }
