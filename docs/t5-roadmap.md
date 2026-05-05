@@ -4,6 +4,18 @@
 T5 是 V1 阶段的最后一个功能模块，目标是补齐“导出/导入数据 + 推送提醒”的辅助能力。  
 完成后即进入 T6（视觉对齐）阶段。
 
+## T5 视觉范围
+T5 阶段所有新页面、新组件、新交互均遵循 T6 之前的简洁视觉约定，
+不做视觉对齐 v1 原型。视觉打磨统一在 T6 阶段完成。
+
+## 实现 T5 时必须遵守的前序契约
+
+- 任何写血压记录的逻辑（含 T5.5 CSV 导入批量调 `saveRecord`）必须严格遵守 [t1-contracts.md](docs/t1-contracts.md) 的 `measuredAt Contract` 和 `Record Type Contract`
+- 报告渲染（T5.1）涉及阈值判断时，使用 `profiles.settings.bp.threshold` 而非 `referenceLines`，参考 [t1-contracts.md](docs/t1-contracts.md) 的 `Blood Pressure Settings Contract`
+- 推送相关云函数（T5.3 / T5.4）的权限校验沿用 [t4-contracts.md](docs/t4-contracts.md) 的角色权限矩阵，特别是 `subscribeAlerts` 字段的语义
+- 任何新云函数的部署与本地验证遵循 [deployment-notes.md](docs/deployment-notes.md) 的三层 gate
+- 写操作的缓存更新沿用 T2.5 SWR + T4.2b staleness 的混合策略
+
 ## T5 拆分
 按以下顺序执行，每个子阶段独立 commit + 烟测：
 
@@ -68,3 +80,11 @@ V1 功能完整。进入 T6（视觉对齐 24 个原型）。
 - 报告内容用户配置 toggle（除“隐藏敏感信息”外）
 - 全部记录数据表导出为图片（场景 2，原本想做但产品价值不明确）
 - 多种“市面标准”格式适配（欧姆龙 / 血压宝等）
+
+## T5 阶段的文档维护责任
+
+每个子阶段完成时必须做的文档更新：
+- T5.1 完成 → 更新 [project-status.md](docs/project-status.md) 的“前端架构”“云函数清单”“踩过的坑与教训”
+- T5.3 完成 → 新建 `docs/t5-push-contracts.md`，记录订阅消息模板 ID、授权时机、推送频率限制等
+- T5.5 完成 → 在新建的 `docs/t5-import-export.md` 中固化 CSV 格式定义
+- 每个子阶段都要更新 [project-status.md](docs/project-status.md) 的“已完成”列表
