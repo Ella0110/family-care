@@ -1,18 +1,20 @@
 const { store } = require('../../store/index');
 const memberService = require('../../services/member-service');
 const { getErrorMessage } = require('../../utils/error-messages');
-const { getCurrentRelationship, canManage } = require('../../utils/permission-helpers');
+const { getCurrentRelationship, canManage, isOwner } = require('../../utils/permission-helpers');
 
-const ROLE_ORDER = {
-  owner: 0,
-  collaborator: 1,
-  viewer: 2,
-};
+const STALE_THRESHOLD = 30 * 1000;
 
 const ROLE_LABELS = {
   owner: '管理员',
   collaborator: '共同记录',
   viewer: '仅查看',
+};
+
+const ROLE_ORDER = {
+  owner: 0,
+  collaborator: 1,
+  viewer: 2,
 };
 
 function formatDate(value) {
@@ -32,33 +34,35 @@ function getAvatarFallback(nickname) {
   return text ? text.slice(0, 1).toUpperCase() : '?';
 }
 
-function sortMembers(members) {
-  return (members || []).slice().sort((left, right) => {
-    const roleDiff = (ROLE_ORDER[left.relationship.role] || 99) - (ROLE_ORDER[right.relationship.role] || 99);
-    if (roleDiff !== 0) {
-      return roleDiff;
-    }
-
-    return String(left.user.nickname || '').localeCompare(String(right.user.nickname || ''));
-  });
-}
-
 function decorateMembers(members, currentUserId, ownerCanManageMembers) {
-  return sortMembers(members).map((member) => {
-    const role = member.relationship.role;
-    const isSelf = member.user && member.user._id === currentUserId;
-    const isOwnerMember = role === 'owner';
-    return Object.assign({}, member, {
-      avatarFallback: getAvatarFallback(member.user && member.user.nickname),
-      joinedText: `${isOwnerMember ? '创建于' : '加入于'} ${formatDate(member.relationship.createdAt)}`,
-      roleLabel: ROLE_LABELS[role] || role,
-      isSelf,
-      isOwnerMember,
-      showActions: ownerCanManageMembers && !isOwnerMember,
-      showSubscribeAlerts: !isOwnerMember,
-      canToggleSubscribeAlerts: !isOwnerMember && (ownerCanManageMembers || isSelf),
+  return (members || [])
+    .map((member) => {
+      const role = member.relationship.role;
+      const isSelf = member.user && member.user._id === currentUserId;
+      const isOwnerMember = role === 'owner';
+      return Object.assign({}, member, {
+        avatarFallback: getAvatarFallback(member.user && member.user.nickname),
+        joinedText: `${isOwnerMember ? '创建于' : '加入于'} ${formatDate(member.relationship.createdAt)}`,
+        roleLabel: ROLE_LABELS[role] || role,
+        isSelf,
+        isOwnerMember,
+        showActions: ownerCanManageMembers && !isOwnerMember,
+      });
+    })
+    .sort((left, right) => {
+      const leftOrder = Object.prototype.hasOwnProperty.call(ROLE_ORDER, left.relationship.role)
+        ? ROLE_ORDER[left.relationship.role]
+        : Number.MAX_SAFE_INTEGER;
+      const rightOrder = Object.prototype.hasOwnProperty.call(ROLE_ORDER, right.relationship.role)
+        ? ROLE_ORDER[right.relationship.role]
+        : Number.MAX_SAFE_INTEGER;
+
+      if (leftOrder !== rightOrder) {
+        return leftOrder - rightOrder;
+      }
+
+      return new Date(left.relationship.createdAt).getTime() - new Date(right.relationship.createdAt).getTime();
     });
-  });
 }
 
 function findProfile(profileId) {
@@ -109,21 +113,38 @@ Page({
     const isTransferMode = options.mode === 'transfer';
 
     this.currentUserId = store.getState().user && store.getState().user._id;
+    this.hasOwnerAccess = isOwner(store.getState(), profileId);
     this.setData({
       profileId,
       profileName: profile ? profile.name : '当前档案',
       isTransferMode,
       pageTitle: isTransferMode ? '选择新管理员' : '档案成员',
     });
+
+    if (!this.hasOwnerAccess) {
+      wx.showToast({
+        title: '只有管理员可以查看',
+        icon: 'none',
+      });
+      setTimeout(() => {
+        goBackOrHome();
+      }, 1500);
+    }
   },
 
   onShow() {
-    this.refreshPermissionState();
-    if (!this.ensureMemberAccess()) {
+    if (!this.hasOwnerAccess) {
       return;
     }
 
-    this.loadMembers();
+    this.refreshPermissionState();
+    if (!this.ensureOwnerAccess()) {
+      return;
+    }
+
+    if (store.isStale('members', this.data.profileId, STALE_THRESHOLD) || !(this.data.members || []).length) {
+      this.loadMembers();
+    }
   },
 
   refreshPermissionState() {
@@ -135,25 +156,18 @@ Page({
     });
   },
 
-  ensureMemberAccess() {
+  ensureOwnerAccess() {
     const state = store.getState();
     const relationship = getCurrentRelationship(state, this.data.profileId);
 
-    if (!this.data.profileId || !relationship) {
+    if (!this.data.profileId || !relationship || !isOwner(state, this.data.profileId)) {
       wx.showToast({
-        title: getErrorMessage({ code: 'NOT_A_MEMBER' }),
+        title: '只有管理员可以查看',
         icon: 'none',
       });
-      goBackOrHome();
-      return false;
-    }
-
-    if (this.data.isTransferMode && !canManage(state, this.data.profileId)) {
-      wx.showToast({
-        title: '你没有权限转让管理员',
-        icon: 'none',
-      });
-      goBackOrHome();
+      setTimeout(() => {
+        goBackOrHome();
+      }, 1500);
       return false;
     }
 
@@ -492,37 +506,4 @@ Page({
     }
   },
 
-  async handleToggleSubscribeAlerts(event) {
-    const relationshipId = event.currentTarget.dataset.relationshipId;
-    const subscribeAlerts = !!event.detail.value;
-    const member = (this.data.members || []).find(
-      (item) => item.relationship && item.relationship._id === relationshipId,
-    );
-
-    if (!member || !member.canToggleSubscribeAlerts) {
-      return;
-    }
-
-    try {
-      const result = await memberService.updateRelationship(relationshipId, { subscribeAlerts });
-      const nextMembers = decorateMembers(
-        (this.data.members || []).map((item) =>
-          item.relationship && item.relationship._id === relationshipId
-            ? Object.assign({}, item, { relationship: result.relationship })
-            : item,
-        ),
-        this.currentUserId,
-        this.data.canManageMembers,
-      );
-      this.setData({ members: nextMembers });
-    } catch (error) {
-      wx.showToast({
-        title: getErrorMessage(error),
-        icon: 'none',
-      });
-      this.setData({
-        members: decorateMembers(this.data.members, this.currentUserId, this.data.canManageMembers),
-      });
-    }
-  },
 });

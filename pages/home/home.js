@@ -20,6 +20,8 @@ const {
   isDeleteNameMatched,
 } = require('../../utils/profile-detail');
 
+const STALE_THRESHOLD = 30 * 1000;
+
 function pad(value) {
   return String(value).padStart(2, '0');
 }
@@ -121,6 +123,7 @@ Page({
     canEditCurrentProfile: false,
     canExitCurrentProfile: false,
     isViewerCurrentProfile: false,
+    activeRelationshipSubscribeAlerts: true,
     profileDetail: {
       title: '',
       metaLine: '',
@@ -128,6 +131,8 @@ Page({
       thresholdLine: '',
       threshold: null,
     },
+    advancedSettingsItems: [],
+    activeProfileMemberCount: null,
     isDangerZoneExpanded: false,
     isDeleteConfirmVisible: false,
     isDeletingProfile: false,
@@ -139,6 +144,9 @@ Page({
 
   onLoad() {
     this.isPageVisible = false;
+    this.profileMemberCounts = {};
+    this.profileMemberCountErrors = {};
+    this.isRefreshingProfiles = false;
     this.syncFontScale();
     this.lastHomeStateKey = this.getHomeStateKey(store.getState());
     this.unsubscribeStore = store.subscribe((nextState) => {
@@ -164,6 +172,7 @@ Page({
     this.lastHomeStateKey = this.getHomeStateKey(store.getState());
     this.renderState();
     this.loadRecordsForCurrentView();
+    this.refreshProfilesOnShow();
   },
 
   syncFontScale() {
@@ -215,6 +224,7 @@ Page({
           relationship && relationship.permissions && relationship.permissions.canWrite ? 'w1' : 'w0',
           relationship && relationship.permissions && relationship.permissions.canManage ? 'm1' : 'm0',
           relationship && relationship.permissions && relationship.permissions.canInvite ? 'i1' : 'i0',
+          relationship && relationship.subscribeAlerts ? 's1' : 's0',
         ].join(':'))
         .join('|'),
       profiles
@@ -249,6 +259,9 @@ Page({
     const canInviteCurrentProfile = activeProfileId ? canInvite(state, activeProfileId) : false;
     const isOwnerCurrentProfile = activeProfileId ? isOwner(state, activeProfileId) : false;
     const isViewerCurrentProfile = activeProfileId ? isViewer(state, activeProfileId) : false;
+    const activeProfileMemberCount = activeProfileId && Object.prototype.hasOwnProperty.call(this.profileMemberCounts || {}, activeProfileId)
+      ? this.profileMemberCounts[activeProfileId]
+      : null;
 
     this.setData({
       profiles,
@@ -273,6 +286,13 @@ Page({
       canEditCurrentProfile,
       canExitCurrentProfile: Boolean(activeRelationship && !isOwnerCurrentProfile),
       isViewerCurrentProfile,
+      activeRelationshipSubscribeAlerts: Boolean(activeRelationship ? activeRelationship.subscribeAlerts : true),
+      activeProfileMemberCount,
+      advancedSettingsItems: this.computeAdvancedSettings(
+        view.activeProfile,
+        activeProfileMemberCount,
+        activeRelationship,
+      ),
       showProfileCompletionPrompt: this.shouldShowProfileCompletionPrompt(
         view.activeProfile,
         view.viewState,
@@ -291,6 +311,114 @@ Page({
     }
 
     return !profile.relation || !profile.birthDate;
+  },
+
+  async refreshProfilesOnShow() {
+    if (!this.isPageVisible) {
+      return;
+    }
+
+    const loginStatus = getLoginStatus();
+    if (!loginStatus.isLoginReady) {
+      return;
+    }
+
+    const state = store.getState();
+    const activeProfileId = state.currentProfileId;
+    const activeRelationship = activeProfileId
+      ? getCurrentRelationship(state, activeProfileId)
+      : null;
+    const shouldForceRefresh = store.isStale('profiles', null, STALE_THRESHOLD)
+      || Boolean(activeRelationship && activeRelationship.role !== 'owner');
+
+    if (!shouldForceRefresh) {
+      return;
+    }
+
+    await this.refreshProfiles({ skipCache: true });
+  },
+
+  async refreshProfiles() {
+    if (this.isRefreshingProfiles) {
+      return;
+    }
+
+    const app = getApp();
+    if (!app || typeof app.login !== 'function') {
+      return;
+    }
+
+    this.isRefreshingProfiles = true;
+    try {
+      await app.login({ preserveCurrentProfileId: true });
+      store.markRefreshed('profiles');
+    } catch (error) {
+      console.warn('Profile refresh failed in collaboration flow.', error);
+    } finally {
+      this.isRefreshingProfiles = false;
+    }
+  },
+
+  computeAdvancedSettings(profile, memberCount, relationship) {
+    if (!profile || !profile._id) {
+      return [];
+    }
+
+    const profileId = profile._id;
+    const state = store.getState();
+    const activeRelationship = relationship || getCurrentRelationship(state, profileId);
+
+    if (!activeRelationship) {
+      return [];
+    }
+
+    if (isOwner(state, profileId)) {
+      const items = [
+        {
+          type: 'invite',
+          label: '邀请家人查看',
+          desc: '让家人共同关注 TA 的健康',
+        },
+        {
+          type: 'manageMembers',
+          label: '管理成员',
+          desc: '查看与管理协作家人',
+        },
+      ];
+
+      if (typeof memberCount === 'number' && memberCount >= 2) {
+        items.push({
+          type: 'transfer',
+          label: '转让管理员',
+          desc: '把档案管理权转给其他家人',
+        });
+      }
+
+      items.push({
+        type: 'delete',
+        label: '删除档案',
+        desc: '删除后所有记录无法恢复',
+        danger: true,
+      });
+
+      return items;
+    }
+
+    return [
+      {
+        type: 'notificationSetting',
+        label: '我的通知设置',
+        desc: '异常时通知',
+        toggle: true,
+        checked: Boolean(activeRelationship.subscribeAlerts),
+      },
+      {
+        type: 'leave',
+        label: '退出此档案',
+        desc: '退出后无法继续查看',
+        danger: true,
+      },
+    ];
   },
 
   resolveHomeView(state) {
@@ -901,6 +1029,7 @@ Page({
       isDeleteConfirmVisible: false,
     });
     store.setCurrentProfileId(profileId);
+    this.refreshProfilesOnShow();
   },
 
   handleReturnToProfileList() {
@@ -953,10 +1082,15 @@ Page({
     });
   },
 
-  handleToggleDangerZone() {
+  async handleToggleDangerZone() {
+    const nextExpanded = !this.data.isDangerZoneExpanded;
     this.setData({
-      isDangerZoneExpanded: !this.data.isDangerZoneExpanded,
+      isDangerZoneExpanded: nextExpanded,
     });
+
+    if (nextExpanded) {
+      await this.ensureAdvancedSettingsReady();
+    }
   },
 
   handleManageMembers() {
@@ -989,6 +1123,91 @@ Page({
     wx.navigateTo({
       url: `/pages/profile-members/profile-members?profileId=${profile._id}&mode=transfer`,
     });
+  },
+
+  async ensureAdvancedSettingsReady() {
+    const profile = this.data.activeProfile;
+    if (!profile || !profile._id || !this.data.canManageCurrentProfile) {
+      return;
+    }
+
+    const profileId = profile._id;
+    const hasMemberCount = Object.prototype.hasOwnProperty.call(this.profileMemberCounts || {}, profileId);
+    const shouldRefresh = !hasMemberCount || store.isStale('members', profileId, STALE_THRESHOLD);
+
+    if (!shouldRefresh) {
+      return;
+    }
+
+    try {
+      const result = await memberService.listProfileMembers(profileId);
+      this.profileMemberCounts[profileId] = Array.isArray(result.members) ? result.members.length : 0;
+      this.renderState();
+    } catch (error) {
+      this.profileMemberCountErrors[profileId] = true;
+      delete this.profileMemberCounts[profileId];
+      this.renderState();
+    }
+  },
+
+  handleAdvancedSettingTap(event) {
+    const type = event.currentTarget.dataset.type;
+
+    switch (type) {
+      case 'invite':
+        this.handleCreateInvitation();
+        break;
+      case 'manageMembers':
+        this.handleManageMembers();
+        break;
+      case 'transfer':
+        this.handleTransferOwnership();
+        break;
+      case 'delete':
+        this.handleDeleteProfile();
+        break;
+      case 'leave':
+        this.handleExitProfile();
+        break;
+      default:
+        break;
+    }
+  },
+
+  async handleToggleOwnSubscribeAlerts(event) {
+    const subscribeAlerts = !!event.detail.value;
+    const relationshipId = this.data.activeRelationshipId;
+    const previousValue = this.data.activeRelationshipSubscribeAlerts;
+
+    if (!relationshipId || this.data.canManageCurrentProfile) {
+      return;
+    }
+
+    this.setData({
+      activeRelationshipSubscribeAlerts: subscribeAlerts,
+      advancedSettingsItems: (this.data.advancedSettingsItems || []).map((item) =>
+        item.type === 'notificationSetting'
+          ? Object.assign({}, item, { checked: subscribeAlerts })
+          : item
+      ),
+    });
+
+    try {
+      await memberService.updateRelationship(relationshipId, { subscribeAlerts });
+    } catch (error) {
+      this.setData({
+        activeRelationshipSubscribeAlerts: previousValue,
+        advancedSettingsItems: (this.data.advancedSettingsItems || []).map((item) =>
+          item.type === 'notificationSetting'
+            ? Object.assign({}, item, { checked: previousValue })
+            : item
+        ),
+      });
+      wx.showToast({
+        title: getErrorMessage(error),
+        icon: 'none',
+      });
+    }
   },
 
   async handleExitProfile() {

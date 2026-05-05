@@ -79,15 +79,6 @@
             <view class="member-row__badge">{{item.roleLabel}}</view>
           </view>
           <view class="member-row__meta">{{item.joinedText}}</view>
-          <view wx:if="{{item.showSubscribeAlerts}}" class="member-row__alerts">
-            <view class="member-row__alerts-label">异常时通知</view>
-            <switch
-              checked="{{item.relationship.subscribeAlerts}}"
-              disabled="{{!item.canToggleSubscribeAlerts}}"
-              data-relationship-id="{{item.relationship._id}}"
-              bindchange="handleToggleSubscribeAlerts"
-            />
-          </view>
         </view>
 
         <view

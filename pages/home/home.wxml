@@ -230,29 +230,31 @@
       </view>
 
       <view wx:if="{{isDangerZoneExpanded}}" class="home-danger-zone__content">
-        <view wx:if="{{canInviteCurrentProfile}}" class="card home-danger-zone__item" bindtap="handleCreateInvitation">
-          <view class="home-danger-zone__item-title">邀请家人查看</view>
-          <view class="home-danger-zone__item-text">让家人共同关注 TA 的健康</view>
-        </view>
+        <view wx:for="{{advancedSettingsItems}}" wx:key="type">
+          <view
+            wx:if="{{!item.toggle}}"
+            class="card home-danger-zone__item {{item.danger ? 'home-danger-zone__item--danger' : ''}}"
+            data-type="{{item.type}}"
+            bindtap="handleAdvancedSettingTap"
+          >
+            <view class="home-danger-zone__item-main">
+              <view class="home-danger-zone__item-title {{item.danger ? 'home-danger-zone__item-title--danger' : ''}}">
+                {{item.danger && item.type === 'delete' ? '⚠️ ' : ''}}{{item.label}}
+              </view>
+              <view class="home-danger-zone__item-text">{{item.desc}}</view>
+            </view>
+          </view>
 
-        <view wx:if="{{canManageCurrentProfile}}" class="card home-danger-zone__item" bindtap="handleManageMembers">
-          <view class="home-danger-zone__item-title">管理成员</view>
-          <view class="home-danger-zone__item-text">查看成员、调整角色和通知设置</view>
-        </view>
-
-        <view wx:if="{{canManageCurrentProfile}}" class="card home-danger-zone__item" bindtap="handleTransferOwnership">
-          <view class="home-danger-zone__item-title">转让管理员</view>
-          <view class="home-danger-zone__item-text">把档案管理权转给其他家人</view>
-        </view>
-
-        <view wx:if="{{canManageCurrentProfile}}" class="card home-danger-zone__item home-danger-zone__item--danger" bindtap="handleDeleteProfile">
-          <view class="home-danger-zone__item-title home-danger-zone__item-title--danger">⚠️ 删除档案</view>
-          <view class="home-danger-zone__item-text">删除后所有记录无法恢复</view>
-        </view>
-
-        <view wx:if="{{canExitCurrentProfile}}" class="card home-danger-zone__item" bindtap="handleExitProfile">
-          <view class="home-danger-zone__item-title">退出此档案</view>
-          <view class="home-danger-zone__item-text">退出后将无法继续查看，可请管理员重新邀请</view>
+          <view wx:else class="card home-danger-zone__item">
+            <view class="home-danger-zone__item-main">
+              <view class="home-danger-zone__item-title">{{item.label}}</view>
+              <view class="home-danger-zone__item-text">{{item.desc}}</view>
+            </view>
+            <switch
+              checked="{{item.checked}}"
+              bindchange="handleToggleOwnSubscribeAlerts"
+            />
+          </view>
         </view>
       </view>
     </view>

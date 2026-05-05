@@ -74,6 +74,7 @@ function applyTransferOwnershipToStore({ profileId, currentOwnerUserId }) {
 
 async function listProfileMembers(profileId) {
   const result = await call('listProfileMembers', { profileId }, { silent: true });
+  store.markRefreshed('members', profileId);
   return {
     members: Array.isArray(result.members) ? result.members : [],
   };
@@ -82,6 +83,9 @@ async function listProfileMembers(profileId) {
 async function updateRelationship(relationshipId, patch) {
   const result = await call('updateRelationship', { relationshipId, patch }, { silent: true });
   applyRelationshipUpdateToStore(result.relationship);
+  if (result.relationship && result.relationship.profileId) {
+    store.markRefreshed('members', result.relationship.profileId);
+  }
   return {
     relationship: result.relationship,
   };
@@ -96,6 +100,7 @@ async function removeRelationship(relationshipId, options = {}) {
       profileId: options.relationship.profileId,
       userId: options.relationship.userId,
     });
+    store.markRefreshed('members', options.relationship.profileId);
   }
 
   return { success: true };
@@ -115,6 +120,7 @@ async function transferOwnership(profileId, newOwnerUserId) {
 
   await call('transferOwnership', { profileId, newOwnerUserId }, { silent: true });
   applyTransferOwnershipToStore({ profileId, currentOwnerUserId });
+  store.markRefreshed('members', profileId);
   return { success: true };
 }
 

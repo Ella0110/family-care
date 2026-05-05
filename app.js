@@ -238,14 +238,27 @@ App({
     }
   },
 
-  async login() {
+  async login(options = {}) {
+    const preserveCurrentProfileId = options && options.preserveCurrentProfileId === true;
     try {
       const result = await call('login', {}, { silent: true });
       const nextState = normalizeLoginPayload(result);
+      const previousState = store.getState();
+
+      if (preserveCurrentProfileId) {
+        const currentProfileId = previousState.currentProfileId;
+        const hasCurrentProfile = currentProfileId
+          && nextState.profiles.some((profile) => profile && profile._id === currentProfileId);
+
+        if (hasCurrentProfile) {
+          nextState.currentProfileId = currentProfileId;
+        }
+      }
 
       this.globalData.loginReady = true;
       this.globalData.loginError = null;
       store.setState(nextState);
+      store.markRefreshed('profiles');
       this.syncInviterProfileState(nextState.user);
       await this.syncFontScaleWithUser(nextState.user);
 

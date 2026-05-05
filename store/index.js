@@ -5,6 +5,7 @@
  * @property {Array<Object>} relationships
  * @property {string|null} currentProfileId
  * @property {{ profiles: Array<Object>, latestRecords: Object<string, Object>, records: Object<string, Object>, medications: Object<string, Object> }} cache
+ * @property {{ profiles: number, members: Object<string, number> }} lastRefreshAt
  * @property {{ dismissedProfileCompletionHints: Object<string, boolean> }} session
  */
 
@@ -19,6 +20,10 @@ const state = {
     latestRecords: {},
     records: {},
     medications: {},
+  },
+  lastRefreshAt: {
+    profiles: 0,
+    members: {},
   },
   session: {
     dismissedProfileCompletionHints: {},
@@ -39,6 +44,13 @@ function cloneCache(cache) {
 function cloneSession(session) {
   return {
     dismissedProfileCompletionHints: Object.assign({}, session && session.dismissedProfileCompletionHints || {}),
+  };
+}
+
+function cloneLastRefreshAt(lastRefreshAt) {
+  return {
+    profiles: Number(lastRefreshAt && lastRefreshAt.profiles) || 0,
+    members: Object.assign({}, (lastRefreshAt && lastRefreshAt.members) || {}),
   };
 }
 
@@ -90,6 +102,7 @@ function snapshot() {
     relationships: state.relationships.slice(),
     currentProfileId: state.currentProfileId,
     cache: cloneCache(state.cache),
+    lastRefreshAt: cloneLastRefreshAt(state.lastRefreshAt),
     session: cloneSession(state.session),
   };
 }
@@ -136,6 +149,7 @@ const store = {
     nextState.profiles = Array.isArray(nextState.profiles) ? nextState.profiles : [];
     nextState.relationships = Array.isArray(nextState.relationships) ? nextState.relationships : [];
     nextState.cache = cloneCache(nextState.cache || state.cache);
+    nextState.lastRefreshAt = cloneLastRefreshAt(nextState.lastRefreshAt || state.lastRefreshAt);
     nextState.session = cloneSession(nextState.session || state.session);
     nextState.cache.profiles = nextState.profiles.slice();
     if (Object.prototype.hasOwnProperty.call(patch, 'profiles')) {
@@ -403,6 +417,69 @@ const store = {
   hasPermission(permission) {
     const relationship = this.getCurrentRelationship();
     return Boolean(relationship && relationship.permissions && relationship.permissions[permission]);
+  },
+
+  /**
+   * Returns the last refresh timestamp for a scope.
+   *
+   * @param {'profiles'|'members'} scope
+   * @param {string|null} [key]
+   * @returns {number}
+   */
+  getLastRefreshAt(scope, key = null) {
+    if (scope === 'profiles') {
+      return Number(state.lastRefreshAt && state.lastRefreshAt.profiles) || 0;
+    }
+
+    if (scope === 'members') {
+      return Number(state.lastRefreshAt && state.lastRefreshAt.members && key && state.lastRefreshAt.members[key]) || 0;
+    }
+
+    return 0;
+  },
+
+  /**
+   * Marks a scope as refreshed at current time.
+   *
+   * @param {'profiles'|'members'} scope
+   * @param {string|null} [key]
+   * @returns {StoreState}
+   */
+  markRefreshed(scope, key = null) {
+    const now = Date.now();
+
+    if (scope === 'profiles') {
+      state.lastRefreshAt = Object.assign({}, state.lastRefreshAt, {
+        profiles: now,
+      });
+      return notify();
+    }
+
+    if (scope === 'members' && key) {
+      state.lastRefreshAt = Object.assign({}, state.lastRefreshAt, {
+        members: Object.assign({}, state.lastRefreshAt.members, {
+          [key]: now,
+        }),
+      });
+      return notify();
+    }
+
+    return snapshot();
+  },
+
+  /**
+   * @param {'profiles'|'members'} scope
+   * @param {string|null} key
+   * @param {number} ttlMs
+   * @returns {boolean}
+   */
+  isStale(scope, key, ttlMs) {
+    const lastRefreshAt = this.getLastRefreshAt(scope, key);
+    if (!lastRefreshAt) {
+      return true;
+    }
+
+    return (Date.now() - lastRefreshAt) > ttlMs;
   },
 };
 

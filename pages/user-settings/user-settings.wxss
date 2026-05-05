@@ -25,6 +25,66 @@
   margin-top: 24rpx;
 }
 
+.settings-profile {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-top: 20rpx;
+}
+
+.settings-profile__avatar {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e5e7eb;
+  color: #111827;
+  font-size: calc(34rpx * var(--font-scale));
+  font-weight: 700;
+  overflow: hidden;
+}
+
+.settings-profile__avatar--image {
+  background: transparent;
+}
+
+.settings-profile__avatar-image {
+  width: 100%;
+  height: 100%;
+}
+
+.settings-profile__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-profile__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.settings-profile__label {
+  color: #111827;
+  font-size: calc(30rpx * var(--font-scale));
+  font-weight: 700;
+}
+
+.settings-profile__link {
+  color: #1d4ed8;
+  font-size: calc(28rpx * var(--font-scale));
+  font-weight: 700;
+}
+
+.settings-profile__hint {
+  margin-top: 10rpx;
+  color: #6b7280;
+  font-size: calc(26rpx * var(--font-scale));
+}
+
 .settings-section__title {
   color: #111827;
   font-size: calc(36rpx * var(--font-scale));

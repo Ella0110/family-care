@@ -293,6 +293,18 @@
   margin-top: 20rpx;
 }
 
+.home-danger-zone__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.home-danger-zone__item-main {
+  flex: 1;
+  min-width: 0;
+}
+
 .home-danger-zone__item-title {
   color: #111827;
   font-size: calc(32rpx * var(--font-scale));

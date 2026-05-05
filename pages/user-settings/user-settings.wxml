@@ -5,6 +5,23 @@
   </view>
 
   <view class="card settings-section">
+    <view class="settings-section__title">我的资料</view>
+    <view class="settings-profile">
+      <view wx:if="{{profileSummary.avatarUrl}}" class="settings-profile__avatar settings-profile__avatar--image">
+        <image class="settings-profile__avatar-image" src="{{profileSummary.avatarUrl}}" mode="aspectFill" />
+      </view>
+      <view wx:else class="settings-profile__avatar">{{profileSummary.avatarFallback}}</view>
+      <view class="settings-profile__body">
+        <view class="settings-profile__row">
+          <view class="settings-profile__label">昵称：{{profileSummary.nickname}}</view>
+          <view class="settings-profile__link" bindtap="handleOpenUserProfileEdit">修改</view>
+        </view>
+        <view class="settings-profile__hint">邀请家人时会显示这个昵称</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card settings-section">
     <view class="settings-section__title">显示偏好</view>
     <view class="settings-field__label">字号大小</view>
     <view class="font-scale-control">

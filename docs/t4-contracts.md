@@ -44,3 +44,13 @@
 - 邀请人对 profileIds 中的每一个都必须有 canInvite 权限
 - 邀请失效原因（service 层区分）：过期、已使用、被撤销
 - 一个用户对同一个 profile 不能有多条 active relationship（acceptInvitation 时如果已存在 relationship，应返回 ALREADY_MEMBER）
+
+## 缓存与刷新策略
+- `home` 页和 `profile-members` 页加入 30 秒 staleness 检测
+- 协作相关数据（`profiles / relationships / members`）超过 30 秒未刷新会触发强刷
+- 其他业务数据（`records / medications`）继续维持 T2.5 的 SWR 模式
+
+## 通知开关位置
+- 异常通知开关放在档案详情页的“高级设置”区
+- 仅 collaborator / viewer 可见和操作，owner 默认始终接收
+- 调整后立即调用 `updateRelationship` 同步到云端

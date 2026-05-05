@@ -2,6 +2,10 @@ const userService = require('../../services/user-service');
 const { store } = require('../../store/index');
 const { getErrorMessage } = require('../../utils/error-messages');
 const {
+  buildInvitationNicknameInitial,
+  normalizeGrantedUserProfile,
+} = require('../../utils/invitation');
+const {
   DEFAULT_FONT_SCALE,
   FONT_SCALE_OPTIONS,
   FONT_SCALE_LABELS,
@@ -19,6 +23,22 @@ function getSelectedLabel(fontScale) {
   return FONT_SCALE_LABELS[normalizeFontScale(fontScale)] || FONT_SCALE_LABELS[DEFAULT_FONT_SCALE];
 }
 
+function getCurrentUserProfileSummary() {
+  const state = store.getState();
+  const user = state.user || {};
+  const normalized = normalizeGrantedUserProfile({
+    nickname: user.nickname,
+    avatarUrl: user.avatarUrl,
+  });
+
+  return {
+    nickname: normalized ? normalized.nickname : '未填写昵称',
+    avatarUrl: normalized ? normalized.avatarUrl || '' : '',
+    avatarFallback: buildInvitationNicknameInitial(normalized ? normalized.nickname : '', '我'),
+    hasValidProfile: Boolean(normalized),
+  };
+}
+
 Page({
   data: {
     fontScale: DEFAULT_FONT_SCALE,
@@ -29,6 +49,7 @@ Page({
       value,
       label: FONT_SCALE_LABELS[value],
     })),
+    profileSummary: getCurrentUserProfileSummary(),
   },
 
   onLoad() {
@@ -38,6 +59,7 @@ Page({
 
   onShow() {
     this.syncFontScale();
+    this.syncProfileSummary();
   },
 
   syncFontScale() {
@@ -50,8 +72,20 @@ Page({
     });
   },
 
+  syncProfileSummary() {
+    this.setData({
+      profileSummary: getCurrentUserProfileSummary(),
+    });
+  },
+
   handleBack() {
     wx.navigateBack({ delta: 1 });
+  },
+
+  handleOpenUserProfileEdit() {
+    wx.navigateTo({
+      url: '/pages/user-profile-edit/user-profile-edit',
+    });
   },
 
   applyScaleLocally(fontScale) {
