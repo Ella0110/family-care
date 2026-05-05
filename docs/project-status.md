@@ -2,8 +2,8 @@
 
 ## 当前阶段
 - 已完成：T0、T1、T2.1-T2.6、T3.1a、T3.1b、T3.2、T3.3、T4.1、T4.2a、T4.2b
-- 当前切入点：T5（异常提醒与订阅消息）
-- 未开始：T5、T6
+- 当前切入点：T5.1（就诊报告导出，详见 t5-roadmap.md）
+- 未开始：T5.1-T5.5、T6
 
 ## 核心模型（Path B）
 - 三表核心：`users`、`profiles`、`relationships`
@@ -50,7 +50,7 @@
 - 页面：
   - 已接业务：`home`、`profile-edit`、`profile-threshold-edit`、`record`、`records-list`、`medication-edit`、`invite-create`、`invite-accept`、`profile-members`、`user-profile-edit`、`user-settings`
   - 骨架待接：`profile-detail`、`profile-settings`、`report`
-- 服务层：`services/request.js`、`services/profile-service.js`、`services/record-service.js`、`services/medication-service.js`、`services/invitation-service.js`、`services/user-service.js`
+- 服务层：`services/request.js`、`services/profile-service.js`、`services/record-service.js`、`services/medication-service.js`、`services/invitation-service.js`、`services/member-service.js`、`services/user-service.js`
 - 全局 store：手写轻量订阅式 store，提供 `getState / setState / subscribe`
 - 缓存策略：T2.5 引入 SWR，缓存按 `profileId` 隔离，首页与记录列表先读缓存再后台刷新
 - 错误处理：T2.6 引入统一错误文案映射与开发环境请求风暴告警

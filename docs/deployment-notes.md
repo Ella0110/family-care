@@ -44,16 +44,14 @@ T4 阶段对 `invitations` 的业务 schema 做了扩展：
 1. 在项目根目录执行 `npm run build:functions`
 2. 确认每个函数目录下都已生成 `./_shared/`
 3. 确认每个函数目录下都存在 `package.json`，且声明了 `wx-server-sdk@3.0.1`
-4. 在微信开发者工具中重新上传以下 9 个云函数：
-   - `login`
-   - `createProfile`
-   - `updateProfile`
-   - `deleteProfile`
-   - `updateProfileSettings`
-   - `saveRecord`
-   - `getRecords`
-   - `updateRecord`
-   - `deleteRecord`
+4. 在微信开发者工具中按本次改动范围重新上传相关云函数。
+
+   云函数清单见 [project-status.md](docs/project-status.md) 的“云函数清单”小节。
+
+   判断哪些函数需要重新上传的规则：
+   - 改了 `cloudfunctions/_shared/*` → 所有云函数都受影响，必须全部重新构建并上传（共享代码会被打包进每个函数目录）
+   - 改了某个函数自己的 `handler.js` / `index.js` / `package.json` → 只重新上传该函数
+   - 改了某个共享层文件但只有部分函数引用 → 保险起见，仍然全部重新上传，避免部分函数残留旧 `_shared` 副本
 5. 上传完成后，在“云开发控制台 -> 云函数 -> 云端测试”中重新执行手动测试
 
 ## Local Verification

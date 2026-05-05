@@ -137,10 +137,12 @@
 - [scripts/verify-*.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/scripts/verify-t4.2b.js:1)：阶段化本地回归脚本是现在最重要的防回归资产
 
 ## T5 整体规划
-- 当前会话还没有产出 T5 的整体规划
-- 新会话建议先做两件事：
-  1. 阅读 [project-status.md](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/docs/project-status.md:1)、[t4-contracts.md](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/docs/t4-contracts.md:1)、本交接文档
-  2. 先写 T5 总体设计 / 子阶段拆分，再进入实现
+- T5 整体规划已落到 `docs/t5-roadmap.md`
+- 含 T5 拆分（5 个子阶段）、视觉范围、前序契约依赖、文档维护责任
+- 新会话开始时建议依次阅读：
+  1. `project-status.md`（当前状态总览）
+  2. 本交接文档（踩坑 + 微信能力风险 + 文件清单）
+  3. `t5-roadmap.md`（T5 子阶段拆分与契约依赖）
 - 当前用户已经明确：`T5.1` 起点是“就诊报告导出”
 
 ## 当前未完成的事
