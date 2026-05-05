@@ -274,6 +274,35 @@
   margin-top: 20rpx;
 }
 
+.home-report-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24rpx;
+  margin-top: 20rpx;
+}
+
+.home-report-card__title {
+  color: #111827;
+  font-size: calc(36rpx * var(--font-scale));
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.home-report-card__subtitle {
+  margin-top: 8rpx;
+  color: #6b7280;
+  font-size: calc(28rpx * var(--font-scale));
+  line-height: 1.6;
+}
+
+.home-report-card__arrow {
+  flex-shrink: 0;
+  color: #9ca3af;
+  font-size: calc(48rpx * var(--font-scale));
+  line-height: 1;
+}
+
 .home-danger-zone {
   margin-top: 24rpx;
 }

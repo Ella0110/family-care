@@ -224,6 +224,14 @@
       </view>
     </view>
 
+    <view class="card home-report-card" bindtap="handleOpenReport">
+      <view>
+        <view class="home-report-card__title">就诊报告</view>
+        <view class="home-report-card__subtitle">查看血压心率趋势与异常汇总</view>
+      </view>
+      <view class="home-report-card__arrow">›</view>
+    </view>
+
     <view class="home-danger-zone">
       <view class="home-danger-zone__toggle" bindtap="handleToggleDangerZone">
         ⚙ 高级设置 {{isDangerZoneExpanded ? '▲' : '▼'}}

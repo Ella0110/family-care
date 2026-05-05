@@ -13,7 +13,8 @@
     "pages/invite-accept/invite-accept",
     "pages/report/report",
     "pages/user-profile-edit/user-profile-edit",
-    "pages/user-settings/user-settings"
+    "pages/user-settings/user-settings",
+    "pages/spike-canvas/spike-canvas"
   ],
   "window": {
     "navigationBarBackgroundColor": "#ffffff",

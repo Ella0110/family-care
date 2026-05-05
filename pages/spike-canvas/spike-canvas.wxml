@@ -1,0 +1,64 @@
+<view class="page">
+  <view class="panel">
+    <view class="panel__title">T5.1 前置能力验证</view>
+    <view class="panel__desc">验证离屏 Canvas 2D 长图渲染、图片导出和相册保存链路。</view>
+
+    <view class="actions">
+      <button
+        class="actions__button"
+        type="primary"
+        bindtap="handleGenerateCanvas"
+        loading="{{isGenerating}}"
+        disabled="{{isGenerating}}"
+      >
+        生成长图
+      </button>
+      <button
+        class="actions__button actions__button--secondary"
+        bindtap="handleSaveToAlbum"
+        loading="{{isSaving}}"
+        disabled="{{isSaving || !tempFilePath}}"
+      >
+        保存到相册
+      </button>
+    </view>
+  </view>
+
+  <view class="panel">
+    <view class="debug__title">调试信息</view>
+    <view class="debug__row">
+      <text class="debug__label">基础库版本</text>
+      <text class="debug__value">{{sdkVersion}}</text>
+    </view>
+    <view class="debug__row">
+      <text class="debug__label">设备型号</text>
+      <text class="debug__value">{{deviceModel}}</text>
+    </view>
+    <view class="debug__row">
+      <text class="debug__label">系统</text>
+      <text class="debug__value">{{system}}</text>
+    </view>
+    <view class="debug__row">
+      <text class="debug__label">canvas 导出状态</text>
+      <text class="debug__value">{{canvasExportStatus}}</text>
+    </view>
+    <view class="debug__row">
+      <text class="debug__label">保存状态</text>
+      <text class="debug__value">{{saveStatus}}</text>
+    </view>
+  </view>
+
+  <view class="panel">
+    <view class="preview__title">导出预览</view>
+    <image
+      wx:if="{{tempFilePath}}"
+      class="preview__image"
+      src="{{tempFilePath}}"
+      mode="widthFix"
+    />
+    <view wx:else class="preview__placeholder">尚未生成长图</view>
+    <view wx:if="{{tempFilePath}}" class="preview__path">{{tempFilePath}}</view>
+  </view>
+
+  <canvas id="spikeCanvas" type="2d" class="spike-canvas"></canvas>
+</view>

@@ -1,3 +1,122 @@
-<view class="page">
-  <view>report page</view>
+<view class="page page-root report-page" style="--font-scale: {{fontScale}};">
+  <view class="card report-tabs">
+    <view
+      wx:for="{{periodOptions}}"
+      wx:key="days"
+      class="report-tabs__item {{selectedDays === item.days ? 'report-tabs__item--active' : ''}}"
+      data-days="{{item.days}}"
+      bindtap="handleSelectPeriod"
+    >
+      {{item.label}}
+    </view>
+  </view>
+
+  <view wx:if="{{errorText}}" class="card report-state">
+    <view class="report-state__title">暂时无法生成报告</view>
+    <view class="report-state__text">{{errorText}}</view>
+  </view>
+
+  <view wx:elif="{{isLoading}}" class="card report-state">
+    <view class="report-state__title">正在生成报告</view>
+    <view class="report-state__text">请稍候，正在读取该时间范围内的血压、心率和用药数据。</view>
+  </view>
+
+  <view wx:else>
+    <view class="card report-header">
+      <view class="report-header__title">血压心率就诊报告</view>
+      <view class="report-header__time">生成于 {{generatedAtText}}</view>
+    </view>
+
+    <view class="card report-profile">
+      <view class="report-section__title">患者档案</view>
+      <view class="report-profile__grid">
+        <view class="report-profile__item">
+          <view class="report-profile__label">患者姓名</view>
+          <view class="report-profile__value privacy-target">{{patientNameText}}</view>
+        </view>
+        <view class="report-profile__item">
+          <view class="report-profile__label">主要用药</view>
+          <view class="report-profile__value">{{medicationText}}</view>
+        </view>
+        <view class="report-profile__item report-profile__item--full">
+          <view class="report-profile__label">紧急联系人</view>
+          <view class="report-profile__value privacy-target">{{emergencyText}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{banner}}" class="card report-alert report-alert--{{banner.type}} {{banner.pulse ? 'report-alert--pulse' : ''}}">
+      <view class="report-alert__title">{{banner.title}}</view>
+      <view class="report-alert__text">{{banner.text}}</view>
+    </view>
+
+    <view wx:if="{{hasRecords}}" class="report-summary">
+      <view
+        wx:for="{{summaryCards}}"
+        wx:key="key"
+        class="card report-summary__item"
+      >
+        <view class="report-summary__label">{{item.label}}</view>
+        <view class="report-summary__value {{item.accentClassName}}">
+          {{item.value}}
+        </view>
+        <view class="report-summary__unit">{{item.unit}}</view>
+      </view>
+    </view>
+
+    <view wx:if="{{!hasRecords}}" class="card report-empty">
+      该时间段内暂无测量记录
+    </view>
+
+    <view wx:if="{{hasRecords}}" class="card report-chart-card">
+      <canvas id="reportBpChart" type="2d" class="report-chart-card__canvas"></canvas>
+    </view>
+
+    <view wx:if="{{hasRecords && hasHeartRateData}}" class="card report-chart-card">
+      <canvas id="reportHeartRateChart" type="2d" class="report-chart-card__canvas"></canvas>
+    </view>
+
+    <view wx:elif="{{hasRecords}}" class="card report-chart-card">
+      <view class="report-chart-card__empty">暂无心率数据</view>
+    </view>
+
+    <view wx:if="{{hasRecords}}" class="card report-alert-list">
+      <view class="report-section__title">最近异常明细</view>
+
+      <view wx:if="{{recentAlerts.length > 0}}">
+        <view
+          wx:for="{{recentAlerts}}"
+          wx:key="key"
+          class="report-alert-list__item"
+        >
+          <view class="report-alert-list__left">
+            <view class="report-alert-list__time">{{item.measuredAtText}}</view>
+            <view class="report-alert-list__tags">{{item.alertText}}</view>
+          </view>
+          <view class="report-alert-list__right">
+            <view class="report-alert-list__bp">{{item.bloodPressureText}}</view>
+            <view class="report-alert-list__heart">{{item.heartRateText}}</view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:else class="report-alert-list__empty">该时间段内无异常记录</view>
+    </view>
+
+    <view class="card report-disclaimer">
+      <view class="report-disclaimer__line"></view>
+      <view class="report-disclaimer__text">{{disclaimer}}</view>
+    </view>
+  </view>
+
+  <view class="report-actions">
+    <view class="report-actions__privacy">
+      <view class="report-actions__privacy-title">隐藏敏感信息</view>
+      <view class="report-actions__privacy-text">导出图片中显示为 ***</view>
+    </view>
+    <switch checked="{{hideSensitiveInfo}}" bindchange="handleTogglePrivacy" />
+    <button class="btn-primary report-actions__button" bindtap="handleSaveReport">
+      保存报告图片
+    </button>
+  </view>
 </view>

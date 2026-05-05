@@ -1020,6 +1020,22 @@ Page({
     });
   },
 
+  handleOpenReport() {
+    const profile = this.data.activeProfile;
+
+    if (!profile || !profile._id) {
+      wx.showToast({
+        title: '请先创建档案',
+        icon: 'none',
+      });
+      return;
+    }
+
+    wx.navigateTo({
+      url: `/pages/report/report?profileId=${profile._id}`,
+    });
+  },
+
   handleProfileCardTap(event) {
     const profileId = event.currentTarget.dataset.profileId;
     this.setData({
