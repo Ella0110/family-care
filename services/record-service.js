@@ -48,7 +48,18 @@ function sortRecordsDesc(records) {
       return measuredAtDiff;
     }
 
-    return String(right && right._id || '').localeCompare(String(left && left._id || ''));
+    const rightId = String(right && right._id || '');
+    const leftId = String(left && left._id || '');
+
+    if (rightId > leftId) {
+      return 1;
+    }
+
+    if (rightId < leftId) {
+      return -1;
+    }
+
+    return 0;
   });
 }
 
@@ -142,7 +153,7 @@ async function fetchRecords(profileId, options = {}) {
   }
 
   const result = await call('getRecords', data, { silent: true });
-  const records = Array.isArray(result.records) ? result.records : [];
+  const records = sortRecordsDesc(Array.isArray(result.records) ? result.records : []);
 
   records.forEach((record) => setCachedRecord(record));
   if ((options.limit || 200) === 1 && !options.since && !options.until) {

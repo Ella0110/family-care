@@ -7,10 +7,18 @@ const CHART_COLORS = {
   diastolic: '#10B981',
   heartRate: '#3182F7',
   alert: '#EF4444',
+  reference: '#D1D5DB',
   text: '#475569',
   title: '#0F172A',
   grid: '#E2E8F0',
   bg: '#FFFFFF',
+};
+
+const CHART_PADDING = {
+  left: 50,
+  right: 40,
+  top: 40,
+  bottom: 30,
 };
 
 function safeChartData(chartData, mode) {
@@ -56,7 +64,7 @@ function drawTitle(ctx, leftTitle, rightTitle, canvasSize) {
     ctx.fillStyle = CHART_COLORS.text;
     ctx.font = '12px sans-serif';
     ctx.textAlign = 'right';
-    ctx.fillText(rightTitle, canvasSize.width, 2);
+    ctx.fillText(rightTitle, canvasSize.width - 4, 2);
   }
 
   ctx.restore();
@@ -215,7 +223,7 @@ function drawReferenceLine(ctx, value, color, plot, range) {
 
   ctx.save();
   ctx.beginPath();
-  ctx.setLineDash([6, 6]);
+  ctx.setLineDash([6, 4]);
   ctx.strokeStyle = color;
   ctx.lineWidth = 1;
   ctx.moveTo(plot.left, y);
@@ -242,7 +250,7 @@ function drawPolyline(ctx, chartData, points, getValue, color, plot, range) {
   ctx.save();
   ctx.beginPath();
   ctx.strokeStyle = color;
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 1.5;
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
 
@@ -268,13 +276,15 @@ function drawSegmentedPolyline(ctx, chartData, points, getValue, color, isAlert,
 
   if (points.length === 1) {
     const point = points[0];
-    drawSinglePoint(
-      ctx,
-      getPointX(point, chartData, plot),
-      valueToY(getValue(point), range, plot),
-      isAlert(point) ? CHART_COLORS.alert : color,
-      3,
-    );
+    if (isAlert(point)) {
+      drawSinglePoint(
+        ctx,
+        getPointX(point, chartData, plot),
+        valueToY(getValue(point), range, plot),
+        CHART_COLORS.alert,
+        3,
+      );
+    }
     return;
   }
 
@@ -286,7 +296,7 @@ function drawSegmentedPolyline(ctx, chartData, points, getValue, color, isAlert,
     ctx.save();
     ctx.beginPath();
     ctx.strokeStyle = abnormal ? CHART_COLORS.alert : color;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1.5;
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
     ctx.moveTo(
@@ -302,18 +312,6 @@ function drawSegmentedPolyline(ctx, chartData, points, getValue, color, isAlert,
   }
 }
 
-function drawNormalPoints(ctx, chartData, points, getValue, color, plot, range) {
-  points.forEach((point) => {
-    drawSinglePoint(
-      ctx,
-      getPointX(point, chartData, plot),
-      valueToY(getValue(point), range, plot),
-      color,
-      2.5,
-    );
-  });
-}
-
 function drawAlertPoints(ctx, chartData, points, getValue, isAlert, plot, range) {
   points.forEach((point) => {
     if (!isAlert(point)) {
@@ -325,7 +323,7 @@ function drawAlertPoints(ctx, chartData, points, getValue, isAlert, plot, range)
       getPointX(point, chartData, plot),
       valueToY(getValue(point), range, plot),
       CHART_COLORS.alert,
-      4,
+      3,
     );
   });
 }
@@ -350,10 +348,10 @@ function drawRoundedBar(ctx, x, y, width, bottom, color) {
 function drawBloodPressureTrendChart(ctx, chartInput, threshold, canvasSize, mode) {
   const chartData = safeChartData(chartInput, mode);
   const plot = {
-    left: 48,
-    right: canvasSize.width - 10,
-    top: 38,
-    bottom: canvasSize.height - 34,
+    left: CHART_PADDING.left,
+    right: canvasSize.width - CHART_PADDING.right,
+    top: CHART_PADDING.top,
+    bottom: canvasSize.height - CHART_PADDING.bottom,
   };
 
   clearCanvas(ctx, canvasSize.width, canvasSize.height);
@@ -366,15 +364,13 @@ function drawBloodPressureTrendChart(ctx, chartInput, threshold, canvasSize, mod
   const range = getBloodPressureRange(chartData.points, threshold);
 
   drawGrid(ctx, range, plot);
-  drawReferenceLine(ctx, threshold.systolic, CHART_COLORS.alert, plot, range);
-  drawReferenceLine(ctx, threshold.diastolic, CHART_COLORS.diastolic, plot, range);
+  drawReferenceLine(ctx, threshold.systolic, CHART_COLORS.reference, plot, range);
+  drawReferenceLine(ctx, threshold.diastolic, CHART_COLORS.reference, plot, range);
   drawXAxisLabels(ctx, chartData.slots, plot, chartData.mode);
 
   if (chartData.mode <= 7) {
     drawPolyline(ctx, chartData, chartData.points, (point) => point.systolic, CHART_COLORS.systolic, plot, range);
     drawPolyline(ctx, chartData, chartData.points, (point) => point.diastolic, CHART_COLORS.diastolic, plot, range);
-    drawNormalPoints(ctx, chartData, chartData.points, (point) => point.systolic, CHART_COLORS.systolic, plot, range);
-    drawNormalPoints(ctx, chartData, chartData.points, (point) => point.diastolic, CHART_COLORS.diastolic, plot, range);
     drawAlertPoints(ctx, chartData, chartData.points, (point) => point.systolic, (point) => point.systolicAlert, plot, range);
     drawAlertPoints(ctx, chartData, chartData.points, (point) => point.diastolic, (point) => point.diastolicAlert, plot, range);
     return;
@@ -406,10 +402,10 @@ function drawHeartRateChart(ctx, chartInput, threshold, canvasSize, mode) {
   const chartData = safeChartData(chartInput, mode);
   const heartRatePoints = chartData.points.filter((point) => point.hasHeartRate);
   const plot = {
-    left: 48,
-    right: canvasSize.width - 10,
-    top: 38,
-    bottom: canvasSize.height - 34,
+    left: CHART_PADDING.left,
+    right: canvasSize.width - CHART_PADDING.right,
+    top: CHART_PADDING.top,
+    bottom: canvasSize.height - CHART_PADDING.bottom,
   };
 
   clearCanvas(ctx, canvasSize.width, canvasSize.height);
@@ -439,15 +435,6 @@ function drawHeartRateChart(ctx, chartInput, threshold, canvasSize, mode) {
   }
 
   drawPolyline(
-    ctx,
-    chartData,
-    heartRatePoints,
-    (point) => point.heartRate,
-    CHART_COLORS.heartRate,
-    plot,
-    range,
-  );
-  drawNormalPoints(
     ctx,
     chartData,
     heartRatePoints,

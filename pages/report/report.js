@@ -27,6 +27,34 @@ const PERIOD_OPTIONS = [
   { days: 90, label: '近90天' },
 ];
 
+function toTimestamp(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  const timestamp = date.getTime();
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+}
+
+function sortRecordsDesc(records) {
+  return (Array.isArray(records) ? records.slice() : []).sort((left, right) => {
+    const measuredAtDiff = toTimestamp(right && right.measuredAt) - toTimestamp(left && left.measuredAt);
+    if (measuredAtDiff !== 0) {
+      return measuredAtDiff;
+    }
+
+    const rightId = String(right && right._id || '');
+    const leftId = String(left && left._id || '');
+
+    if (rightId > leftId) {
+      return 1;
+    }
+
+    if (rightId < leftId) {
+      return -1;
+    }
+
+    return 0;
+  });
+}
+
 function buildPeriodOptions(coverageDayCount) {
   if (!Number.isFinite(coverageDayCount)) {
     return PERIOD_OPTIONS.map((item) => Object.assign({}, item, { enabled: true }));
@@ -45,6 +73,18 @@ function buildPeriodOptions(coverageDayCount) {
 
     return Object.assign({}, item, { enabled });
   });
+}
+
+function getDisabledPeriodToast(days) {
+  if (days === 30) {
+    return '记录超过 7 天后可查看';
+  }
+
+  if (days === 90) {
+    return '记录超过 30 天后可查看';
+  }
+
+  return '当前暂无可查看数据';
 }
 
 function getCurrentFontScale() {
@@ -99,6 +139,15 @@ function wrapSaveImageToPhotosAlbum(filePath) {
       success: resolve,
       fail: reject,
     });
+  });
+}
+
+function showSystemPermissionHint() {
+  wx.showModal({
+    title: '需要在系统设置中开启权限',
+    content: '请前往手机「设置 → 微信 → 照片」，将权限设为“允许”',
+    showCancel: false,
+    confirmText: '知道了',
   });
 }
 
@@ -206,7 +255,7 @@ Page({
     }
 
     const result = await callSilent('getRecords', data);
-    const records = Array.isArray(result.records) ? result.records : [];
+    const records = sortRecordsDesc(Array.isArray(result.records) ? result.records : []);
 
     return {
       records,
@@ -457,7 +506,19 @@ Page({
     const days = Number(event.currentTarget.dataset.days);
     const nextOption = (this.data.periodOptions || []).find((item) => item.days === days);
 
-    if (!days || !nextOption || !nextOption.enabled || days === this.data.selectedDays || this.data.isLoading) {
+    if (!days || !nextOption) {
+      return;
+    }
+
+    if (!nextOption.enabled) {
+      wx.showToast({
+        title: getDisabledPeriodToast(days),
+        icon: 'none',
+      });
+      return;
+    }
+
+    if (days === this.data.selectedDays || this.data.isLoading) {
       return;
     }
 
@@ -556,7 +617,34 @@ Page({
         1,
         Math.min(exportLayout.height, Math.ceil((Number(lastY) || 0) + 80)),
       );
+      const finalExportLayout = Object.assign({}, exportLayout, {
+        height: exportPixelHeight,
+      });
+
+      console.log('[report-export] first pass', {
+        lastY,
+        canvasHeight: canvas.height,
+        exportHeight: exportPixelHeight,
+      });
+
+      if (exportPixelHeight !== canvas.height) {
+        canvas.width = EXPORT_CANVAS_WIDTH;
+        canvas.height = exportPixelHeight;
+        this.setData({
+          exportCanvasHeight: Math.max(1, Math.ceil(exportPixelHeight / 2)),
+        });
+
+        const redrawCtx = canvas.getContext('2d');
+        drawReportExportCanvas(redrawCtx, Object.assign({}, exportPayload, {
+          exportLayout: finalExportLayout,
+        }));
+      }
+
       this.exportCanvasPixelHeight = exportPixelHeight;
+      console.log('[report-export] final canvas size', {
+        canvasHeight: canvas.height,
+        exportHeight: exportPixelHeight,
+      });
 
       await wait(80);
 
@@ -627,10 +715,12 @@ Page({
         durationMs: Date.now() - startedAt,
         error,
       });
-      wx.showToast({
-        title: '保存失败，请重试',
-        icon: 'none',
-      });
+      if (options.showFailureToast !== false) {
+        wx.showToast({
+          title: '保存失败，请重试',
+          icon: 'none',
+        });
+      }
       return false;
     }
   },
@@ -650,15 +740,26 @@ Page({
 
     wx.openSetting({
       success: async (res) => {
-        if (res && res.authSetting && res.authSetting['scope.writePhotosAlbum'] === true && filePath) {
+        const authSetting = res && res.authSetting ? res.authSetting : {};
+        const hasPermission = authSetting['scope.writePhotosAlbum'] === true;
+
+        console.log('[report-export] openSetting result:', JSON.stringify(authSetting));
+        console.log('[report-export] writePhotosAlbum permission:', authSetting['scope.writePhotosAlbum']);
+
+        if (hasPermission && filePath) {
           this.setData({
             isExporting: true,
           });
 
           try {
-            await this.trySaveImageToAlbum(filePath, {
+            const saved = await this.trySaveImageToAlbum(filePath, {
               allowPermissionRecovery: false,
+              showFailureToast: false,
             });
+
+            if (!saved) {
+              showSystemPermissionHint();
+            }
           } finally {
             this.setData({
               isExporting: false,
@@ -667,11 +768,7 @@ Page({
           return;
         }
 
-        wx.showModal({
-          title: '需要在系统设置中开启权限',
-          content: '请前往手机「设置 → 微信 → 照片」，将权限设为“允许”',
-          showCancel: false,
-        });
+        showSystemPermissionHint();
       },
       fail: (error) => {
         console.error('[report-export] openSetting failed', error);
