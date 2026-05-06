@@ -13,6 +13,11 @@ const {
   drawBloodPressureTrendChart,
   drawHeartRateChart,
 } = require('../../utils/report-chart-renderer');
+const {
+  EXPORT_CANVAS_WIDTH,
+  measureReportExportHeight,
+  drawReportExportCanvas,
+} = require('../../utils/report-exporter');
 
 const PERIOD_OPTIONS = [
   { days: 7, label: '近7天' },
@@ -27,6 +32,52 @@ function getCurrentFontScale() {
 
 function findProfile(profileId) {
   return (store.getState().profiles || []).find((profile) => profile && profile._id === profileId) || null;
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function getErrorReason(error) {
+  if (!error) {
+    return 'unknown';
+  }
+
+  if (error.errMsg) {
+    return error.errMsg;
+  }
+
+  if (error.message) {
+    return error.message;
+  }
+
+  return String(error);
+}
+
+function isPermissionInterrupted(error) {
+  return /deny|cancel/i.test(getErrorReason(error));
+}
+
+function wrapCanvasToTempFilePath(canvas) {
+  return new Promise((resolve, reject) => {
+    wx.canvasToTempFilePath({
+      canvas,
+      fileType: 'png',
+      quality: 1,
+      success: resolve,
+      fail: reject,
+    });
+  });
+}
+
+function wrapSaveImageToPhotosAlbum(filePath) {
+  return new Promise((resolve, reject) => {
+    wx.saveImageToPhotosAlbum({
+      filePath,
+      success: resolve,
+      fail: reject,
+    });
+  });
 }
 
 Page({
@@ -48,6 +99,9 @@ Page({
     hasHeartRateData: false,
     hideSensitiveInfo: false,
     disclaimer: REPORT_DISCLAIMER,
+    isExporting: false,
+    exportCanvasHeight: 1,
+    showPermissionModal: false,
   },
 
   onLoad(options = {}) {
@@ -59,6 +113,8 @@ Page({
     this.generatedAt = new Date();
     this.pixelRatio = 1;
     this.hasEntered = false;
+    this.exportTempFilePath = '';
+    this.exportCanvasPixelHeight = 1;
 
     this.syncFontScale();
     this.initSystemInfo();
@@ -90,6 +146,7 @@ Page({
 
   onUnload() {
     this.chartRenderToken += 1;
+    this.exportTempFilePath = '';
   },
 
   initSystemInfo() {
@@ -342,9 +399,200 @@ Page({
   },
 
   handleSaveReport() {
-    wx.showToast({
-      title: '导出功能开发中',
-      icon: 'none',
+    if (this.data.isExporting || this.data.isLoading || this.data.errorText) {
+      return;
+    }
+
+    this.exportReportImage();
+  },
+
+  buildExportPayload() {
+    const rawViewModel = buildReportViewModel({
+      profile: this.profile,
+      activeMedications: this.activeMedications,
+      records: this.rawRecords,
+      days: this.data.selectedDays,
+      hideSensitive: false,
+      generatedAt: this.generatedAt,
+    });
+    const maskedViewModel = this.data.hideSensitiveInfo
+      ? buildReportViewModel({
+        profile: this.profile,
+        activeMedications: this.activeMedications,
+        records: this.rawRecords,
+        days: this.data.selectedDays,
+        hideSensitive: true,
+        generatedAt: this.generatedAt,
+      })
+      : rawViewModel;
+
+    return {
+      periodLabel: `近 ${this.data.selectedDays} 天`,
+      generatedAtText: this.data.generatedAtText,
+      patient: {
+        rawNameText: rawViewModel.patient.nameText,
+        maskedNameText: maskedViewModel.patient.nameText,
+        medicationText: rawViewModel.patient.medicationText,
+        rawEmergencyText: rawViewModel.patient.emergencyText,
+        maskedEmergencyText: maskedViewModel.patient.emergencyText,
+      },
+      banner: this.data.banner,
+      summaryCards: this.data.summaryCards,
+      hasRecords: this.data.hasRecords,
+      hasHeartRateData: this.data.hasHeartRateData,
+      records: this.chartRecords || [],
+      threshold: this.chartThreshold,
+      mode: this.data.selectedDays,
+      recentAlerts: this.data.recentAlerts || [],
+      disclaimer: this.data.disclaimer,
+      privacyMode: this.data.hideSensitiveInfo,
+    };
+  },
+
+  async exportReportImage() {
+    this.setData({
+      isExporting: true,
+      showPermissionModal: false,
+    });
+
+    const startedAt = Date.now();
+
+    try {
+      const exportPayload = this.buildExportPayload();
+      const exportLayout = measureReportExportHeight(exportPayload);
+
+      this.exportCanvasPixelHeight = exportLayout.height;
+      this.setData({
+        exportCanvasHeight: Math.max(1, Math.ceil(exportLayout.height / 2)),
+      });
+
+      await wait(100);
+
+      const target = await this.getCanvasNode('#reportExportCanvas');
+      const canvas = target.node;
+      const ctx = canvas.getContext('2d');
+
+      canvas.width = EXPORT_CANVAS_WIDTH;
+      canvas.height = exportLayout.height;
+
+      drawReportExportCanvas(ctx, Object.assign({}, exportPayload, {
+        exportLayout,
+      }));
+
+      await wait(80);
+
+      const result = await wrapCanvasToTempFilePath(canvas);
+      this.exportTempFilePath = result.tempFilePath || '';
+
+      console.log('[report-export] canvas export success', {
+        width: EXPORT_CANVAS_WIDTH,
+        height: exportLayout.height,
+        durationMs: Date.now() - startedAt,
+        tempFilePath: this.exportTempFilePath,
+      });
+
+      await this.trySaveImageToAlbum(this.exportTempFilePath, {
+        allowPermissionRecovery: true,
+      });
+    } catch (error) {
+      console.error('[report-export] export failed', error);
+      wx.showToast({
+        title: '生成失败，请重试',
+        icon: 'none',
+      });
+    } finally {
+      this.setData({
+        isExporting: false,
+      });
+    }
+  },
+
+  async trySaveImageToAlbum(filePath, options = {}) {
+    const startedAt = Date.now();
+
+    try {
+      const result = await wrapSaveImageToPhotosAlbum(filePath);
+
+      console.log('[report-export] save success', {
+        durationMs: Date.now() - startedAt,
+        result,
+      });
+
+      wx.showToast({
+        title: '已保存到相册',
+        icon: 'success',
+      });
+
+      return true;
+    } catch (error) {
+      if (options.allowPermissionRecovery && isPermissionInterrupted(error)) {
+        console.log('[report-export] save interrupted by permission', {
+          durationMs: Date.now() - startedAt,
+          error,
+        });
+
+        this.setData({
+          showPermissionModal: true,
+        });
+        return false;
+      }
+
+      console.error('[report-export] save failed', {
+        durationMs: Date.now() - startedAt,
+        error,
+      });
+      wx.showToast({
+        title: '保存失败，请重试',
+        icon: 'none',
+      });
+      return false;
+    }
+  },
+
+  handleClosePermissionModal() {
+    this.setData({
+      showPermissionModal: false,
+    });
+  },
+
+  handleOpenPermissionSetting() {
+    const filePath = this.exportTempFilePath;
+
+    this.setData({
+      showPermissionModal: false,
+    });
+
+    wx.openSetting({
+      success: async (res) => {
+        if (res && res.authSetting && res.authSetting['scope.writePhotosAlbum'] === true && filePath) {
+          this.setData({
+            isExporting: true,
+          });
+
+          try {
+            await this.trySaveImageToAlbum(filePath, {
+              allowPermissionRecovery: false,
+            });
+          } finally {
+            this.setData({
+              isExporting: false,
+            });
+          }
+          return;
+        }
+
+        wx.showToast({
+          title: '仍无权限，无法保存',
+          icon: 'none',
+        });
+      },
+      fail: (error) => {
+        console.error('[report-export] openSetting failed', error);
+        wx.showToast({
+          title: '无法打开设置',
+          icon: 'none',
+        });
+      },
     });
   },
 });

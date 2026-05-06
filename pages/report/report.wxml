@@ -115,8 +115,38 @@
       <view class="report-actions__privacy-text">导出图片中显示为 ***</view>
     </view>
     <switch checked="{{hideSensitiveInfo}}" bindchange="handleTogglePrivacy" />
-    <button class="btn-primary report-actions__button" bindtap="handleSaveReport">
+    <button
+      class="btn-primary report-actions__button"
+      bindtap="handleSaveReport"
+      loading="{{isExporting}}"
+      disabled="{{isExporting || isLoading || errorText}}"
+    >
       保存报告图片
     </button>
+  </view>
+
+  <canvas
+    id="reportExportCanvas"
+    type="2d"
+    class="report-export-canvas"
+    style="height: {{exportCanvasHeight}}px;"
+  ></canvas>
+
+  <view wx:if="{{showPermissionModal}}" class="report-permission-modal">
+    <view class="report-permission-modal__mask"></view>
+    <view class="report-permission-modal__panel card">
+      <view class="report-permission-modal__title">无法保存图片</view>
+      <view class="report-permission-modal__subtitle">需要开启“相册写入”权限</view>
+      <view class="report-permission-modal__step">步骤 1：点击下方“去设置”按钮</view>
+      <view class="report-permission-modal__step">步骤 2：将“添加到相册”设为允许</view>
+      <view class="report-permission-modal__actions">
+        <button class="btn-primary report-permission-modal__button" bindtap="handleOpenPermissionSetting">
+          去设置
+        </button>
+        <button class="btn-secondary report-permission-modal__button" bindtap="handleClosePermissionModal">
+          暂不下载
+        </button>
+      </view>
+    </view>
   </view>
 </view>
