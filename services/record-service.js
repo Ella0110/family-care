@@ -48,7 +48,7 @@ function sortRecordsDesc(records) {
       return measuredAtDiff;
     }
 
-    return toTimestamp(right && right._createTime) - toTimestamp(left && left._createTime);
+    return toTimestamp(right && right.createdAt) - toTimestamp(left && left.createdAt);
   });
 }
 

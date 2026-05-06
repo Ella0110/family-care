@@ -49,7 +49,7 @@ function createGetRecordsHandler(deps = {}) {
       .collection(COLLECTIONS.RECORDS)
       .where(where)
       .orderBy('measuredAt', 'desc')
-      .orderBy('_createTime', 'desc')
+      .orderBy('createdAt', 'desc')
       .limit(limit + 1)
       .get();
 
