@@ -14,6 +14,8 @@ const HR_THRESHOLD = {
 
 const REPORT_DISCLAIMER = '本报告仅供健康记录与就诊沟通参考，不作为诊断、治疗或用药依据。个体情况存在差异，请以医生诊疗结果及医嘱为准。';
 
+const PERIOD_ORDER = ['morning', 'afternoon', 'evening', 'other'];
+
 function pad(value) {
   return String(value).padStart(2, '0');
 }
@@ -40,8 +42,18 @@ function toMeasuredDate(value) {
   return new Date(value);
 }
 
+function toDateKey(value) {
+  const date = toMeasuredDate(value);
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 function isFiniteNumber(value) {
   return Number.isFinite(Number(value));
+}
+
+function normalizePeriodValue(value) {
+  const normalized = trimText(value).toLowerCase();
+  return PERIOD_ORDER.includes(normalized) ? normalized : 'other';
 }
 
 function formatGeneratedAt(value) {
@@ -77,6 +89,46 @@ function joinMedicationNames(activeMedications) {
   return names.length ? names.join('、') : '暂无用药记录';
 }
 
+function isHighRiskRecord(record) {
+  return record.systolic >= 180 || record.diastolic >= 120;
+}
+
+function isHighRecord(record, threshold) {
+  return record.systolic >= threshold.systolic || record.diastolic >= threshold.diastolic;
+}
+
+function isLowRecord(record) {
+  return record.systolic < LOW_BP.systolic || record.diastolic < LOW_BP.diastolic;
+}
+
+function isBloodPressureAbnormal(record, threshold) {
+  return isHighRecord(record, threshold) || isLowRecord(record);
+}
+
+function isHeartRateAbnormal(record) {
+  if (!Number.isFinite(record.heartRate)) {
+    return false;
+  }
+
+  return record.heartRate > HR_THRESHOLD.high || record.heartRate < HR_THRESHOLD.low;
+}
+
+function decorateAlertFlags(record, threshold, heartRateAlertOverride) {
+  const systolicAlert = record.systolic >= threshold.systolic || record.systolic < LOW_BP.systolic;
+  const diastolicAlert = record.diastolic >= threshold.diastolic || record.diastolic < LOW_BP.diastolic;
+  const heartRateAlert = heartRateAlertOverride === undefined
+    ? isHeartRateAbnormal(record)
+    : Boolean(heartRateAlertOverride);
+
+  return Object.assign({}, record, {
+    hasHeartRate: Number.isFinite(record.heartRate),
+    systolicAlert,
+    diastolicAlert,
+    bpAlert: systolicAlert || diastolicAlert,
+    heartRateAlert,
+  });
+}
+
 function normalizeReportRecords(records) {
   return (Array.isArray(records) ? records : [])
     .map((record) => {
@@ -101,38 +153,165 @@ function normalizeReportRecords(records) {
         _id: record._id,
         raw: record,
         measuredAt,
+        dateKey: toDateKey(measuredAt),
         label: formatMonthDay(measuredAt),
         systolic,
         diastolic,
         heartRate: Number.isFinite(heartRate) ? heartRate : null,
+        period: normalizePeriodValue(record.period || payload.period),
       };
     })
     .filter(Boolean)
     .sort((left, right) => left.measuredAt.getTime() - right.measuredAt.getTime());
 }
 
-function isHighRiskRecord(record) {
-  return record.systolic >= 180 || record.diastolic >= 120;
-}
-
-function isHighRecord(record, threshold) {
-  return record.systolic >= threshold.systolic || record.diastolic >= threshold.diastolic;
-}
-
-function isLowRecord(record) {
-  return record.systolic < LOW_BP.systolic || record.diastolic < LOW_BP.diastolic;
-}
-
-function isBloodPressureAbnormal(record, threshold) {
-  return isHighRecord(record, threshold) || isLowRecord(record);
-}
-
-function isHeartRateAbnormal(record) {
-  if (!Number.isFinite(record.heartRate)) {
-    return false;
+function average(values) {
+  if (!values.length) {
+    return null;
   }
 
-  return record.heartRate > HR_THRESHOLD.high || record.heartRate < HR_THRESHOLD.low;
+  const total = values.reduce((sum, value) => sum + value, 0);
+  return Math.round(total / values.length);
+}
+
+function buildNaturalDaySlots(days, now = new Date()) {
+  const slotCount = Math.max(1, Number(days) || 1);
+  const start = getSinceForDays(slotCount, now);
+  const slots = [];
+
+  for (let index = 0; index < slotCount; index += 1) {
+    const date = new Date(start.getTime() + index * 86400000);
+    slots.push({
+      index,
+      date,
+      dateKey: toDateKey(date),
+      label: formatMonthDay(date),
+    });
+  }
+
+  return slots;
+}
+
+function groupRecordsByDate(records) {
+  const grouped = new Map();
+
+  (Array.isArray(records) ? records : []).forEach((record) => {
+    if (!record || !record.dateKey) {
+      return;
+    }
+
+    if (!grouped.has(record.dateKey)) {
+      grouped.set(record.dateKey, []);
+    }
+
+    grouped.get(record.dateKey).push(record);
+  });
+
+  return grouped;
+}
+
+function countUniqueMeasuredDays(records) {
+  const normalizedRecords = Array.isArray(records) && records.length && records[0] && records[0].dateKey
+    ? records
+    : normalizeReportRecords(records);
+
+  return new Set((normalizedRecords || []).map((record) => record.dateKey)).size;
+}
+
+function selectSevenDayChartRecords(recordsForDay) {
+  const sortedDesc = (Array.isArray(recordsForDay) ? recordsForDay : [])
+    .slice()
+    .sort((left, right) => right.measuredAt.getTime() - left.measuredAt.getTime());
+  const latestByPeriod = new Map();
+
+  sortedDesc.forEach((record) => {
+    const period = normalizePeriodValue(record.period);
+    if (!latestByPeriod.has(period)) {
+      latestByPeriod.set(period, record);
+    }
+  });
+
+  let selected = [];
+
+  if (latestByPeriod.size >= 2) {
+    selected = Array.from(latestByPeriod.values())
+      .sort((left, right) => right.measuredAt.getTime() - left.measuredAt.getTime())
+      .slice(0, 3);
+  } else {
+    selected = sortedDesc.slice(0, 3);
+  }
+
+  return selected
+    .slice()
+    .sort((left, right) => left.measuredAt.getTime() - right.measuredAt.getTime());
+}
+
+function buildDailyAveragePoint(slot, recordsForDay, threshold) {
+  const safeRecords = Array.isArray(recordsForDay) ? recordsForDay : [];
+  const heartRateValues = safeRecords
+    .map((record) => record.heartRate)
+    .filter((value) => Number.isFinite(value));
+  const latestRecord = safeRecords[safeRecords.length - 1];
+  const averageRecord = {
+    _id: `${slot.dateKey}-avg`,
+    dateKey: slot.dateKey,
+    label: slot.label,
+    measuredAt: latestRecord ? latestRecord.measuredAt : slot.date,
+    systolic: average(safeRecords.map((record) => record.systolic)),
+    diastolic: average(safeRecords.map((record) => record.diastolic)),
+    heartRate: heartRateValues.length ? average(heartRateValues) : null,
+    period: 'other',
+    sourceCount: safeRecords.length,
+  };
+
+  return decorateAlertFlags(
+    averageRecord,
+    threshold,
+    safeRecords.some((record) => isHeartRateAbnormal(record)),
+  );
+}
+
+function buildChartTimeline(records, days, threshold, now = new Date()) {
+  const normalizedRecords = Array.isArray(records) && records.length && records[0] && records[0].dateKey
+    ? records
+    : normalizeReportRecords(records);
+  const slots = buildNaturalDaySlots(days, now).map((slot) => Object.assign({}, slot, { items: [] }));
+  const slotMap = new Map(slots.map((slot) => [slot.dateKey, slot]));
+  const grouped = groupRecordsByDate(normalizedRecords);
+
+  grouped.forEach((recordsForDay, dateKey) => {
+    const slot = slotMap.get(dateKey);
+    if (!slot) {
+      return;
+    }
+
+    if (Number(days) <= 7) {
+      slot.items = selectSevenDayChartRecords(recordsForDay)
+        .map((record) => decorateAlertFlags(record, threshold));
+      return;
+    }
+
+    slot.items = [buildDailyAveragePoint(slot, recordsForDay, threshold)];
+  });
+
+  const points = [];
+
+  slots.forEach((slot) => {
+    slot.items.forEach((item, itemIndex) => {
+      points.push(Object.assign({}, item, {
+        slotIndex: slot.index,
+        slotCount: slot.items.length,
+        positionInSlot: itemIndex,
+      }));
+    });
+  });
+
+  return {
+    mode: Number(days) || 7,
+    slots,
+    points,
+    hasHeartRateData: points.some((point) => point.hasHeartRate),
+  };
 }
 
 function getAlertLabels(record, threshold) {
@@ -190,15 +369,6 @@ function buildAlertBanner(records, threshold) {
   return null;
 }
 
-function average(values) {
-  if (!values.length) {
-    return null;
-  }
-
-  const total = values.reduce((sum, value) => sum + value, 0);
-  return Math.round(total / values.length);
-}
-
 function buildSummaryCards(records, threshold) {
   const systolicAverage = average(records.map((record) => record.systolic));
   const diastolicAverage = average(records.map((record) => record.diastolic));
@@ -254,7 +424,8 @@ function buildRecentAlerts(records, threshold) {
       measuredAtText: formatMonthDayTime(record.measuredAt),
       alertText: getAlertLabels(record, threshold).join(' · '),
       bloodPressureText: `${record.systolic}/${record.diastolic}`,
-      heartRateText: Number.isFinite(record.heartRate) ? `${record.heartRate}bpm` : '未记录心率',
+      heartRateText: Number.isFinite(record.heartRate) ? `${record.heartRate}bpm` : '',
+      hasHeartRate: Number.isFinite(record.heartRate),
     }));
 }
 
@@ -282,24 +453,31 @@ function buildPatientInfo(profile, activeMedications, hideSensitive, now = new D
 function buildReportViewModel(options) {
   const profile = options && options.profile ? options.profile : null;
   const threshold = getThreshold(profile);
+  const generatedAt = options && options.generatedAt ? options.generatedAt : new Date();
   const normalizedRecords = normalizeReportRecords(options && options.records);
   const patient = buildPatientInfo(
     profile,
     options && options.activeMedications,
     Boolean(options && options.hideSensitive),
-    options && options.generatedAt ? options.generatedAt : new Date(),
+    generatedAt,
   );
   const recentAlerts = buildRecentAlerts(normalizedRecords, threshold);
+  const chartData = buildChartTimeline(
+    normalizedRecords,
+    options && options.days ? options.days : 7,
+    threshold,
+    generatedAt,
+  );
 
   return {
     threshold,
     patient,
     hasRecords: normalizedRecords.length > 0,
-    generatedAtText: formatGeneratedAt(options && options.generatedAt ? options.generatedAt : new Date()),
+    generatedAtText: formatGeneratedAt(generatedAt),
     banner: buildAlertBanner(normalizedRecords, threshold),
     summaryCards: normalizedRecords.length ? buildSummaryCards(normalizedRecords, threshold) : [],
-    chartRecords: normalizedRecords,
-    hasHeartRateData: normalizedRecords.some((record) => Number.isFinite(record.heartRate)),
+    chartData,
+    hasHeartRateData: chartData.hasHeartRateData,
     recentAlerts,
     disclaimer: REPORT_DISCLAIMER,
   };
@@ -310,11 +488,14 @@ module.exports = {
   HR_THRESHOLD,
   REPORT_DISCLAIMER,
   toMeasuredDate,
+  toDateKey,
   formatGeneratedAt,
   formatMonthDay,
   formatMonthDayTime,
   getSinceForDays,
   normalizeReportRecords,
+  countUniqueMeasuredDays,
+  buildChartTimeline,
   isHighRiskRecord,
   isHighRecord,
   isLowRecord,

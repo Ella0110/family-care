@@ -224,7 +224,7 @@
       </view>
     </view>
 
-    <view class="card home-report-card" bindtap="handleOpenReport">
+    <view class="card home-report-card {{!hasLatestRecord && !isLoadingLatestRecord && !latestRecordError ? 'home-report-card--disabled' : ''}}" bindtap="handleOpenReport">
       <view>
         <view class="home-report-card__title">就诊报告</view>
         <view class="home-report-card__subtitle">查看血压心率趋势与异常汇总</view>

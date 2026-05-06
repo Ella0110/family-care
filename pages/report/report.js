@@ -7,6 +7,8 @@ const { DEFAULT_FONT_SCALE, normalizeFontScale } = require('../../utils/font-sca
 const {
   REPORT_DISCLAIMER,
   getSinceForDays,
+  toMeasuredDate,
+  toDateKey,
   buildReportViewModel,
 } = require('../../utils/report-helpers');
 const {
@@ -24,6 +26,26 @@ const PERIOD_OPTIONS = [
   { days: 30, label: '近30天' },
   { days: 90, label: '近90天' },
 ];
+
+function buildPeriodOptions(coverageDayCount) {
+  if (!Number.isFinite(coverageDayCount)) {
+    return PERIOD_OPTIONS.map((item) => Object.assign({}, item, { enabled: true }));
+  }
+
+  return PERIOD_OPTIONS.map((item) => {
+    let enabled = false;
+
+    if (item.days === 7) {
+      enabled = coverageDayCount >= 1;
+    } else if (item.days === 30) {
+      enabled = coverageDayCount > 7;
+    } else if (item.days === 90) {
+      enabled = coverageDayCount > 30;
+    }
+
+    return Object.assign({}, item, { enabled });
+  });
+}
 
 function getCurrentFontScale() {
   const app = getApp();
@@ -58,15 +80,15 @@ function isPermissionInterrupted(error) {
   return /deny|cancel/i.test(getErrorReason(error));
 }
 
-function wrapCanvasToTempFilePath(canvas) {
+function wrapCanvasToTempFilePath(canvas, options = {}) {
   return new Promise((resolve, reject) => {
-    wx.canvasToTempFilePath({
+    wx.canvasToTempFilePath(Object.assign({
       canvas,
       fileType: 'png',
       quality: 1,
       success: resolve,
       fail: reject,
-    });
+    }, options));
   });
 }
 
@@ -84,7 +106,7 @@ Page({
   data: {
     fontScale: DEFAULT_FONT_SCALE,
     profileId: '',
-    periodOptions: PERIOD_OPTIONS,
+    periodOptions: buildPeriodOptions(NaN),
     selectedDays: 7,
     isLoading: false,
     errorText: '',
@@ -110,6 +132,7 @@ Page({
     this.profile = null;
     this.activeMedications = [];
     this.rawRecords = [];
+    this.coverageDayCount = NaN;
     this.generatedAt = new Date();
     this.pixelRatio = 1;
     this.hasEntered = false;
@@ -131,14 +154,14 @@ Page({
       return;
     }
 
-    this.loadReportData(7);
+    this.loadReportData(7, { refreshCoverage: true });
   },
 
   onShow() {
     this.syncFontScale();
 
     if (this.hasEntered && this.data.profileId) {
-      this.loadReportData(this.data.selectedDays);
+      this.loadReportData(this.data.selectedDays, { refreshCoverage: true });
     }
 
     this.hasEntered = true;
@@ -191,7 +214,44 @@ Page({
     };
   },
 
-  async loadReportData(days) {
+  async fetchCoverageDayCount(profileId) {
+    const uniqueDays = new Set();
+    let nextUntil = null;
+    let hasMore = true;
+    let pageCount = 0;
+
+    while (hasMore && uniqueDays.size <= 30 && pageCount < 8) {
+      const result = await this.fetchReportRecords(profileId, {
+        limit: 200,
+        until: nextUntil,
+      });
+      const records = Array.isArray(result.records) ? result.records : [];
+
+      records.forEach((record) => {
+        if (record && record.measuredAt) {
+          uniqueDays.add(toDateKey(record.measuredAt));
+        }
+      });
+
+      if (!records.length) {
+        break;
+      }
+
+      const oldestRecord = records[records.length - 1];
+      const oldestMeasuredAt = toMeasuredDate(oldestRecord && oldestRecord.measuredAt);
+      if (Number.isNaN(oldestMeasuredAt.getTime())) {
+        break;
+      }
+
+      nextUntil = new Date(oldestMeasuredAt.getTime() - 1);
+      hasMore = result.hasMore === true;
+      pageCount += 1;
+    }
+
+    return uniqueDays.size;
+  },
+
+  async loadReportData(days, options = {}) {
     const profileId = this.data.profileId;
 
     if (!profileId) {
@@ -218,13 +278,21 @@ Page({
     });
 
     try {
-      const [medicationResult, recordResult] = await Promise.all([
+      const shouldRefreshCoverage = options.refreshCoverage !== false || !Number.isFinite(this.coverageDayCount);
+      const coveragePromise = shouldRefreshCoverage
+        ? this.fetchCoverageDayCount(profileId).catch((error) => {
+          console.warn('[report] fetchCoverageDayCount failed', error);
+          return NaN;
+        })
+        : Promise.resolve(this.coverageDayCount);
+      const [medicationResult, recordResult, coverageDayCount] = await Promise.all([
         medicationService.fetchMedications(profileId),
         this.fetchReportRecords(profileId, {
           since: getSinceForDays(days, now),
           until: now,
           limit: 200,
         }),
+        coveragePromise,
       ]);
 
       if (requestId !== this.reportRequestId) {
@@ -236,6 +304,9 @@ Page({
         ? medicationResult.activeMedications.slice()
         : [];
       this.rawRecords = Array.isArray(recordResult.records) ? recordResult.records.slice() : [];
+      if (Number.isFinite(coverageDayCount)) {
+        this.coverageDayCount = coverageDayCount;
+      }
       this.generatedAt = now;
 
       this.applyViewModel();
@@ -253,6 +324,7 @@ Page({
         summaryCards: [],
         recentAlerts: [],
         banner: null,
+        periodOptions: buildPeriodOptions(this.coverageDayCount),
       });
     }
   },
@@ -267,12 +339,13 @@ Page({
       generatedAt: this.generatedAt,
     });
 
-    this.chartRecords = viewModel.chartRecords;
+    this.chartData = viewModel.chartData;
     this.chartThreshold = viewModel.threshold;
 
     this.setData({
       isLoading: false,
       errorText: '',
+      periodOptions: buildPeriodOptions(this.coverageDayCount),
       patientNameText: viewModel.patient.nameText,
       medicationText: viewModel.patient.medicationText,
       emergencyText: viewModel.patient.emergencyText,
@@ -350,7 +423,7 @@ Page({
     ctx.scale(this.pixelRatio, this.pixelRatio);
     drawBloodPressureTrendChart(
       ctx,
-      this.chartRecords,
+      this.chartData,
       this.chartThreshold,
       { width, height },
       this.data.selectedDays,
@@ -373,7 +446,7 @@ Page({
     ctx.scale(this.pixelRatio, this.pixelRatio);
     drawHeartRateChart(
       ctx,
-      this.chartRecords,
+      this.chartData,
       this.chartThreshold,
       { width, height },
       this.data.selectedDays,
@@ -382,12 +455,13 @@ Page({
 
   handleSelectPeriod(event) {
     const days = Number(event.currentTarget.dataset.days);
+    const nextOption = (this.data.periodOptions || []).find((item) => item.days === days);
 
-    if (!days || days === this.data.selectedDays || this.data.isLoading) {
+    if (!days || !nextOption || !nextOption.enabled || days === this.data.selectedDays || this.data.isLoading) {
       return;
     }
 
-    this.loadReportData(days);
+    this.loadReportData(days, { refreshCoverage: false });
   },
 
   handleTogglePrivacy(event) {
@@ -440,7 +514,7 @@ Page({
       summaryCards: this.data.summaryCards,
       hasRecords: this.data.hasRecords,
       hasHeartRateData: this.data.hasHeartRateData,
-      records: this.chartRecords || [],
+      records: this.chartData || { mode: this.data.selectedDays, slots: [], points: [] },
       threshold: this.chartThreshold,
       mode: this.data.selectedDays,
       recentAlerts: this.data.recentAlerts || [],
@@ -475,18 +549,30 @@ Page({
       canvas.width = EXPORT_CANVAS_WIDTH;
       canvas.height = exportLayout.height;
 
-      drawReportExportCanvas(ctx, Object.assign({}, exportPayload, {
+      const lastY = drawReportExportCanvas(ctx, Object.assign({}, exportPayload, {
         exportLayout,
       }));
+      const exportPixelHeight = Math.max(
+        1,
+        Math.min(exportLayout.height, Math.ceil((Number(lastY) || 0) + 80)),
+      );
+      this.exportCanvasPixelHeight = exportPixelHeight;
 
       await wait(80);
 
-      const result = await wrapCanvasToTempFilePath(canvas);
+      const result = await wrapCanvasToTempFilePath(canvas, {
+        x: 0,
+        y: 0,
+        width: EXPORT_CANVAS_WIDTH,
+        height: exportPixelHeight,
+        destWidth: EXPORT_CANVAS_WIDTH,
+        destHeight: exportPixelHeight,
+      });
       this.exportTempFilePath = result.tempFilePath || '';
 
       console.log('[report-export] canvas export success', {
         width: EXPORT_CANVAS_WIDTH,
-        height: exportLayout.height,
+        height: exportPixelHeight,
         durationMs: Date.now() - startedAt,
         tempFilePath: this.exportTempFilePath,
       });
@@ -581,9 +667,10 @@ Page({
           return;
         }
 
-        wx.showToast({
-          title: '仍无权限，无法保存',
-          icon: 'none',
+        wx.showModal({
+          title: '需要在系统设置中开启权限',
+          content: '请前往手机「设置 → 微信 → 照片」，将权限设为“允许”',
+          showCancel: false,
         });
       },
       fail: (error) => {

@@ -88,7 +88,7 @@ function measureHeightWithAlerts(payload, alertBlock) {
   const patient = getDisplayPatient(payload.patient, payload.privacyMode);
   let height = 0;
 
-  height += 128;
+  height += 140;
   height += SECTION_GAP;
   height += estimatePatientSectionHeight(patient);
 
@@ -219,7 +219,7 @@ function drawReportExportCanvas(ctx, payload) {
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, EXPORT_CANVAS_WIDTH, layout.height);
 
-  y = 48;
+  y = 60;
   ctx.fillStyle = '#111827';
   ctx.font = 'bold 24px sans-serif';
   ctx.textAlign = 'left';
@@ -355,9 +355,11 @@ function drawReportExportCanvas(ctx, payload) {
         ctx.font = 'bold 24px sans-serif';
         ctx.textAlign = 'right';
         ctx.fillText(item.bloodPressureText, EXPORT_CANVAS_WIDTH - PADDING_X, y + 2);
-        ctx.fillStyle = '#6B7280';
-        ctx.font = '13px sans-serif';
-        ctx.fillText(item.heartRateText, EXPORT_CANVAS_WIDTH - PADDING_X, y + 32);
+        if (item.heartRateText) {
+          ctx.fillStyle = '#6B7280';
+          ctx.font = '13px sans-serif';
+          ctx.fillText(item.heartRateText, EXPORT_CANVAS_WIDTH - PADDING_X, y + 32);
+        }
         ctx.textAlign = 'left';
 
         y = Math.max(alertEndY, y + 50) + 12;
@@ -397,7 +399,7 @@ function drawReportExportCanvas(ctx, payload) {
 
   ctx.fillStyle = '#94A3B8';
   ctx.font = '12px sans-serif';
-  drawWrappedText(ctx, payload.disclaimer, PADDING_X, y, CONTENT_WIDTH, 22);
+  return drawWrappedText(ctx, payload.disclaimer, PADDING_X, y, CONTENT_WIDTH, 22);
 }
 
 module.exports = {

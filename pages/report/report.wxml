@@ -3,7 +3,7 @@
     <view
       wx:for="{{periodOptions}}"
       wx:key="days"
-      class="report-tabs__item {{selectedDays === item.days ? 'report-tabs__item--active' : ''}}"
+      class="report-tabs__item {{selectedDays === item.days ? 'report-tabs__item--active' : ''}} {{!item.enabled ? 'report-tabs__item--disabled' : ''}}"
       data-days="{{item.days}}"
       bindtap="handleSelectPeriod"
     >
@@ -95,7 +95,7 @@
           </view>
           <view class="report-alert-list__right">
             <view class="report-alert-list__bp">{{item.bloodPressureText}}</view>
-            <view class="report-alert-list__heart">{{item.heartRateText}}</view>
+            <view wx:if="{{item.heartRateText}}" class="report-alert-list__heart">{{item.heartRateText}}</view>
           </view>
         </view>
       </view>

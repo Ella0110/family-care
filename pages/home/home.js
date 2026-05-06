@@ -1031,6 +1031,14 @@ Page({
       return;
     }
 
+    if (!this.data.hasLatestRecord && !this.data.isLoadingLatestRecord && !this.data.latestRecordError) {
+      wx.showToast({
+        title: '暂无测量记录，无法生成报告',
+        icon: 'none',
+      });
+      return;
+    }
+
     wx.navigateTo({
       url: `/pages/report/report?profileId=${profile._id}`,
     });

@@ -282,6 +282,10 @@
   margin-top: 20rpx;
 }
 
+.home-report-card--disabled {
+  opacity: 0.4;
+}
+
 .home-report-card__title {
   color: #111827;
   font-size: calc(36rpx * var(--font-scale));
