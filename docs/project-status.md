@@ -1,9 +1,9 @@
 # 来自儿女的关心（family-care）项目状态
 
 ## 当前阶段
-- 已完成：T0、T1、T2.1-T2.6、T3.1a、T3.1b、T3.2、T3.3、T4.1、T4.2a、T4.2b
-- 当前切入点：T5.1（就诊报告导出，详见 t5-roadmap.md）
-- 未开始：T5.1-T5.5、T6
+- 已完成：T0、T1、T2.1-T2.6、T3.1a、T3.1b、T3.2、T3.3、T4.1、T4.2a、T4.2b、T5.1
+- 当前切入点：T5.2（单图表导出，详见 t5-roadmap.md）
+- 未开始：T5.2-T5.5、T6
 
 ## 核心模型（Path B）
 - 三表核心：`users`、`profiles`、`relationships`
@@ -48,16 +48,19 @@
 
 ## 前端架构
 - 页面：
-  - 已接业务：`home`、`profile-edit`、`profile-threshold-edit`、`record`、`records-list`、`medication-edit`、`invite-create`、`invite-accept`、`profile-members`、`user-profile-edit`、`user-settings`
-  - 骨架待接：`profile-detail`、`profile-settings`、`report`
+  - 已接业务：`home`、`profile-edit`、`profile-threshold-edit`、`record`、`records-list`、`medication-edit`、`invite-create`、`invite-accept`、`profile-members`、`report`、`user-profile-edit`、`user-settings`
+  - 骨架待接：`profile-detail`、`profile-settings`
 - 服务层：`services/request.js`、`services/profile-service.js`、`services/record-service.js`、`services/medication-service.js`、`services/invitation-service.js`、`services/member-service.js`、`services/user-service.js`
+- 报告模块：`pages/report/report`、`utils/report-helpers.js`、`utils/report-chart-renderer.js`、`utils/report-exporter.js`
 - 全局 store：手写轻量订阅式 store，提供 `getState / setState / subscribe`
 - 缓存策略：T2.5 引入 SWR，缓存按 `profileId` 隔离，首页与记录列表先读缓存再后台刷新
+- T5.1 技术债：`report` 页为避免时间范围子集查询污染 `record-service` 的全局 records cache，暂时通过 `callSilent('getRecords')` 直调云函数；后续应给 records cache key 引入时间范围参数后再收敛回服务层
 - 错误处理：T2.6 引入统一错误文案映射与开发环境请求风暴告警
 - 单档案首页：T3.2 升级为“档案详情页”，含档案信息卡片、阈值调整入口和危险操作区
 - 用户设置：T3.3 新增字号切换和关于页，`fontScale` 支持 `1.0 / 1.15 / 1.3`
 - 协作邀请：T4.1 完成邀请、接受、成员角色、管理员转让的数据层 API；T4.2a 已接通邀请发起、邀请预览、接受和分享路径，并改为 invite-create 页主动填写昵称（+ 可选头像）
 - 协作前端：T4.2b 完成成员管理页、viewer/collaborator 模式 UI、退出档案、转让管理员、成员刷新策略，以及用户修改自己的邀请昵称/头像
+- T5.1 报告导出：完成报告页渲染、7/30/90 天图表、长图导出、保存到相册、权限挽回与隐私脱敏
 
 ## 关键工程约定
 - 云函数 `_shared` 源码保留在 `cloudfunctions/_shared/`，部署前通过构建脚本复制到每个函数目录
@@ -77,6 +80,9 @@
 - T2.5 请求风暴：把 cache 写进 store 后若订阅逻辑不收敛，会触发首页循环刷新和调用量异常放大
 - T4.2a 微信能力坑：`wx.getUserProfile` 在 2026 年新版微信基础库里不再稳定返回真实昵称，实际常出现 `微信用户` 占位值。邀请流程已改为 invite-create 页主动填写昵称（`input type="nickname"`）+ 可选头像（`open-type="chooseAvatar"`）。
 - T4.2b 协作刷新坑：T2.5 的 SWR 缓存在协作场景下会导致 A 改 B 角色后，B 端继续读旧 relationship。修复方式是 `home / profile-members` 引入 30 秒 staleness 检测与强刷，其他页面仍保留原 SWR。
+- T5.1 排序坑：微信云开发文档 `_id` 不保证单调递增，同一分钟内的血压记录排序不能依赖 `_id`；`records` 实际应以 `measuredAt desc + createdAt desc` 排序。
+- T5.1 导出坑：Canvas 2D 长图导出若先按预估高度一次性绘制，真机上可能保留大块底部留白；修复方式是先测 `lastY`，再按最终导出高度二次绘制并裁切。
+- T5.1 字段坑：`_createTime` 在当前手动写入 `records` 文档的链路里并不存在，真正可用的创建时间字段是 `createdAt`。
 
 ## 产品决策记录
 - Path B vs Path C：选 B，因为没有历史用户，可以按新模型干净重开
