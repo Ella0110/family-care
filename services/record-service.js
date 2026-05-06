@@ -48,18 +48,7 @@ function sortRecordsDesc(records) {
       return measuredAtDiff;
     }
 
-    const rightId = String(right && right._id || '');
-    const leftId = String(left && left._id || '');
-
-    if (rightId > leftId) {
-      return 1;
-    }
-
-    if (rightId < leftId) {
-      return -1;
-    }
-
-    return 0;
+    return toTimestamp(right && right._createTime) - toTimestamp(left && left._createTime);
   });
 }
 
