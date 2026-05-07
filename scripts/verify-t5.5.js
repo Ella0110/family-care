@@ -74,3 +74,10 @@ assert.match(read('pages/records-list/records-list.wxml'), /导出图片/, 'reco
 assert.match(read('pages/records-list/records-list.wxml'), /导出数据/, 'records-list should render CSV export action');
 assert.match(read('pages/records-list/records-list.wxml'), /导入/, 'records-list should render import action');
 assert.match(read('pages/records-list/records-list.wxml'), /recordsExportCanvas/, 'records-list should define hidden export canvas');
+assert.match(read('pages/records-list/records-list.wxml'), /showExportPreview/, 'records-list should render export preview overlay');
+assert.match(read('pages/records-list/records-list.wxml'), /保存到相册/, 'records-list preview should expose explicit save action');
+assert.match(read('pages/records-list/records-list.wxml'), /onCancelPreview/, 'records-list preview should support cancel');
+assert.match(read('pages/records-list/records-list.wxml'), /onConfirmSave/, 'records-list preview should support save confirmation');
+assert.match(read('pages/records-list/records-list.js'), /showExportPreview:\s*false/, 'records-list page should track preview visibility');
+assert.match(read('pages/records-list/records-list.js'), /onCancelPreview\(/, 'records-list page should implement preview cancel handler');
+assert.match(read('pages/records-list/records-list.js'), /onConfirmSave\(/, 'records-list page should implement preview save handler');

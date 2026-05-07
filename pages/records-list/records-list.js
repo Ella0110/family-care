@@ -179,6 +179,8 @@ Page({
     isExportingImage: false,
     isExportingCsv: false,
     exportCanvasHeight: 1,
+    exportTempFilePath: '',
+    showExportPreview: false,
     showPermissionModal: false,
   },
 
@@ -189,7 +191,6 @@ Page({
 
     this.recordsById = {};
     this.loadedRecords = [];
-    this.exportTempFilePath = '';
 
     const state = store.getState();
     this.setData({
@@ -431,9 +432,9 @@ Page({
         destHeight: exportHeight,
       });
 
-      this.exportTempFilePath = exportResult.tempFilePath || '';
-      await this.trySaveImageToAlbum(this.exportTempFilePath, {
-        allowPermissionRecovery: true,
+      this.setData({
+        exportTempFilePath: exportResult.tempFilePath || '',
+        showExportPreview: true,
       });
     } catch (error) {
       console.error('[records-list] export image failed', error);
@@ -505,6 +506,49 @@ Page({
     });
   },
 
+  onCancelPreview() {
+    if (this.data.isExportingImage) {
+      return;
+    }
+
+    this.setData({
+      showExportPreview: false,
+      exportTempFilePath: '',
+    });
+  },
+
+  async onConfirmSave() {
+    const filePath = this.data.exportTempFilePath;
+    if (!filePath) {
+      wx.showToast({
+        title: '预览图片不存在，请重新导出',
+        icon: 'none',
+      });
+      return;
+    }
+
+    this.setData({
+      isExportingImage: true,
+    });
+
+    try {
+      const saved = await this.trySaveImageToAlbum(filePath, {
+        allowPermissionRecovery: true,
+      });
+
+      if (saved) {
+        this.setData({
+          showExportPreview: false,
+          exportTempFilePath: '',
+        });
+      }
+    } finally {
+      this.setData({
+        isExportingImage: false,
+      });
+    }
+  },
+
   async trySaveImageToAlbum(filePath, options = {}) {
     try {
       await wrapSaveImageToPhotosAlbum(filePath);
@@ -537,7 +581,7 @@ Page({
   },
 
   handleOpenPermissionSetting() {
-    const filePath = this.exportTempFilePath;
+    const filePath = this.data.exportTempFilePath;
 
     this.setData({
       showPermissionModal: false,
@@ -560,6 +604,11 @@ Page({
 
             if (!saved) {
               showSystemPermissionHint();
+            } else {
+              this.setData({
+                showExportPreview: false,
+                exportTempFilePath: '',
+              });
             }
           } finally {
             this.setData({

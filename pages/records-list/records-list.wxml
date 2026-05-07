@@ -93,6 +93,34 @@
     style="height: {{exportCanvasHeight}}px;"
   ></canvas>
 
+  <view wx:if="{{showExportPreview}}" class="records-export-preview">
+    <view class="records-export-preview__header">导出预览</view>
+    <scroll-view scroll-y class="records-export-preview__scroll">
+      <image
+        src="{{exportTempFilePath}}"
+        mode="widthFix"
+        class="records-export-preview__image"
+      />
+    </scroll-view>
+    <view class="records-export-preview__actions">
+      <button
+        class="btn-secondary records-export-preview__button"
+        bindtap="onCancelPreview"
+        disabled="{{isExportingImage}}"
+      >
+        取消
+      </button>
+      <button
+        class="btn-primary records-export-preview__button"
+        bindtap="onConfirmSave"
+        loading="{{isExportingImage}}"
+        disabled="{{isExportingImage}}"
+      >
+        保存到相册
+      </button>
+    </view>
+  </view>
+
   <view wx:if="{{showPermissionModal}}" class="records-permission-modal">
     <view class="records-permission-modal__mask"></view>
     <view class="records-permission-modal__panel card">
