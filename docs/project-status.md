@@ -52,7 +52,7 @@
   - 骨架待接：`profile-detail`、`profile-settings`
 - 服务层：`services/request.js`、`services/profile-service.js`、`services/record-service.js`、`services/medication-service.js`、`services/invitation-service.js`、`services/member-service.js`、`services/user-service.js`
 - 报告模块：`pages/report/report`、`utils/report-helpers.js`、`utils/report-chart-renderer.js`、`utils/report-exporter.js`
-- T5.3 推送基础设施：`cloudfunctions/_shared/push-helpers.js` 统一构建订阅消息 payload；异常提醒模板 ID 为 `lrhxG9oawoHDyh1AFVSgiv-cQE7-qTAn87-_nzBDxCY`
+- T5.3 推送基础设施：`cloudfunctions/_shared/push-helpers.js` 统一构建订阅消息 payload；订阅消息模板为“健康上报异常提醒”（模板 ID：`lrhxG9oawoHDyh1AFVSgiv-cQE7-qTAn87-_nzBDxCY`）
 - T5.3 订阅授权时机：录入页在点击“保存”后、真正调用 `saveRecord` 前同步请求 `wx.requestSubscribeMessage`，其 `complete` 回调再继续保存
 - 全局 store：手写轻量订阅式 store，提供 `getState / setState / subscribe`
 - 缓存策略：T2.5 引入 SWR，缓存按 `profileId` 隔离，首页与记录列表先读缓存再后台刷新
@@ -89,6 +89,7 @@
 - T5.3 授权时机坑：`requestSubscribeMessage` 必须在按钮 tap 的同步链里调用，不能放到 `await saveRecord(...)` 之后；当前修复为先请求订阅，再在 `complete` 回调里继续保存。
 - T5.3 touser 坑：当前数据模型里 `users._id` 就是 `OPENID`，`relationships.userId` 也直接存这个值，因此可直接作为 `subscribeMessage.send({ touser })`，无需额外查 `users` 表。
 - T5.3 序列化坑：`subscribeMessage.send` 的原始返回值可能包含 `BigInt`，不能塞进 `saveRecord` 返回体或直接整包序列化；当前只记录裁剪后的日志摘要，返回体保持原契约。
+- T5.3 模板字段坑：订阅消息 `thing` 类型字段上限为 20 字符，超过会直接发送失败；当前 `push-helpers` 已对档案名 + 血压提示文案做多级回退裁剪。
 
 ## 产品决策记录
 - Path B vs Path C：选 B，因为没有历史用户，可以按新模型干净重开
