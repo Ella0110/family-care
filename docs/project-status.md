@@ -1,9 +1,9 @@
 # 来自儿女的关心（family-care）项目状态
 
 ## 当前阶段
-- 已完成：T0、T1、T2.1-T2.6、T3.1a、T3.1b、T3.2、T3.3、T4.1、T4.2a、T4.2b、T5.1、T5.3
-- 当前切入点：T5.2（单图表导出，详见 t5-roadmap.md）
-- 未开始：T5.2、T5.4-T5.5、T6
+- 已完成：T0、T1、T2.1-T2.6、T3.1a、T3.1b、T3.2、T3.3、T4.1、T4.2a、T4.2b、T5.1、T5.3、T5.5
+- 当前切入点：T6（T5 已收尾；T5.2 推迟到 T6 之后，依赖首页图表；T5.4 推迟到企业主体阶段，依赖长期订阅能力）
+- 未开始：T6
 
 ## 核心模型（Path B）
 - 三表核心：`users`、`profiles`、`relationships`
@@ -52,6 +52,7 @@
   - 骨架待接：`profile-detail`、`profile-settings`
 - 服务层：`services/request.js`、`services/profile-service.js`、`services/record-service.js`、`services/medication-service.js`、`services/invitation-service.js`、`services/member-service.js`、`services/user-service.js`
 - 报告模块：`pages/report/report`、`utils/report-helpers.js`、`utils/report-chart-renderer.js`、`utils/report-exporter.js`
+- T5.5 数据导出导入：`utils/csv-helpers.js`、`utils/records-export-helpers.js`、`pages/import-records/import-records`
 - T5.3 推送基础设施：`cloudfunctions/_shared/push-helpers.js` 统一构建订阅消息 payload；订阅消息模板为“健康上报异常提醒”（模板 ID：`lrhxG9oawoHDyh1AFVSgiv-cQE7-qTAn87-_nzBDxCY`）
 - T5.3 订阅授权时机：录入页在点击“保存”后、真正调用 `saveRecord` 前同步请求 `wx.requestSubscribeMessage`，其 `complete` 回调再继续保存
 - 全局 store：手写轻量订阅式 store，提供 `getState / setState / subscribe`
@@ -90,6 +91,8 @@
 - T5.3 touser 坑：当前数据模型里 `users._id` 就是 `OPENID`，`relationships.userId` 也直接存这个值，因此可直接作为 `subscribeMessage.send({ touser })`，无需额外查 `users` 表。
 - T5.3 序列化坑：`subscribeMessage.send` 的原始返回值可能包含 `BigInt`，不能塞进 `saveRecord` 返回体或直接整包序列化；当前只记录裁剪后的日志摘要，返回体保持原契约。
 - T5.3 模板字段坑：订阅消息 `thing` 类型字段上限为 20 字符，超过会直接发送失败；当前 `push-helpers` 已对档案名 + 血压提示文案做多级回退裁剪。
+- T5.5 表格导出坑：Canvas 表格长图若不精确控制行高、列宽和文本对齐，真机预览里会出现表头与数据列错位；当前导出 helper 已固定表头/行高/列宽比例并统一左右对齐规则。
+- T5.5 导出体验坑：图片生成后直接落相册对目标用户不够直观；当前改为先展示全屏预览，再由用户明确点击“保存到相册”。
 
 ## 产品决策记录
 - Path B vs Path C：选 B，因为没有历史用户，可以按新模型干净重开
