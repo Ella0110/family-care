@@ -74,10 +74,23 @@ function getAlertType(payload, threshold) {
   };
 }
 
+function buildTipText(profileName, payload) {
+  const safeName = truncateThing(profileName || '家人');
+  const systolic = payload && payload.systolic;
+  const diastolic = payload && payload.diastolic;
+  const candidates = [
+    `${safeName}的血压${systolic}/${diastolic} 请关注`,
+    `${safeName}血压${systolic}/${diastolic}请关注`,
+    `血压${systolic}/${diastolic} 请关注`,
+  ];
+
+  return candidates.find((candidate) => Array.from(candidate).length <= 20) || candidates[candidates.length - 1];
+}
+
 function buildPushData({ payload, threshold, profileName, measuredAt }) {
   const { alertType, alertLevel } = getAlertType(payload, threshold);
   const safeProfileName = truncateThing(profileName || '家人');
-  const safeTip = truncateThing(`血压${payload.systolic}/${payload.diastolic} 请关注`);
+  const safeTip = buildTipText(safeProfileName || '家人', payload);
 
   return {
     alertType,
@@ -94,6 +107,7 @@ function buildPushData({ payload, threshold, profileName, measuredAt }) {
 module.exports = {
   SUBSCRIBE_ALERT_TEMPLATE_ID,
   buildPushData,
+  buildTipText,
   formatPushTime,
   getAlertType,
   truncateThing,

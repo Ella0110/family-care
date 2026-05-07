@@ -85,7 +85,7 @@ function createAcceptInvitationHandler(deps = {}) {
           profileId,
           role: roleDefaults.role,
           permissions: roleDefaults.permissions,
-          subscribeAlerts: true,
+          subscribeAlerts: roleDefaults.role === 'owner',
           displayName: null,
           createdAt: timestamp,
           updatedAt: timestamp,

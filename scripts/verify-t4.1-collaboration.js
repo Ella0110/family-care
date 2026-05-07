@@ -141,7 +141,7 @@ async function main() {
   assert.strictEqual(accepted.success, true);
   assert.strictEqual(accepted.relationships.length, 2);
   assert.ok(accepted.relationships.every((item) => item.role === 'viewer'));
-  assert.ok(accepted.relationships.every((item) => item.subscribeAlerts === true));
+  assert.ok(accepted.relationships.every((item) => item.subscribeAlerts === false));
 
   const viewerSaveRecord = await saveRecord({
     profileId: profileA._id,
@@ -286,6 +286,7 @@ async function main() {
   runtime.setOpenId('collaborator_user');
   const collaboratorAccepted = await acceptInvitation({ token: collaboratorInvite.invitation.token }, {});
   assert.strictEqual(collaboratorAccepted.success, true);
+  assert.ok(collaboratorAccepted.relationships.every((item) => item.subscribeAlerts === false));
 
   runtime.setOpenId('owner_user');
   const viewerTwoInvite = await createInvitation({
@@ -296,6 +297,7 @@ async function main() {
   runtime.setOpenId('viewer_two_user');
   const viewerTwoAccepted = await acceptInvitation({ token: viewerTwoInvite.invitation.token }, {});
   assert.strictEqual(viewerTwoAccepted.success, true);
+  assert.ok(viewerTwoAccepted.relationships.every((item) => item.subscribeAlerts === false));
 
   const viewerTwoRelationshipId = viewerTwoAccepted.relationships[0]._id;
   const viewerMedicationCreate = await saveMedication({

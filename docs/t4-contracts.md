@@ -21,7 +21,7 @@
 | 移除成员 | ✓ | ✗ | 仅自己退出 |
 | 调整成员角色 | ✓ | ✗ | ✗ |
 | 转让 owner | ✓ | ✗ | ✗ |
-| 接收异常推送（T5） | ✓ | ✓ | 默认订阅 |
+| 接收异常推送（T5） | 默认开启，可关闭 | 默认关闭，可开启 | 默认关闭，可开启 |
 
 ## 邀请流程契约
 1. 邀请人在 `invite-create` 页填写昵称，并可选选择头像；如果已经填过，下次自动复用
@@ -52,5 +52,7 @@
 
 ## 通知开关位置
 - 异常通知开关放在档案详情页的“高级设置”区
-- 仅 collaborator / viewer 可见和操作，owner 默认始终接收
-- 调整后立即调用 `updateRelationship` 同步到云端
+- owner / collaborator / viewer 都可见和操作
+- owner 默认开启；通过邀请加入的 collaborator / viewer 默认关闭
+- 从关闭切到开启时，前端先请求一次订阅消息授权，再在 `complete` 回调中调用 `updateRelationship`
+- 从开启切到关闭时，直接调用 `updateRelationship` 同步到云端

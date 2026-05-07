@@ -299,9 +299,37 @@ async function verifyHomeAndProfileEditPages() {
   const homePage = createPageInstance(homeConfig);
   homePage.renderState();
   const ownerItems = homePage.computeAdvancedSettings(store.getState().profiles[0], 1);
-  assert.deepStrictEqual(ownerItems.map((item) => item.type), ['invite', 'manageMembers', 'delete']);
+  assert.deepStrictEqual(ownerItems.map((item) => item.type), ['notificationSetting', 'invite', 'manageMembers', 'delete']);
   const ownerItemsWithTransfer = homePage.computeAdvancedSettings(store.getState().profiles[0], 2);
-  assert.deepStrictEqual(ownerItemsWithTransfer.map((item) => item.type), ['invite', 'manageMembers', 'transfer', 'delete']);
+  assert.deepStrictEqual(ownerItemsWithTransfer.map((item) => item.type), ['notificationSetting', 'invite', 'manageMembers', 'transfer', 'delete']);
+
+  const events = [];
+  global.wx.requestSubscribeMessage = ({ complete }) => {
+    events.push('subscribe');
+    if (typeof complete === 'function') {
+      complete();
+    }
+  };
+
+  homePage.setData({
+    activeRelationshipId: 'rel_owner',
+    activeRelationshipSubscribeAlerts: false,
+    advancedSettingsItems: ownerItems.map((item) =>
+      item.type === 'notificationSetting' ? Object.assign({}, item, { checked: false }) : item
+    ),
+  });
+  homePage.persistOwnSubscribeAlerts = async (subscribeAlerts) => {
+    events.push(`update:${subscribeAlerts}`);
+    homePage.setOwnSubscribeAlertsUI(subscribeAlerts);
+  };
+  await homePage.handleToggleOwnSubscribeAlerts({ detail: { value: true } });
+  assert.deepStrictEqual(events, ['subscribe', 'update:true']);
+  assert.strictEqual(homePage.data.activeRelationshipSubscribeAlerts, true);
+
+  events.length = 0;
+  await homePage.handleToggleOwnSubscribeAlerts({ detail: { value: false } });
+  assert.deepStrictEqual(events, ['update:false']);
+  assert.strictEqual(homePage.data.activeRelationshipSubscribeAlerts, false);
 
   store.setState({
     currentProfileId: 'profile_b',

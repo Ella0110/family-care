@@ -5,6 +5,7 @@ const assert = require('assert');
 const { createCloudFunction } = require('../cloudfunctions/_shared/function');
 const { createAuthService } = require('../cloudfunctions/_shared/auth');
 const { createFakeRuntime } = require('./_helpers/fake-cloud');
+const { buildTipText } = require('../cloudfunctions/_shared/push-helpers');
 const { createLoginHandler } = require('../cloudfunctions/login/handler');
 const { createCreateProfileHandler } = require('../cloudfunctions/createProfile/handler');
 const { createSaveRecordHandler } = require('../cloudfunctions/saveRecord/handler');
@@ -89,7 +90,9 @@ async function main() {
   assert.strictEqual(pushCalls[0].page, 'pages/home/home');
   assert.strictEqual(pushCalls[0].data.thing1.value, '血压偏高');
   assert.strictEqual(pushCalls[0].data.thing2.value, '妈妈');
-  assert.strictEqual(pushCalls[0].data.thing4.value, '血压152/96 请关注');
+  assert.strictEqual(pushCalls[0].data.thing4.value, '妈妈的血压152/96 请关注');
+  assert.strictEqual(buildTipText('妈妈', { systolic: 152, diastolic: 96 }), '妈妈的血压152/96 请关注');
+  assert.strictEqual(buildTipText('测试档案名字很长很长很长', { systolic: 152, diastolic: 96 }), '血压152/96 请关注');
 
   const listed = await getRecords({ profileId: createdProfile.profile._id }, {});
   assert.strictEqual(listed.success, true);

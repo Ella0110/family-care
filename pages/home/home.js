@@ -21,6 +21,7 @@ const {
 } = require('../../utils/profile-detail');
 
 const STALE_THRESHOLD = 30 * 1000;
+const SUBSCRIBE_ALERT_TEMPLATE_ID = 'lrhxG9oawoHDyh1AFVSgiv-cQE7-qTAn87-_nzBDxCY';
 
 function pad(value) {
   return String(value).padStart(2, '0');
@@ -375,6 +376,13 @@ Page({
     if (isOwner(state, profileId)) {
       const items = [
         {
+          type: 'notificationSetting',
+          label: '我的通知设置',
+          desc: '异常时通知',
+          toggle: true,
+          checked: Boolean(activeRelationship.subscribeAlerts),
+        },
+        {
           type: 'invite',
           label: '邀请家人查看',
           desc: '让家人共同关注 TA 的健康',
@@ -419,6 +427,56 @@ Page({
         danger: true,
       },
     ];
+  },
+
+  setOwnSubscribeAlertsUI(nextValue) {
+    this.setData({
+      activeRelationshipSubscribeAlerts: nextValue,
+      advancedSettingsItems: (this.data.advancedSettingsItems || []).map((item) =>
+        item.type === 'notificationSetting'
+          ? Object.assign({}, item, { checked: nextValue })
+          : item
+      ),
+    });
+  },
+
+  async persistOwnSubscribeAlerts(subscribeAlerts, previousValue) {
+    const relationshipId = this.data.activeRelationshipId;
+
+    try {
+      await memberService.updateRelationship(relationshipId, { subscribeAlerts });
+    } catch (error) {
+      this.setOwnSubscribeAlertsUI(previousValue);
+      wx.showToast({
+        title: getErrorMessage(error),
+        icon: 'none',
+      });
+      return;
+    }
+
+    this.setOwnSubscribeAlertsUI(subscribeAlerts);
+  },
+
+  requestSubscribeForAlerts(onComplete) {
+    if (typeof wx.requestSubscribeMessage !== 'function') {
+      return Promise.resolve(typeof onComplete === 'function' ? onComplete() : null);
+    }
+
+    console.log('About to request subscribe');
+    return new Promise((resolve) => {
+      wx.requestSubscribeMessage({
+        tmplIds: [SUBSCRIBE_ALERT_TEMPLATE_ID],
+        success(res) {
+          console.log('Subscribe result:', JSON.stringify(res));
+        },
+        fail(err) {
+          console.warn('Subscribe request failed:', err);
+        },
+        complete: () => {
+          Promise.resolve(typeof onComplete === 'function' ? onComplete() : null).finally(resolve);
+        },
+      });
+    });
   },
 
   resolveHomeView(state) {
@@ -1203,35 +1261,18 @@ Page({
     const relationshipId = this.data.activeRelationshipId;
     const previousValue = this.data.activeRelationshipSubscribeAlerts;
 
-    if (!relationshipId || this.data.canManageCurrentProfile) {
+    if (!relationshipId) {
       return;
     }
 
-    this.setData({
-      activeRelationshipSubscribeAlerts: subscribeAlerts,
-      advancedSettingsItems: (this.data.advancedSettingsItems || []).map((item) =>
-        item.type === 'notificationSetting'
-          ? Object.assign({}, item, { checked: subscribeAlerts })
-          : item
-      ),
-    });
+    this.setOwnSubscribeAlertsUI(subscribeAlerts);
 
-    try {
-      await memberService.updateRelationship(relationshipId, { subscribeAlerts });
-    } catch (error) {
-      this.setData({
-        activeRelationshipSubscribeAlerts: previousValue,
-        advancedSettingsItems: (this.data.advancedSettingsItems || []).map((item) =>
-          item.type === 'notificationSetting'
-            ? Object.assign({}, item, { checked: previousValue })
-            : item
-        ),
-      });
-      wx.showToast({
-        title: getErrorMessage(error),
-        icon: 'none',
-      });
+    if (subscribeAlerts && !previousValue && typeof wx.requestSubscribeMessage === 'function') {
+      await this.requestSubscribeForAlerts(() => this.persistOwnSubscribeAlerts(subscribeAlerts, previousValue));
+      return;
     }
+
+    await this.persistOwnSubscribeAlerts(subscribeAlerts, previousValue);
   },
 
   async handleExitProfile() {
