@@ -77,6 +77,16 @@ function getCurrentFontScale() {
   return normalizeFontScale(app && app.globalData ? app.globalData.fontScale : DEFAULT_FONT_SCALE);
 }
 
+function getLoginStatus() {
+  const app = getApp();
+  const globalData = (app && app.globalData) || {};
+
+  return {
+    isLoginReady: globalData.loginReady === true,
+    isLoginFailed: Boolean(globalData.loginError),
+  };
+}
+
 function getErrorReason(error) {
   if (!error) {
     return 'unknown';
@@ -355,13 +365,31 @@ Page({
     this.exportTempFilePath = '';
     this.exportChartMeta = null;
     this.lastSeenProfileId = store.getState().currentProfileId || '';
+    this.lastLoginReady = getLoginStatus().isLoginReady;
 
     this.syncFontScale();
     this.initSystemInfo();
     this.syncProfileMeta();
 
     this._unsubscribe = store.subscribe((nextState) => {
+      const loginStatus = getLoginStatus();
       const nextProfileId = nextState.currentProfileId || '';
+
+      if (!loginStatus.isLoginReady) {
+        this.lastLoginReady = false;
+        return;
+      }
+
+      const loginJustFinished = loginStatus.isLoginReady && !this.lastLoginReady;
+      this.lastLoginReady = loginStatus.isLoginReady;
+
+      if (loginJustFinished) {
+        this.lastSeenProfileId = nextProfileId;
+        this.syncProfileMeta();
+        this.loadPageData({ force: true, resetReady: true });
+        return;
+      }
+
       if (nextProfileId !== this.lastSeenProfileId) {
         this.lastSeenProfileId = nextProfileId;
         this.syncProfileMeta();
@@ -375,6 +403,14 @@ Page({
 
   onShow() {
     this.syncFontScale();
+    const loginStatus = getLoginStatus();
+    this.lastLoginReady = loginStatus.isLoginReady;
+
+    if (!loginStatus.isLoginReady) {
+      this.enterPageLoading();
+      return;
+    }
+
     this.syncProfileMeta();
     const profileId = store.getState().currentProfileId || '';
     const shouldResetReady = !this.data.pageReady || profileId !== this.data._lastProfileId;
