@@ -56,6 +56,8 @@ assert.match(read('pages/data/data.wxml'), /全部记录/, 'data page should exp
 assert.match(read('pages/data/data.wxml'), /长期用药/, 'data page should expose medication summary');
 assert.match(read('pages/data/data.wxml'), /wx:if="\{\{hasMedicationSummary\}\}"/, 'medication summary should only render when medications exist');
 assert.doesNotMatch(read('pages/data/data.wxml'), /bindtap="handleMedicationTap"/, 'medication summary should be read-only');
+assert.match(read('pages/data/data.wxml'), /wx:if="\{\{pageReady\}\}"/, 'data page should gate content behind pageReady');
+assert.match(read('pages/data/data.wxml'), /wx:else/, 'data page should render a loading placeholder when pageReady is false');
 
 assert.match(read('components/profile-switcher/profile-switcher.js'), /triggerEvent\('select'/, 'profile-switcher should emit select event');
 assert.match(read('components/profile-switcher/profile-switcher.js'), /triggerEvent\('close'/, 'profile-switcher should emit close event');
@@ -72,3 +74,13 @@ assert.match(read('pages/record/record.js'), /require\('\.\.\/\.\.\/utils\/recor
 assert.doesNotMatch(read('utils/record-editor.js'), /requestSubscribeMessage/, 'record-editor should not request subscribe during save');
 assert.doesNotMatch(read('pages/record/record.js'), /requestAlertSubscription/, 'record page should not request subscribe during save');
 assert.match(read('pages/profile-edit/profile-edit.js'), /wx\.switchTab\(\s*\{\s*url: '\/pages\/data\/data'/, 'profile create should switch to data tab after success');
+assert.match(read('pages/profile-edit/profile-edit.js'), /wx\.setStorageSync\('currentProfileId', [^)]+\)/, 'profile create should persist currentProfileId before switching tabs');
+assert.match(
+  read('pages/profile-edit/profile-edit.js'),
+  /store\.setState\([\s\S]*currentProfileId:[\s\S]*wx\.setStorageSync\('currentProfileId', [^)]+\)[\s\S]*wx\.switchTab\(/,
+  'profile create should update store and storage before switchTab',
+);
+assert.match(read('pages/data/data.js'), /pageReady:\s*false/, 'data page should initialize pageReady as false');
+assert.match(read('pages/data/data.js'), /_lastProfileId:\s*''/, 'data page should track the last rendered profile id');
+assert.match(read('pages/data/data.js'), /this\.setData\(\{\s*pageReady:\s*false\s*\}\)/, 'data page should enter loading state before switching profile content');
+assert.match(read('pages/data/data.js'), /pageReady:\s*true/, 'data page should mark pageReady true after data is ready');

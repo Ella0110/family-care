@@ -478,11 +478,13 @@ Page({
 
       const result = await profileService.createProfile(this.buildCreatePayload());
       const state = store.getState();
+      const newProfileId = result.profile._id;
       store.setState({
         profiles: (state.profiles || []).concat(result.profile),
         relationships: (state.relationships || []).concat(result.relationship),
-        currentProfileId: result.profile._id,
+        currentProfileId: newProfileId,
       });
+      wx.setStorageSync('currentProfileId', newProfileId);
       wx.switchTab({
         url: '/pages/data/data',
       });

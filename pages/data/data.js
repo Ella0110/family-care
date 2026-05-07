@@ -312,6 +312,8 @@ function buildChartExportHeight(hasHeartRateData) {
 Page({
   data: {
     fontScale: DEFAULT_FONT_SCALE,
+    pageReady: false,
+    _lastProfileId: '',
     hasProfile: false,
     profileName: '',
     profileTitle: '来自儿女的关心',
@@ -363,7 +365,7 @@ Page({
       if (nextProfileId !== this.lastSeenProfileId) {
         this.lastSeenProfileId = nextProfileId;
         this.syncProfileMeta();
-        this.loadPageData({ force: true });
+        this.loadPageData({ force: true, resetReady: true });
         return;
       }
 
@@ -374,7 +376,12 @@ Page({
   onShow() {
     this.syncFontScale();
     this.syncProfileMeta();
-    this.loadPageData({ force: false });
+    const profileId = store.getState().currentProfileId || '';
+    const shouldResetReady = !this.data.pageReady || profileId !== this.data._lastProfileId;
+    this.loadPageData({
+      force: false,
+      resetReady: shouldResetReady,
+    });
   },
 
   onUnload() {
@@ -427,6 +434,10 @@ Page({
     });
   },
 
+  enterPageLoading() {
+    this.setData({ pageReady: false });
+  },
+
   async fetchIndependentRecords(profileId) {
     const result = await callSilent('getRecords', {
       profileId,
@@ -442,7 +453,12 @@ Page({
 
   async loadPageData(options = {}) {
     const force = options.force === true;
+    const resetReady = options.resetReady === true;
     const profileId = store.getState().currentProfileId;
+
+    if (resetReady) {
+      this.enterPageLoading();
+    }
 
     if (!profileId) {
       this.chartRenderToken += 1;
@@ -453,6 +469,8 @@ Page({
       this.activeMedications = [];
       this.chartData = null;
       this.setData({
+        pageReady: true,
+        _lastProfileId: '',
         hasProfile: false,
         isLoading: false,
         errorText: '',
@@ -480,6 +498,8 @@ Page({
     const profile = findProfile(profileId);
     if (!profile) {
       this.setData({
+        pageReady: true,
+        _lastProfileId: '',
         hasProfile: false,
         isLoading: false,
         errorText: '档案不存在或已被移除',
@@ -523,6 +543,8 @@ Page({
 
       this.chartRenderToken += 1;
       this.setData({
+        pageReady: true,
+        _lastProfileId: profileId,
         isLoading: false,
         errorText: getErrorMessage(error),
         latestRecord: null,
@@ -564,6 +586,8 @@ Page({
     const hasHeartRateData = Boolean(this.chartData && this.chartData.hasHeartRateData);
 
     this.setData({
+      pageReady: true,
+      _lastProfileId: profileId,
       selectedDays: nextSelectedDays,
       isLoading: false,
       errorText: '',
