@@ -7,6 +7,7 @@ const { canWrite, isOwner } = require('../../utils/permission-helpers');
 
 const MIN_MEASURED_AT_MS = 946684800000;
 const MAX_FUTURE_SKEW_MS = 5 * 60 * 1000;
+const SUBSCRIBE_ALERT_TEMPLATE_ID = 'lrhxG9oawoHDyh1AFVSgiv-cQE7-qTAn87-_nzBDxCY';
 
 function pad(value) {
   return String(value).padStart(2, '0');
@@ -109,6 +110,31 @@ function goBackOrHome() {
 
   wx.redirectTo({
     url: '/pages/home/home',
+  });
+}
+
+function requestAlertSubscription(onComplete) {
+  if (typeof wx.requestSubscribeMessage !== 'function') {
+    if (typeof onComplete === 'function') {
+      onComplete();
+    }
+    return;
+  }
+
+  console.log('About to request subscribe');
+  wx.requestSubscribeMessage({
+    tmplIds: [SUBSCRIBE_ALERT_TEMPLATE_ID],
+    success(res) {
+      console.log('Subscribe result:', JSON.stringify(res));
+    },
+    fail(err) {
+      console.warn('Subscribe request failed:', err);
+    },
+    complete() {
+      if (typeof onComplete === 'function') {
+        onComplete();
+      }
+    },
   });
 }
 
@@ -386,48 +412,8 @@ Page({
     };
   },
 
-  async handleSave() {
-    const validationMessage = this.validateForm();
-
-    if (validationMessage) {
-      this.setData({ errorText: validationMessage });
-      return;
-    }
-
-    const data = this.buildPayload();
-    this.setData({
-      isSaving: true,
-      errorText: '',
-    });
-
+  async saveNewRecord(data) {
     try {
-      if (this.data.isEditMode) {
-        const patch = this.buildPatch();
-        const result = await recordService.updateRecord(this.data.recordId, patch);
-        const previousAttention = this.originalRecord
-          ? isAboveThreshold(this.originalRecord.payload || {}, this.currentProfile)
-          : false;
-        const nextAttention = isAboveThreshold(result.record.payload || patch.payload, this.currentProfile);
-        let title = '已更新';
-
-        if (!previousAttention && nextAttention) {
-          title = '血压偏高，已更新';
-        } else if (previousAttention && !nextAttention) {
-          title = '血压恢复正常，已更新';
-        }
-
-        wx.showToast({
-          title,
-          icon: nextAttention ? 'none' : 'success',
-          duration: nextAttention ? 1500 : 800,
-        });
-
-        setTimeout(() => {
-          wx.navigateBack({ delta: 1 });
-        }, nextAttention ? 1500 : 800);
-        return;
-      }
-
       const result = await recordService.saveRecord(
         this.data.profileId,
         data.payload,
@@ -444,6 +430,63 @@ Page({
       setTimeout(() => {
         wx.navigateBack({ delta: 1 });
       }, result.alertTriggered ? 1500 : 800);
+    } catch (error) {
+      const message = getErrorMessage(error);
+      this.setData({ errorText: message });
+      wx.showToast({
+        title: message,
+        icon: 'none',
+      });
+    } finally {
+      this.setData({ isSaving: false });
+    }
+  },
+
+  async handleSave() {
+    const validationMessage = this.validateForm();
+
+    if (validationMessage) {
+      this.setData({ errorText: validationMessage });
+      return;
+    }
+
+    const data = this.buildPayload();
+    this.setData({
+      isSaving: true,
+      errorText: '',
+    });
+
+    if (!this.data.isEditMode) {
+      requestAlertSubscription(() => {
+        this.saveNewRecord(data);
+      });
+      return;
+    }
+
+    try {
+      const patch = this.buildPatch();
+      const result = await recordService.updateRecord(this.data.recordId, patch);
+      const previousAttention = this.originalRecord
+        ? isAboveThreshold(this.originalRecord.payload || {}, this.currentProfile)
+        : false;
+      const nextAttention = isAboveThreshold(result.record.payload || patch.payload, this.currentProfile);
+      let title = '已更新';
+
+      if (!previousAttention && nextAttention) {
+        title = '血压偏高，已更新';
+      } else if (previousAttention && !nextAttention) {
+        title = '血压恢复正常，已更新';
+      }
+
+      wx.showToast({
+        title,
+        icon: nextAttention ? 'none' : 'success',
+        duration: nextAttention ? 1500 : 800,
+      });
+
+      setTimeout(() => {
+        wx.navigateBack({ delta: 1 });
+      }, nextAttention ? 1500 : 800);
     } catch (error) {
       const message = getErrorMessage(error);
       this.setData({ errorText: message });

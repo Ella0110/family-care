@@ -1,6 +1,7 @@
-const { db, COLLECTIONS } = require('./_shared/db');
+const { cloud, db, COLLECTIONS } = require('./_shared/db');
 const authModule = require('./_shared/auth');
 const { DEFAULT_BP_THRESHOLD } = require('./_shared/defaults');
+const { SUBSCRIBE_ALERT_TEMPLATE_ID, buildPushData } = require('./_shared/push-helpers');
 const { assertNonEmptyString } = require('./_shared/validation');
 const { parseClientDateInput } = require('./_shared/time');
 const {
@@ -11,10 +12,11 @@ const {
 } = require('./_shared/record-utils');
 
 /**
- * @param {{ db?: any, auth?: any, now?: () => Date }} [deps]
+ * @param {{ db?: any, cloud?: any, auth?: any, now?: () => Date }} [deps]
  * @returns {(event: Object, context: Object) => Promise<Object>}
  */
 function createSaveRecordHandler(deps = {}) {
+  const cloudSdk = deps.cloud || cloud;
   const database = deps.db || db;
   const auth = deps.auth || authModule;
   const now = deps.now || (() => new Date());
@@ -67,11 +69,93 @@ function createSaveRecordHandler(deps = {}) {
       alertSentTo = (relationshipsRes.data || []).map((relationship) => relationship.userId);
     }
 
-    return {
+    const response = {
       record: savedRecord,
       alertTriggered,
       alertSentTo,
     };
+
+    const canSendSubscribeMessage = Boolean(
+      cloudSdk &&
+      cloudSdk.openapi &&
+      cloudSdk.openapi.subscribeMessage &&
+      typeof cloudSdk.openapi.subscribeMessage.send === 'function',
+    );
+
+    if (!alertTriggered || alertSentTo.length === 0 || !canSendSubscribeMessage) {
+      if (alertTriggered && alertSentTo.length > 0 && !canSendSubscribeMessage) {
+        console.warn('[saveRecord] subscribeMessage.send unavailable, skip push');
+      }
+
+      return response;
+    }
+
+    const { templateData, alertLevel, alertType } = buildPushData({
+      payload: savedRecord.payload,
+      threshold,
+      profileName: profile && profile.name,
+      measuredAt: savedRecord.measuredAt,
+    });
+
+    try {
+      const pushResults = await Promise.allSettled(
+        alertSentTo.map((userId) =>
+          cloudSdk.openapi.subscribeMessage.send({
+            touser: userId,
+            templateId: SUBSCRIBE_ALERT_TEMPLATE_ID,
+            page: 'pages/home/home',
+            data: templateData,
+            miniprogramState: 'developer', // TODO: 上线前切换为 formal。
+          }),
+        ),
+      );
+
+      const pushSummary = pushResults.map((result, index) => {
+        const touser = alertSentTo[index];
+
+        if (result.status === 'fulfilled') {
+          return {
+            touser,
+            ok: true,
+            errCode: result.value && result.value.errCode,
+            errMsg: result.value && result.value.errMsg,
+          };
+        }
+
+        const errCode = Number(result.reason && result.reason.errCode);
+        const errMsg = (result.reason && result.reason.errMsg) || (result.reason && result.reason.message) || '';
+
+        if (errCode !== 43101) {
+          console.warn(`[saveRecord] push to ${touser} failed:`, errCode, errMsg);
+        }
+
+        return {
+          touser,
+          ok: false,
+          errCode: Number.isNaN(errCode) ? null : errCode,
+          errMsg,
+          skipped: errCode === 43101,
+        };
+      });
+
+      console.log(
+        '[saveRecord] push results:',
+        JSON.stringify({
+          profileId,
+          recordId,
+          alertLevel,
+          alertType,
+          results: pushSummary,
+        }),
+      );
+    } catch (error) {
+      console.error(
+        '[saveRecord] push summary failed:',
+        error && error.message ? error.message : error,
+      );
+    }
+
+    return response;
   };
 }
 

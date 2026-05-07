@@ -33,6 +33,18 @@ function buildFunction(factory, runtime, extra = {}) {
 async function main() {
   const measuredAt = new Date(Date.now() - 30 * 60 * 1000).toISOString();
   const runtime = createFakeRuntime({ openId: 'user_record' });
+  const pushCalls = [];
+  runtime.cloud.openapi = {
+    subscribeMessage: {
+      send: async (payload) => {
+        pushCalls.push(payload);
+        return {
+          errCode: 0,
+          errMsg: 'openapi.subscribeMessage.send:ok',
+        };
+      },
+    },
+  };
   const login = buildFunction(createLoginHandler, runtime);
   const createProfile = buildFunction(createCreateProfileHandler, runtime);
   const saveRecord = buildFunction(createSaveRecordHandler, runtime);
@@ -70,6 +82,14 @@ async function main() {
   assert.strictEqual(saved.success, true);
   assert.strictEqual(saved.alertTriggered, true);
   assert.strictEqual(saved.alertSentTo.length, 1);
+  assert.strictEqual(saved.alertSentTo[0], 'user_record');
+  assert.strictEqual(pushCalls.length, 1);
+  assert.strictEqual(pushCalls[0].touser, 'user_record');
+  assert.strictEqual(pushCalls[0].templateId, 'lrhxG9oawoHDyh1AFVSgiv-cQE7-qTAn87-_nzBDxCY');
+  assert.strictEqual(pushCalls[0].page, 'pages/home/home');
+  assert.strictEqual(pushCalls[0].data.thing1.value, '血压偏高');
+  assert.strictEqual(pushCalls[0].data.thing2.value, '妈妈');
+  assert.strictEqual(pushCalls[0].data.thing4.value, '血压152/96 请关注');
 
   const listed = await getRecords({ profileId: createdProfile.profile._id }, {});
   assert.strictEqual(listed.success, true);
