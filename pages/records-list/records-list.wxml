@@ -11,6 +11,33 @@
     你以查看者身份访问，不可修改记录
   </view>
 
+  <view class="card records-actions">
+    <button
+      class="btn-secondary records-actions__button"
+      bindtap="handleExportImage"
+      loading="{{isExportingImage}}"
+      disabled="{{isLoading || !!errorText || isExportingImage || isExportingCsv}}"
+    >
+      导出图片
+    </button>
+    <button
+      class="btn-secondary records-actions__button"
+      bindtap="handleExportData"
+      loading="{{isExportingCsv}}"
+      disabled="{{isLoading || !!errorText || isExportingImage || isExportingCsv}}"
+    >
+      导出数据
+    </button>
+    <button
+      wx:if="{{canWriteCurrentProfile}}"
+      class="btn-primary records-actions__button"
+      bindtap="handleImportRecords"
+      disabled="{{isExportingImage || isExportingCsv}}"
+    >
+      导入
+    </button>
+  </view>
+
   <view wx:if="{{isLoading}}" class="card records-state">
     <view class="records-state__title">正在加载记录</view>
     <view class="records-state__text">请稍候...</view>
@@ -56,6 +83,31 @@
 
     <view wx:if="{{hasMore}}" class="records-more">
       还有更多记录未加载
+    </view>
+  </view>
+
+  <canvas
+    id="recordsExportCanvas"
+    type="2d"
+    class="records-export-canvas"
+    style="height: {{exportCanvasHeight}}px;"
+  ></canvas>
+
+  <view wx:if="{{showPermissionModal}}" class="records-permission-modal">
+    <view class="records-permission-modal__mask"></view>
+    <view class="records-permission-modal__panel card">
+      <view class="records-permission-modal__title">无法保存图片</view>
+      <view class="records-permission-modal__subtitle">需要开启“相册写入”权限</view>
+      <view class="records-permission-modal__step">步骤 1：点击下方“去设置”按钮</view>
+      <view class="records-permission-modal__step">步骤 2：将“添加到相册”设为允许</view>
+      <view class="records-permission-modal__actions">
+        <button class="btn-primary records-permission-modal__button" bindtap="handleOpenPermissionSetting">
+          去设置
+        </button>
+        <button class="btn-secondary records-permission-modal__button" bindtap="handleClosePermissionModal">
+          暂不下载
+        </button>
+      </view>
     </view>
   </view>
 </view>

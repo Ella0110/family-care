@@ -1,24 +1,106 @@
 const { store } = require('../../store/index');
 const recordService = require('../../services/record-service');
+const { callSilent } = require('../../services/request');
 const { getErrorMessage } = require('../../utils/error-messages');
 const { getBPStatusDisplay, getReferenceLines } = require('../../utils/bp-status');
 const { DEFAULT_FONT_SCALE, normalizeFontScale } = require('../../utils/font-scale');
 const { canWrite, isViewer } = require('../../utils/permission-helpers');
+const { recordsToCSV, normalizeDate } = require('../../utils/csv-helpers');
+const {
+  EXPORT_IMAGE_CANVAS_WIDTH,
+  buildRecentRange,
+  measureRecordsImageHeight,
+  drawRecordsImageTable,
+} = require('../../utils/records-export-helpers');
 
 function pad(value) {
   return String(value).padStart(2, '0');
 }
 
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function getErrorReason(error) {
+  if (!error) {
+    return 'unknown';
+  }
+
+  if (error.errMsg) {
+    return error.errMsg;
+  }
+
+  if (error.message) {
+    return error.message;
+  }
+
+  return String(error);
+}
+
+function isPermissionInterrupted(error) {
+  return /deny|cancel/i.test(getErrorReason(error));
+}
+
+function wrapCanvasToTempFilePath(canvas, options = {}) {
+  return new Promise((resolve, reject) => {
+    wx.canvasToTempFilePath(Object.assign({
+      canvas,
+      fileType: 'png',
+      quality: 1,
+      success: resolve,
+      fail: reject,
+    }, options));
+  });
+}
+
+function wrapSaveImageToPhotosAlbum(filePath) {
+  return new Promise((resolve, reject) => {
+    wx.saveImageToPhotosAlbum({
+      filePath,
+      success: resolve,
+      fail: reject,
+    });
+  });
+}
+
+function wrapSetClipboardData(data) {
+  return new Promise((resolve, reject) => {
+    wx.setClipboardData({
+      data,
+      success: resolve,
+      fail: reject,
+    });
+  });
+}
+
+function showSystemPermissionHint() {
+  wx.showModal({
+    title: '需要在系统设置中开启权限',
+    content: '请前往手机「设置 → 微信 → 照片」，将权限设为“允许”',
+    showCancel: false,
+    confirmText: '知道了',
+  });
+}
+
 function toDate(value) {
-  if (value instanceof Date) {
-    return value;
-  }
+  return normalizeDate(value);
+}
 
-  if (value && typeof value === 'object' && value.$date) {
-    return new Date(value.$date);
-  }
+function toTimestamp(value) {
+  const date = toDate(value);
+  const timestamp = date.getTime();
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+}
 
-  return new Date(value);
+function sortRecordsDesc(records) {
+  return (Array.isArray(records) ? records.slice() : []).sort((left, right) => {
+    const measuredAtDiff = toTimestamp(right && right.measuredAt) - toTimestamp(left && left.measuredAt);
+    if (measuredAtDiff !== 0) {
+      return measuredAtDiff;
+    }
+
+    return toTimestamp(right && right.createdAt) - toTimestamp(left && left.createdAt);
+  });
 }
 
 function dateKey(date) {
@@ -59,6 +141,28 @@ function getCurrentFontScale() {
   return normalizeFontScale(app && app.globalData ? app.globalData.fontScale : DEFAULT_FONT_SCALE);
 }
 
+async function fetchIndependentRecords(profileId, options = {}) {
+  const data = {
+    profileId,
+    type: 'bp',
+    limit: options.limit || 200,
+  };
+
+  if (options.since) {
+    data.since = options.since;
+  }
+
+  if (options.until) {
+    data.until = options.until;
+  }
+
+  const result = await callSilent('getRecords', data);
+  return {
+    records: sortRecordsDesc(Array.isArray(result.records) ? result.records : []),
+    hasMore: result.hasMore === true,
+  };
+}
+
 Page({
   data: {
     fontScale: DEFAULT_FONT_SCALE,
@@ -72,6 +176,10 @@ Page({
     errorText: '',
     canWriteCurrentProfile: false,
     isViewerMode: false,
+    isExportingImage: false,
+    isExportingCsv: false,
+    exportCanvasHeight: 1,
+    showPermissionModal: false,
   },
 
   onLoad(options = {}) {
@@ -80,6 +188,9 @@ Page({
     const profile = profileId ? findProfile(profileId) : null;
 
     this.recordsById = {};
+    this.loadedRecords = [];
+    this.exportTempFilePath = '';
+
     const state = store.getState();
     this.setData({
       profileId,
@@ -90,7 +201,9 @@ Page({
     });
 
     if (!profileId) {
-      this.setData({ errorText: getErrorMessage({ code: 'PROFILE_NOT_FOUND' }) });
+      this.setData({
+        errorText: getErrorMessage({ code: 'PROFILE_NOT_FOUND' }),
+      });
     }
   },
 
@@ -187,6 +300,8 @@ Page({
     const nextRecords = Array.isArray(records) ? records : [];
     const groups = this.groupRecords(nextRecords);
     this.recordsById = {};
+    this.loadedRecords = nextRecords;
+
     nextRecords.forEach((record) => {
       this.recordsById[record._id] = record;
     });
@@ -223,6 +338,246 @@ Page({
 
     wx.navigateTo({
       url: `/pages/record/record?mode=create&profileId=${this.data.profileId}`,
+    });
+  },
+
+  handleExportImage() {
+    if (!this.data.profileId || this.data.isExportingImage || this.data.isLoading) {
+      return;
+    }
+
+    const dayOptions = [7, 14, 30];
+    wx.showActionSheet({
+      itemList: dayOptions.map((days) => `近 ${days} 天`),
+      success: (res) => {
+        const days = dayOptions[res.tapIndex];
+        if (!days) {
+          return;
+        }
+
+        this.exportImageForDays(days);
+      },
+      fail: (error) => {
+        if (!/cancel/i.test(getErrorReason(error))) {
+          console.warn('[records-list] showActionSheet failed', error);
+        }
+      },
+    });
+  },
+
+  async exportImageForDays(days) {
+    const range = buildRecentRange(days);
+
+    this.setData({
+      isExportingImage: true,
+    });
+
+    try {
+      const result = await fetchIndependentRecords(this.data.profileId, {
+        since: range.since,
+        until: range.until,
+        limit: 200,
+      });
+
+      if (!result.records.length) {
+        wx.showToast({
+          title: '该时间段内暂无记录',
+          icon: 'none',
+        });
+        return;
+      }
+
+      const exportHeight = measureRecordsImageHeight(result.records.length);
+      this.setData({
+        exportCanvasHeight: exportHeight,
+      });
+
+      await wait(80);
+
+      const canvasResult = await new Promise((resolve, reject) => {
+        wx.createSelectorQuery()
+          .select('#recordsExportCanvas')
+          .fields({ node: true, size: true }, (res) => {
+            if (!res || !res.node) {
+              reject(new Error('EXPORT_CANVAS_NOT_FOUND'));
+              return;
+            }
+
+            resolve(res);
+          })
+          .exec();
+      });
+
+      const canvas = canvasResult.node;
+      const ctx = canvas.getContext('2d');
+
+      canvas.width = EXPORT_IMAGE_CANVAS_WIDTH;
+      canvas.height = exportHeight;
+
+      drawRecordsImageTable(ctx, {
+        records: result.records,
+        range,
+        width: EXPORT_IMAGE_CANVAS_WIDTH,
+      });
+
+      await wait(80);
+
+      const exportResult = await wrapCanvasToTempFilePath(canvas, {
+        x: 0,
+        y: 0,
+        width: EXPORT_IMAGE_CANVAS_WIDTH,
+        height: exportHeight,
+        destWidth: EXPORT_IMAGE_CANVAS_WIDTH,
+        destHeight: exportHeight,
+      });
+
+      this.exportTempFilePath = exportResult.tempFilePath || '';
+      await this.trySaveImageToAlbum(this.exportTempFilePath, {
+        allowPermissionRecovery: true,
+      });
+    } catch (error) {
+      console.error('[records-list] export image failed', error);
+      wx.showToast({
+        title: '生成失败，请尝试更短时间范围',
+        icon: 'none',
+      });
+    } finally {
+      this.setData({
+        isExportingImage: false,
+      });
+    }
+  },
+
+  async handleExportData() {
+    if (!this.data.profileId || this.data.isExportingCsv) {
+      return;
+    }
+
+    this.setData({
+      isExportingCsv: true,
+    });
+
+    try {
+      const result = await fetchIndependentRecords(this.data.profileId, {
+        limit: 200,
+      });
+      const csvText = recordsToCSV(result.records, {
+        hasMore: result.hasMore,
+      });
+
+      await wrapSetClipboardData(csvText);
+      wx.showToast({
+        title: '已复制到剪贴板',
+        icon: 'success',
+      });
+    } catch (error) {
+      console.error('[records-list] export csv failed', error);
+      wx.showToast({
+        title: '导出失败，请重试',
+        icon: 'none',
+      });
+    } finally {
+      this.setData({
+        isExportingCsv: false,
+      });
+    }
+  },
+
+  handleImportRecords() {
+    if (!this.data.profileId) {
+      wx.showToast({
+        title: '档案不存在',
+        icon: 'none',
+      });
+      return;
+    }
+
+    if (!this.data.canWriteCurrentProfile) {
+      wx.showToast({
+        title: '你没有权限导入记录',
+        icon: 'none',
+      });
+      return;
+    }
+
+    wx.navigateTo({
+      url: `/pages/import-records/import-records?profileId=${this.data.profileId}`,
+    });
+  },
+
+  async trySaveImageToAlbum(filePath, options = {}) {
+    try {
+      await wrapSaveImageToPhotosAlbum(filePath);
+      wx.showToast({
+        title: '已保存到相册',
+        icon: 'success',
+      });
+      return true;
+    } catch (error) {
+      if (options.allowPermissionRecovery && isPermissionInterrupted(error)) {
+        this.setData({
+          showPermissionModal: true,
+        });
+        return false;
+      }
+
+      console.error('[records-list] save image failed', error);
+      wx.showToast({
+        title: '保存失败，请重试',
+        icon: 'none',
+      });
+      return false;
+    }
+  },
+
+  handleClosePermissionModal() {
+    this.setData({
+      showPermissionModal: false,
+    });
+  },
+
+  handleOpenPermissionSetting() {
+    const filePath = this.exportTempFilePath;
+
+    this.setData({
+      showPermissionModal: false,
+    });
+
+    wx.openSetting({
+      success: async (res) => {
+        const authSetting = res && res.authSetting ? res.authSetting : {};
+        const hasPermission = authSetting['scope.writePhotosAlbum'] === true;
+
+        if (hasPermission && filePath) {
+          this.setData({
+            isExportingImage: true,
+          });
+
+          try {
+            const saved = await this.trySaveImageToAlbum(filePath, {
+              allowPermissionRecovery: false,
+            });
+
+            if (!saved) {
+              showSystemPermissionHint();
+            }
+          } finally {
+            this.setData({
+              isExportingImage: false,
+            });
+          }
+          return;
+        }
+
+        showSystemPermissionHint();
+      },
+      fail: (error) => {
+        console.error('[records-list] openSetting failed', error);
+        wx.showToast({
+          title: '无法打开设置',
+          icon: 'none',
+        });
+      },
     });
   },
 

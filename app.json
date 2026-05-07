@@ -3,6 +3,7 @@
     "pages/home/home",
     "pages/record/record",
     "pages/records-list/records-list",
+    "pages/import-records/import-records",
     "pages/profile-detail/profile-detail",
     "pages/profile-edit/profile-edit",
     "pages/profile-threshold-edit/profile-threshold-edit",

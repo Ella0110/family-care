@@ -1,0 +1,75 @@
+<view class="page page-root import-page" style="--font-scale: {{fontScale}};">
+  <view class="card import-card">
+    <view class="import-card__title">粘贴 CSV 格式的血压数据</view>
+    <view class="import-card__text">支持从 Excel、备忘录等复制的数据</view>
+  </view>
+
+  <view class="card import-card">
+    <textarea
+      class="import-textarea"
+      value="{{csvText}}"
+      placeholder="日期,时间,高压,低压,心率,备注&#10;2026-05-06,08:30,128,82,72,晨起"
+      maxlength="-1"
+      bindinput="handleInput"
+    ></textarea>
+
+    <view class="import-card__actions">
+      <button class="btn-primary import-card__button" bindtap="handlePreview" disabled="{{isImporting}}">
+        预览解析
+      </button>
+      <button class="btn-secondary import-card__button" bindtap="handleClear" disabled="{{isImporting}}">
+        清空
+      </button>
+    </view>
+  </view>
+
+  <view wx:if="{{hasPreview}}" class="card import-card">
+    <view class="import-preview__summary">
+      共 {{preview.total}} 条，有效 {{preview.validCount}} 条，错误 {{preview.errorCount}} 条
+    </view>
+
+    <view wx:if="{{preview.validCount > 0}}" class="import-preview__section">
+      <view class="import-preview__section-title import-preview__section-title--success">有效记录</view>
+      <view
+        wx:for="{{preview.validRecords}}"
+        wx:key="_raw"
+        class="import-preview__item import-preview__item--success"
+      >
+        <view class="import-preview__main">{{item.dateText}} {{item.timeText}}</view>
+        <view class="import-preview__sub">{{item.valueText}}</view>
+      </view>
+    </view>
+
+    <view wx:if="{{preview.errorCount > 0}}" class="import-preview__section">
+      <view class="import-preview__section-title import-preview__section-title--error">错误行</view>
+      <view
+        wx:for="{{preview.errors}}"
+        wx:key="line"
+        class="import-preview__item import-preview__item--error"
+      >
+        <view class="import-preview__main">第 {{item.line}} 行：{{item.reason}}</view>
+        <view class="import-preview__sub">{{item.text}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{hasImportResult}}" class="card import-card">
+    <view class="import-result__title">{{importResultText}}</view>
+    <view wx:if="{{importProgressText}}" class="import-result__text">{{importProgressText}}</view>
+    <button class="btn-primary import-result__button" bindtap="handleBackToRecords">
+      返回记录列表
+    </button>
+  </view>
+
+  <view wx:if="{{!hasImportResult}}" class="import-footer">
+    <button
+      class="btn-primary import-footer__button"
+      bindtap="handleImport"
+      loading="{{isImporting}}"
+      disabled="{{isImporting || !preview.validCount}}"
+    >
+      确认导入 {{preview.validCount || 0}} 条记录
+    </button>
+    <view wx:if="{{importProgressText}}" class="import-footer__text">{{importProgressText}}</view>
+  </view>
+</view>
