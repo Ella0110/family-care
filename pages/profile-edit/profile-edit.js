@@ -483,8 +483,8 @@ Page({
         relationships: (state.relationships || []).concat(result.relationship),
         currentProfileId: result.profile._id,
       });
-      wx.redirectTo({
-        url: `/pages/record/record?mode=create&profileId=${result.profile._id}`,
+      wx.switchTab({
+        url: '/pages/data/data',
       });
     } catch (error) {
       showToast(getErrorMessage(error));

@@ -1,0 +1,81 @@
+<view wx:if="{{show}}" class="record-panel">
+  <view class="record-panel__mask" bindtap="handleMaskTap"></view>
+  <view class="record-panel__sheet" catchtap="noop">
+    <view class="record-panel__grabber"></view>
+
+    <view class="record-panel__header">
+      <view class="record-panel__title">{{panelTitle}}</view>
+      <view class="record-panel__close" bindtap="handleClose">×</view>
+    </view>
+
+    <view class="record-panel__field">
+      <view class="record-panel__label">测量时间</view>
+      <view class="record-panel__datetime">
+        <picker
+          mode="date"
+          value="{{form.measuredDate}}"
+          start="{{minMeasuredDate}}"
+          end="{{maxMeasuredDate}}"
+          bindchange="onMeasuredDateChange"
+        >
+          <view class="record-panel__datetime-item">{{form.measuredDate}}</view>
+        </picker>
+        <picker
+          mode="time"
+          value="{{form.measuredTime}}"
+          bindchange="onMeasuredTimeChange"
+        >
+          <view class="record-panel__datetime-item">{{form.measuredTime}}</view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="record-panel__field">
+      <view class="record-panel__label">测量结果</view>
+      <view class="record-panel__inputs">
+        <input
+          class="record-panel__input record-panel__input--bp"
+          type="number"
+          placeholder="高压"
+          value="{{form.systolic}}"
+          bindinput="onSystolicInput"
+        />
+        <view class="record-panel__slash">/</view>
+        <input
+          class="record-panel__input record-panel__input--bp"
+          type="number"
+          placeholder="低压"
+          value="{{form.diastolic}}"
+          bindinput="onDiastolicInput"
+        />
+        <input
+          class="record-panel__input record-panel__input--hr"
+          type="number"
+          placeholder="心率"
+          value="{{form.heartRate}}"
+          bindinput="onHeartRateInput"
+        />
+      </view>
+    </view>
+
+    <view wx:if="{{errorText}}" class="record-panel__error">{{errorText}}</view>
+
+    <button
+      class="btn-primary record-panel__save"
+      bindtap="handleSave"
+      loading="{{isSaving}}"
+      disabled="{{isSaving || isDeleting}}"
+    >
+      确认保存
+    </button>
+
+    <button
+      wx:if="{{isEditMode}}"
+      class="record-panel__delete"
+      bindtap="handleDelete"
+      disabled="{{isSaving || isDeleting}}"
+    >
+      删除记录
+    </button>
+  </view>
+</view>

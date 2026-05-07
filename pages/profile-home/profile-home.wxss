@@ -1,0 +1,48 @@
+.profile-home__topbar {
+  margin-bottom: 24rpx;
+}
+
+.profile-home__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10rpx;
+  font-size: var(--font-xl);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.profile-home__arrow {
+  font-size: var(--font-sm);
+  color: var(--color-text-secondary);
+}
+
+.profile-home__empty {
+  padding-top: 120rpx;
+}
+
+.profile-home__card {
+  margin-top: 20rpx;
+}
+
+.profile-home__status {
+  display: inline-flex;
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
+  background: rgba(49, 130, 247, 0.12);
+  color: var(--color-primary);
+  font-size: var(--font-sm);
+  font-weight: 600;
+}
+
+.profile-home__name {
+  margin-top: 20rpx;
+  font-size: var(--font-2xl);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.profile-home__text {
+  margin-top: 16rpx;
+  color: var(--color-text-secondary);
+  font-size: var(--font-base);
+}

@@ -1,0 +1,143 @@
+.record-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+}
+
+.record-panel__mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.36);
+}
+
+.record-panel__sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  min-height: 60vh;
+  padding: 24rpx 32rpx calc(32rpx + env(safe-area-inset-bottom));
+  border-radius: 32rpx 32rpx 0 0;
+  background: #ffffff;
+  box-sizing: border-box;
+  box-shadow: 0 -16rpx 48rpx rgba(17, 24, 39, 0.16);
+}
+
+.record-panel__grabber {
+  width: 88rpx;
+  height: 8rpx;
+  margin: 0 auto 24rpx;
+  border-radius: 999rpx;
+  background: #d1d5db;
+}
+
+.record-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24rpx;
+}
+
+.record-panel__title {
+  font-size: var(--font-lg);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.record-panel__close {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: var(--color-text-secondary);
+  text-align: center;
+  line-height: 56rpx;
+  font-size: var(--font-xl);
+}
+
+.record-panel__field {
+  margin-top: 24rpx;
+}
+
+.record-panel__label {
+  margin-bottom: 14rpx;
+  font-size: var(--font-sm);
+  color: var(--color-text-secondary);
+}
+
+.record-panel__datetime {
+  display: flex;
+  gap: 16rpx;
+}
+
+.record-panel__datetime-item,
+.record-panel__input,
+.record-panel__textarea {
+  box-sizing: border-box;
+  border-radius: 20rpx;
+  border: 2rpx solid #e5e7eb;
+  background: #f9fafb;
+  color: var(--color-text);
+}
+
+.record-panel__datetime-item {
+  min-width: 220rpx;
+  padding: 22rpx 24rpx;
+  font-size: var(--font-base);
+}
+
+.record-panel__inputs {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.record-panel__input {
+  flex: 1;
+  min-height: 96rpx;
+  padding: 0 24rpx;
+  font-size: var(--font-lg);
+}
+
+.record-panel__input--bp {
+  text-align: center;
+}
+
+.record-panel__input--hr {
+  max-width: 180rpx;
+  text-align: center;
+}
+
+.record-panel__slash {
+  color: var(--color-text-secondary);
+  font-size: var(--font-xl);
+  font-weight: 600;
+}
+
+.record-panel__textarea {
+  width: 100%;
+  min-height: 160rpx;
+  padding: 20rpx 24rpx;
+  font-size: var(--font-base);
+  line-height: 1.6;
+}
+
+.record-panel__error {
+  margin-top: 20rpx;
+  color: var(--color-danger);
+  font-size: var(--font-sm);
+}
+
+.record-panel__save {
+  margin-top: 28rpx;
+}
+
+.record-panel__delete {
+  margin-top: 18rpx;
+  padding: 12rpx 0;
+  border: none;
+  background: transparent;
+  color: var(--color-danger);
+  font-size: var(--font-base);
+  line-height: 1.6;
+}

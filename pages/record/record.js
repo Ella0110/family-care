@@ -4,74 +4,16 @@ const { getErrorMessage } = require('../../utils/error-messages');
 const { getReferenceLines } = require('../../utils/bp-status');
 const { DEFAULT_FONT_SCALE, normalizeFontScale } = require('../../utils/font-scale');
 const { canWrite, isOwner } = require('../../utils/permission-helpers');
-
-const MIN_MEASURED_AT_MS = 946684800000;
-const MAX_FUTURE_SKEW_MS = 5 * 60 * 1000;
-const SUBSCRIBE_ALERT_TEMPLATE_ID = 'lrhxG9oawoHDyh1AFVSgiv-cQE7-qTAn87-_nzBDxCY';
-
-function pad(value) {
-  return String(value).padStart(2, '0');
-}
-
-function getNowParts() {
-  const now = new Date();
-  const maxDate = new Date(Date.now() + MAX_FUTURE_SKEW_MS);
-
-  return {
-    date: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
-    time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
-    minDate: '2000-01-01',
-    maxDate: `${maxDate.getFullYear()}-${pad(maxDate.getMonth() + 1)}-${pad(maxDate.getDate())}`,
-  };
-}
-
-function parseInteger(value) {
-  if (value === null || value === undefined || value === '') {
-    return null;
-  }
-
-  if (!/^\d+$/.test(String(value))) {
-    return Number.NaN;
-  }
-
-  return Number(value);
-}
-
-function parseMeasuredAt(dateValue, timeValue) {
-  const dateParts = String(dateValue || '').split('-').map(Number);
-  const timeParts = String(timeValue || '').split(':').map(Number);
-
-  if (dateParts.length !== 3 || timeParts.length !== 2) {
-    return new Date(Number.NaN);
-  }
-
-  return new Date(dateParts[0], dateParts[1] - 1, dateParts[2], timeParts[0], timeParts[1], 0, 0);
-}
-
-function toDate(value) {
-  if (value instanceof Date) {
-    return value;
-  }
-
-  if (value && typeof value === 'object' && value.$date) {
-    return new Date(value.$date);
-  }
-
-  return new Date(value);
-}
-
-function getDateTimeParts(value) {
-  const date = toDate(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return getNowParts();
-  }
-
-  return {
-    date: `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`,
-    time: `${pad(date.getHours())}:${pad(date.getMinutes())}`,
-  };
-}
+const {
+  PAGE_RECORD_LIMITS,
+  getNowParts,
+  getDateTimeParts,
+  toDate,
+  validateRecordForm,
+  buildRecordSaveData,
+  buildRecordUpdatePatch,
+  deleteRecordById,
+} = require('../../utils/record-editor');
 
 function findProfile(profileId) {
   const state = store.getState();
@@ -110,31 +52,6 @@ function goBackOrHome() {
 
   wx.redirectTo({
     url: '/pages/home/home',
-  });
-}
-
-function requestAlertSubscription(onComplete) {
-  if (typeof wx.requestSubscribeMessage !== 'function') {
-    if (typeof onComplete === 'function') {
-      onComplete();
-    }
-    return;
-  }
-
-  console.log('About to request subscribe');
-  wx.requestSubscribeMessage({
-    tmplIds: [SUBSCRIBE_ALERT_TEMPLATE_ID],
-    success(res) {
-      console.log('Subscribe result:', JSON.stringify(res));
-    },
-    fail(err) {
-      console.warn('Subscribe request failed:', err);
-    },
-    complete() {
-      if (typeof onComplete === 'function') {
-        onComplete();
-      }
-    },
   });
 }
 
@@ -341,75 +258,19 @@ Page({
   },
 
   validateForm() {
-    const form = this.data.form;
-    const systolic = parseInteger(form.systolic);
-    const diastolic = parseInteger(form.diastolic);
-    const heartRate = parseInteger(form.heartRate);
-    const measuredAt = parseMeasuredAt(form.measuredDate, form.measuredTime);
-    const maxMeasuredAt = Date.now() + MAX_FUTURE_SKEW_MS;
-
-    if (!this.data.profileId) {
-      return '档案不存在';
-    }
-
-    if (!Number.isInteger(systolic) || systolic < 60 || systolic > 300) {
-      return '收缩压需为 60-300 之间的整数';
-    }
-
-    if (!Number.isInteger(diastolic) || diastolic < 30 || diastolic > 200) {
-      return '舒张压需为 30-200 之间的整数';
-    }
-
-    if (systolic <= diastolic) {
-      return '收缩压必须高于舒张压';
-    }
-
-    if (form.heartRate !== '' && (!Number.isInteger(heartRate) || heartRate < 30 || heartRate > 250)) {
-      return '心率需为 30-250 之间的整数';
-    }
-
-    if (Number.isNaN(measuredAt.getTime())) {
-      return '请选择有效的测量时间';
-    }
-
-    if (measuredAt.getTime() < MIN_MEASURED_AT_MS) {
-      return '测量时间不能早于 2000 年';
-    }
-
-    if (measuredAt.getTime() > maxMeasuredAt) {
-      return '测量时间不能是未来时间';
-    }
-
-    return '';
+    return validateRecordForm({
+      profileId: this.data.profileId,
+      form: this.data.form,
+      limits: PAGE_RECORD_LIMITS,
+    });
   },
 
   buildPayload() {
-    const form = this.data.form;
-    const payload = {
-      systolic: parseInteger(form.systolic),
-      diastolic: parseInteger(form.diastolic),
-    };
-    const heartRate = parseInteger(form.heartRate);
-
-    if (Number.isInteger(heartRate)) {
-      payload.heartRate = heartRate;
-    }
-
-    return {
-      payload,
-      measuredAt: parseMeasuredAt(form.measuredDate, form.measuredTime).getTime(),
-      note: String(form.note || '').trim(),
-    };
+    return buildRecordSaveData(this.data.form);
   },
 
   buildPatch() {
-    const data = this.buildPayload();
-
-    return {
-      measuredAt: data.measuredAt,
-      payload: data.payload,
-      note: data.note || null,
-    };
+    return buildRecordUpdatePatch(this.data.form);
   },
 
   async saveNewRecord(data) {
@@ -457,9 +318,7 @@ Page({
     });
 
     if (!this.data.isEditMode) {
-      requestAlertSubscription(() => {
-        this.saveNewRecord(data);
-      });
+      this.saveNewRecord(data);
       return;
     }
 
@@ -522,7 +381,7 @@ Page({
         }
 
         try {
-          await recordService.deleteRecord(this.data.recordId, { profileId: this.data.profileId });
+          await deleteRecordById(this.data.recordId, this.data.profileId);
           wx.showToast({
             title: '已删除',
             icon: 'success',

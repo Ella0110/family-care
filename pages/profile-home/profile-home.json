@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "档案",
+  "usingComponents": {
+    "empty-state": "/components/empty-state/empty-state",
+    "profile-switcher": "/components/profile-switcher/profile-switcher"
+  }
+}

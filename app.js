@@ -15,6 +15,7 @@ const {
 
 let localConfig = null;
 const GRANTED_USER_PROFILE_STORAGE_KEY = 'grantedUserProfile';
+const CURRENT_PROFILE_STORAGE_KEY = 'currentProfileId';
 
 try {
   localConfig = require('./local.config');
@@ -149,6 +150,60 @@ function cacheGrantedUserProfile(app, profile) {
   };
 }
 
+function readCurrentProfileIdFromStorage() {
+  if (typeof wx === 'undefined' || typeof wx.getStorageSync !== 'function') {
+    return null;
+  }
+
+  try {
+    const profileId = wx.getStorageSync(CURRENT_PROFILE_STORAGE_KEY);
+    return typeof profileId === 'string' && profileId ? profileId : null;
+  } catch (error) {
+    console.warn('Read current profile id from storage failed.', error);
+    return null;
+  }
+}
+
+function persistCurrentProfileIdToStorage(profileId) {
+  if (typeof wx === 'undefined' || typeof wx.setStorageSync !== 'function') {
+    return;
+  }
+
+  try {
+    wx.setStorageSync(CURRENT_PROFILE_STORAGE_KEY, profileId);
+  } catch (error) {
+    console.warn('Persist current profile id failed.', error);
+  }
+}
+
+function clearCurrentProfileIdFromStorage() {
+  if (typeof wx === 'undefined' || typeof wx.removeStorageSync !== 'function') {
+    return;
+  }
+
+  try {
+    wx.removeStorageSync(CURRENT_PROFILE_STORAGE_KEY);
+  } catch (error) {
+    console.warn('Clear current profile id failed.', error);
+  }
+}
+
+function pickInitialCurrentProfileId(profiles, preferredProfileId) {
+  const validIds = (Array.isArray(profiles) ? profiles : [])
+    .map((profile) => profile && profile._id)
+    .filter(Boolean);
+
+  if (!validIds.length) {
+    return null;
+  }
+
+  if (preferredProfileId && validIds.includes(preferredProfileId)) {
+    return preferredProfileId;
+  }
+
+  return validIds[0] || null;
+}
+
 App({
   globalData: {
     store,
@@ -162,6 +217,21 @@ App({
 
   onShow() {
     store.resetSessionDismissals();
+  },
+
+  initCurrentProfilePersistence() {
+    if (this.currentProfileUnsubscribe) {
+      return;
+    }
+
+    this.currentProfileUnsubscribe = store.subscribe((nextState) => {
+      if (nextState.currentProfileId) {
+        persistCurrentProfileIdToStorage(nextState.currentProfileId);
+        return;
+      }
+
+      clearCurrentProfileIdFromStorage();
+    });
   },
 
   applyFontScale(fontScale, options = {}) {
@@ -244,6 +314,7 @@ App({
       const result = await call('login', {}, { silent: true });
       const nextState = normalizeLoginPayload(result);
       const previousState = store.getState();
+      const storedCurrentProfileId = readCurrentProfileIdFromStorage();
 
       if (preserveCurrentProfileId) {
         const currentProfileId = previousState.currentProfileId;
@@ -253,6 +324,13 @@ App({
         if (hasCurrentProfile) {
           nextState.currentProfileId = currentProfileId;
         }
+      }
+
+      if (!nextState.currentProfileId) {
+        nextState.currentProfileId = pickInitialCurrentProfileId(
+          nextState.profiles,
+          storedCurrentProfileId,
+        );
       }
 
       this.globalData.loginReady = true;
@@ -289,6 +367,7 @@ App({
     this.globalData.store = store;
     this.globalData.fontScale = readLocalFontScale() || DEFAULT_FONT_SCALE;
     this.syncInviterProfileState();
+    this.initCurrentProfilePersistence();
     this.globalData.inviteLaunchToken = getInviteLaunchToken(options);
     if (this.globalData.inviteLaunchToken) {
       console.log('[invite] cold start with token:', this.globalData.inviteLaunchToken);

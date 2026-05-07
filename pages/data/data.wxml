@@ -1,0 +1,166 @@
+<view class="page page-root data-page" style="--font-scale: {{fontScale}};">
+  <view class="data-topbar">
+    <view class="data-topbar__title" bindtap="handleOpenProfileSwitcher">
+      {{profileTitle}}
+      <text wx:if="{{hasProfile}}" class="data-topbar__arrow">▼</text>
+    </view>
+  </view>
+
+  <view wx:if="{{!hasProfile}}" class="data-empty">
+    <empty-state
+      icon="♥"
+      title="记录家人的血压，从第一条开始"
+      subtitle="先建一个档案吧"
+      buttonText="为家人或自己建档案"
+      bind:buttontap="handleCreateProfile"
+    />
+  </view>
+
+  <view wx:else>
+    <view wx:if="{{errorText}}" class="card data-state">
+      <view class="data-state__title">暂时无法加载数据</view>
+      <view class="data-state__text">{{errorText}}</view>
+    </view>
+
+    <view wx:elif="{{isLoading && !latestRecordDisplay && !hasAnyRecords}}" class="card data-state">
+      <view class="data-state__title">正在读取数据</view>
+      <view class="data-state__text">请稍候，正在准备最近血压、趋势图和用药摘要。</view>
+    </view>
+
+    <view wx:else>
+    <view class="card data-latest">
+      <view wx:if="{{latestRecordDisplay}}" class="data-latest__content">
+        <view class="data-latest__status {{latestRecordDisplay.statusClassName}}">
+          {{latestRecordDisplay.statusText}}
+        </view>
+        <view class="data-latest__value {{latestRecordDisplay.statusClassName}}">
+          {{latestRecordDisplay.valueText}}
+        </view>
+        <view class="data-latest__meta">
+          <text>心率 {{latestRecordDisplay.heartRateText}}</text>
+          <text>{{latestRecordDisplay.measuredAtText}}</text>
+        </view>
+      </view>
+
+      <view wx:else class="data-latest__empty">
+        <view class="data-latest__empty-icon">♥</view>
+        <view class="data-latest__empty-title">开启你的健康记录</view>
+        <view class="data-latest__empty-text">每天定时测量并记录</view>
+      </view>
+    </view>
+
+    <view wx:if="{{hasAnyRecords}}" class="card data-trend">
+      <view class="data-trend__header">
+        <view class="data-trend__tabs">
+          <view
+            wx:for="{{periodOptions}}"
+            wx:key="days"
+            class="data-trend__tab {{selectedDays === item.days ? 'data-trend__tab--active' : ''}} {{!item.enabled ? 'data-trend__tab--disabled' : ''}}"
+            data-days="{{item.days}}"
+            bindtap="handleSelectPeriod"
+          >
+            {{item.label}}
+          </view>
+        </view>
+
+        <view class="data-trend__download" bindtap="handleExportChart">下载</view>
+      </view>
+
+      <view wx:if="{{hasRangeRecords}}">
+        <canvas id="dataBpChart" type="2d" class="data-trend__canvas"></canvas>
+
+        <canvas wx:if="{{hasHeartRateData}}" id="dataHeartRateChart" type="2d" class="data-trend__canvas data-trend__canvas--secondary"></canvas>
+
+        <view wx:elif="{{hasRangeRecords}}" class="data-trend__empty-card">
+          暂无心率数据
+        </view>
+      </view>
+
+      <view wx:else class="data-trend__empty-card">
+        当前时间范围内暂无趋势数据
+      </view>
+    </view>
+
+    <view wx:if="{{historyItems.length > 0}}" class="card data-history">
+      <view class="data-section-header">
+        <view class="data-section-header__title">历史明细</view>
+        <view class="data-section-header__link" bindtap="handleViewAllRecords">全部记录 &gt;</view>
+      </view>
+
+      <view
+        wx:for="{{historyItems}}"
+        wx:key="_id"
+        class="data-history__item"
+        data-record-id="{{item._id}}"
+        bindtap="handleHistoryRecordTap"
+      >
+        <view class="data-history__time">{{item.timeText}}</view>
+        <view class="data-history__main">
+          <view class="data-history__value">{{item.valueText}}</view>
+          <view wx:if="{{item.heartRateText}}" class="data-history__heart">{{item.heartRateText}}</view>
+        </view>
+        <view class="data-history__status {{item.statusClassName}}">{{item.statusText}}</view>
+        <view wx:if="{{item.canEdit}}" class="data-history__arrow">›</view>
+      </view>
+    </view>
+
+    <view wx:if="{{hasMedicationSummary}}" class="card data-medication">
+      <view class="data-section-header">
+        <view class="data-section-header__title">长期用药</view>
+      </view>
+      <view class="data-medication__text">长期用药：{{medicationText}}</view>
+    </view>
+    </view>
+  </view>
+
+  <button
+    wx:if="{{hasProfile && canWriteCurrentProfile}}"
+    class="data-add-button"
+    bindtap="handleOpenRecordPanel"
+  >
+    +
+  </button>
+
+  <profile-switcher
+    show="{{showProfileSwitcher}}"
+    profiles="{{profiles}}"
+    current-profile-id="{{currentProfileId}}"
+    return-tab="/pages/data/data"
+    bind:select="handleSelectProfile"
+    bind:close="handleCloseProfileSwitcher"
+  />
+
+  <record-panel
+    show="{{showRecordPanel}}"
+    profile-id="{{currentProfileId}}"
+    record="{{editingRecord}}"
+    bind:success="handleRecordPanelSuccess"
+    bind:delete="handleRecordPanelDelete"
+    bind:close="handleCloseRecordPanel"
+  />
+
+  <canvas
+    id="dataExportCanvas"
+    type="2d"
+    class="data-export-canvas"
+    style="height: {{exportCanvasHeight}}px;"
+  ></canvas>
+
+  <view wx:if="{{showPermissionModal}}" class="data-permission-modal">
+    <view class="data-permission-modal__mask"></view>
+    <view class="data-permission-modal__panel card">
+      <view class="data-permission-modal__title">无法保存图片</view>
+      <view class="data-permission-modal__subtitle">需要开启“相册写入”权限</view>
+      <view class="data-permission-modal__step">步骤 1：点击下方“去设置”按钮</view>
+      <view class="data-permission-modal__step">步骤 2：将“添加到相册”设为允许</view>
+      <view class="data-permission-modal__actions">
+        <button class="btn-primary data-permission-modal__button" bindtap="handleOpenPermissionSetting">
+          去设置
+        </button>
+        <button class="btn-secondary data-permission-modal__button" bindtap="handleClosePermissionModal">
+          暂不下载
+        </button>
+      </view>
+    </view>
+  </view>
+</view>

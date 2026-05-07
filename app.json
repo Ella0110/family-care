@@ -1,5 +1,7 @@
 {
   "pages": [
+    "pages/data/data",
+    "pages/profile-home/profile-home",
     "pages/home/home",
     "pages/record/record",
     "pages/records-list/records-list",
@@ -16,6 +18,26 @@
     "pages/user-profile-edit/user-profile-edit",
     "pages/user-settings/user-settings"
   ],
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#3182F7",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/data/data",
+        "text": "数据",
+        "iconPath": "assets/tab-data.png",
+        "selectedIconPath": "assets/tab-data-active.png"
+      },
+      {
+        "pagePath": "pages/profile-home/profile-home",
+        "text": "档案",
+        "iconPath": "assets/tab-profile.png",
+        "selectedIconPath": "assets/tab-profile-active.png"
+      }
+    ]
+  },
   "window": {
     "navigationBarBackgroundColor": "#ffffff",
     "navigationBarTitleText": "来自儿女的关心",

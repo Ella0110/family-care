@@ -1,0 +1,33 @@
+<view class="page page-root profile-home-page" style="--font-scale: {{fontScale}};">
+  <view class="profile-home__topbar">
+    <view class="profile-home__title" bindtap="handleOpenProfileSwitcher">
+      {{profileTitle}}
+      <text wx:if="{{hasProfile}}" class="profile-home__arrow">▼</text>
+    </view>
+  </view>
+
+  <view wx:if="{{!hasProfile}}" class="profile-home__empty">
+    <empty-state
+      icon="♥"
+      title="先建一个档案吧"
+      subtitle="档案页将在下一轮补完整，这里先打通 tab 同步"
+      buttonText="为家人或自己建档案"
+      bind:buttontap="handleCreateProfile"
+    />
+  </view>
+
+  <view wx:else class="card profile-home__card">
+    <view class="profile-home__status">当前档案</view>
+    <view class="profile-home__name">{{profileName}}</view>
+    <view class="profile-home__text">档案页开发中，T6.0b 将在这里承接档案资料、成员、用药和设置管理。</view>
+  </view>
+
+  <profile-switcher
+    show="{{showProfileSwitcher}}"
+    profiles="{{profiles}}"
+    current-profile-id="{{currentProfileId}}"
+    return-tab="/pages/profile-home/profile-home"
+    bind:select="handleSelectProfile"
+    bind:close="handleCloseProfileSwitcher"
+  />
+</view>
