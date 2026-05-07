@@ -1,9 +1,9 @@
 # 来自儿女的关心（family-care）项目状态
 
 ## 当前阶段
-- 已完成：T0、T1、T2.1-T2.6、T3.1a、T3.1b、T3.2、T3.3、T4.1、T4.2a、T4.2b、T5.1
+- 已完成：T0、T1、T2.1-T2.6、T3.1a、T3.1b、T3.2、T3.3、T4.1、T4.2a、T4.2b、T5.1、T5.3
 - 当前切入点：T5.2（单图表导出，详见 t5-roadmap.md）
-- 未开始：T5.2-T5.5、T6
+- 未开始：T5.2、T5.4-T5.5、T6
 
 ## 核心模型（Path B）
 - 三表核心：`users`、`profiles`、`relationships`
@@ -29,7 +29,7 @@
 - `updateProfileSettings`：更新档案 `settings`
 - `updateUserProfile`：更新用户昵称和头像，当前主要给邀请卡片复用
 - `updateUserSettings`：更新用户级设置，当前用于字号 `fontScale`
-- `saveRecord`：保存血压记录并返回 `alertTriggered/alertSentTo`
+- `saveRecord`：保存血压记录，返回 `alertTriggered/alertSentTo`，并通过 `subscribeMessage.send` best-effort 推送异常提醒
 - `getRecords`：读取血压记录列表
 - `updateRecord`：更新单条血压记录
 - `deleteRecord`：软删除单条血压记录
@@ -52,9 +52,12 @@
   - 骨架待接：`profile-detail`、`profile-settings`
 - 服务层：`services/request.js`、`services/profile-service.js`、`services/record-service.js`、`services/medication-service.js`、`services/invitation-service.js`、`services/member-service.js`、`services/user-service.js`
 - 报告模块：`pages/report/report`、`utils/report-helpers.js`、`utils/report-chart-renderer.js`、`utils/report-exporter.js`
+- T5.3 推送基础设施：`cloudfunctions/_shared/push-helpers.js` 统一构建订阅消息 payload；异常提醒模板 ID 为 `lrhxG9oawoHDyh1AFVSgiv-cQE7-qTAn87-_nzBDxCY`
+- T5.3 订阅授权时机：录入页在点击“保存”后、真正调用 `saveRecord` 前同步请求 `wx.requestSubscribeMessage`，其 `complete` 回调再继续保存
 - 全局 store：手写轻量订阅式 store，提供 `getState / setState / subscribe`
 - 缓存策略：T2.5 引入 SWR，缓存按 `profileId` 隔离，首页与记录列表先读缓存再后台刷新
 - T5.1 技术债：`report` 页为避免时间范围子集查询污染 `record-service` 的全局 records cache，暂时通过 `callSilent('getRecords')` 直调云函数；后续应给 records cache key 引入时间范围参数后再收敛回服务层
+- T5.3 技术债：订阅消息当前使用 `miniprogramState: 'developer'`，上线前必须改为 `formal`
 - 错误处理：T2.6 引入统一错误文案映射与开发环境请求风暴告警
 - 单档案首页：T3.2 升级为“档案详情页”，含档案信息卡片、阈值调整入口和危险操作区
 - 用户设置：T3.3 新增字号切换和关于页，`fontScale` 支持 `1.0 / 1.15 / 1.3`
@@ -83,6 +86,9 @@
 - T5.1 排序坑：微信云开发文档 `_id` 不保证单调递增，同一分钟内的血压记录排序不能依赖 `_id`；`records` 实际应以 `measuredAt desc + createdAt desc` 排序。
 - T5.1 导出坑：Canvas 2D 长图导出若先按预估高度一次性绘制，真机上可能保留大块底部留白；修复方式是先测 `lastY`，再按最终导出高度二次绘制并裁切。
 - T5.1 字段坑：`_createTime` 在当前手动写入 `records` 文档的链路里并不存在，真正可用的创建时间字段是 `createdAt`。
+- T5.3 授权时机坑：`requestSubscribeMessage` 必须在按钮 tap 的同步链里调用，不能放到 `await saveRecord(...)` 之后；当前修复为先请求订阅，再在 `complete` 回调里继续保存。
+- T5.3 touser 坑：当前数据模型里 `users._id` 就是 `OPENID`，`relationships.userId` 也直接存这个值，因此可直接作为 `subscribeMessage.send({ touser })`，无需额外查 `users` 表。
+- T5.3 序列化坑：`subscribeMessage.send` 的原始返回值可能包含 `BigInt`，不能塞进 `saveRecord` 返回体或直接整包序列化；当前只记录裁剪后的日志摘要，返回体保持原契约。
 
 ## 产品决策记录
 - Path B vs Path C：选 B，因为没有历史用户，可以按新模型干净重开
