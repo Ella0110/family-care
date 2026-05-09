@@ -1,4 +1,9 @@
 const { calculateAge, formatPhoneWithSpaces, getThreshold } = require('./profile-detail');
+const {
+  formatEast8DateYMD,
+  getEast8StartOfDay,
+  toEast8Parts,
+} = require('./csv-helpers');
 
 // 低血压阈值（硬编码，V1 不做用户可调）
 const LOW_BP = {
@@ -43,8 +48,7 @@ function toMeasuredDate(value) {
 }
 
 function toDateKey(value) {
-  const date = toMeasuredDate(value);
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  return formatEast8DateYMD(toMeasuredDate(value));
 }
 
 function isFiniteNumber(value) {
@@ -57,23 +61,36 @@ function normalizePeriodValue(value) {
 }
 
 function formatGeneratedAt(value) {
-  const date = toMeasuredDate(value);
-  return `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  const parts = toEast8Parts(toMeasuredDate(value));
+  if (!parts) {
+    return '';
+  }
+
+  return `${parts.year}/${pad(parts.month)}/${pad(parts.day)} ${pad(parts.hours)}:${pad(parts.minutes)}`;
 }
 
 function formatMonthDay(value) {
-  const date = toMeasuredDate(value);
-  return `${pad(date.getMonth() + 1)}/${pad(date.getDate())}`;
+  const parts = toEast8Parts(toMeasuredDate(value));
+  if (!parts) {
+    return '';
+  }
+
+  return `${pad(parts.month)}/${pad(parts.day)}`;
 }
 
 function formatMonthDayTime(value) {
-  const date = toMeasuredDate(value);
-  return `${pad(date.getMonth() + 1)}/${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  const parts = toEast8Parts(toMeasuredDate(value));
+  if (!parts) {
+    return '';
+  }
+
+  return `${pad(parts.month)}/${pad(parts.day)} ${pad(parts.hours)}:${pad(parts.minutes)}`;
 }
 
 function getSinceForDays(days, now = new Date()) {
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  return new Date(startOfToday.getTime() - (Number(days) - 1) * 86400000);
+  const safeDays = Math.max(1, Number(days) || 1);
+  const startOfToday = getEast8StartOfDay(now);
+  return new Date(startOfToday.getTime() - (safeDays - 1) * 86400000);
 }
 
 function joinWithDot(parts) {

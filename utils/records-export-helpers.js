@@ -1,5 +1,7 @@
 const {
+  buildEast8RecentRange,
   formatEast8MonthDayTime,
+  toEast8Parts,
 } = require('./csv-helpers');
 
 const EXPORT_IMAGE_CANVAS_WIDTH = 750;
@@ -20,13 +22,18 @@ function pad(value) {
 }
 
 function formatDottedDate(date) {
-  return `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())}`;
+  const parts = toEast8Parts(date);
+  if (!parts) {
+    return '';
+  }
+
+  return `${parts.year}.${pad(parts.month)}.${pad(parts.day)}`;
 }
 
 function buildRecentRange(days, now = new Date()) {
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const since = new Date(startOfToday.getTime() - (days - 1) * 24 * 60 * 60 * 1000);
-  const until = new Date(now.getTime());
+  const east8Range = buildEast8RecentRange(days, now);
+  const since = east8Range.since;
+  const until = east8Range.until;
   const label = `近 ${days} 天`;
   const startDateText = formatDottedDate(since);
   const endDateText = formatDottedDate(until);

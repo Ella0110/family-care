@@ -47,6 +47,29 @@ function formatEast8DateYMD(value) {
   return `${parts.year}-${pad(parts.month)}-${pad(parts.day)}`;
 }
 
+function getEast8StartOfDay(value = new Date()) {
+  const parts = toEast8Parts(value);
+  if (!parts) {
+    return new Date(NaN);
+  }
+
+  return new Date(Date.UTC(parts.year, parts.month - 1, parts.day) - EAST8_OFFSET_MS);
+}
+
+function buildEast8RecentRange(days, now = new Date()) {
+  const safeDays = Math.max(1, Number(days) || 1);
+  const until = normalizeDate(now);
+  const startOfToday = getEast8StartOfDay(until);
+  const since = new Date(startOfToday.getTime() - (safeDays - 1) * 24 * 60 * 60 * 1000);
+
+  return {
+    since,
+    until,
+    startDateText: formatEast8DateYMD(since),
+    endDateText: formatEast8DateYMD(until),
+  };
+}
+
 function formatEast8TimeHM(value) {
   const parts = toEast8Parts(value);
   if (!parts) {
@@ -230,8 +253,11 @@ function parseCSV(csvText) {
 }
 
 module.exports = {
+  EAST8_OFFSET_MS,
   normalizeDate,
   toEast8Parts,
+  getEast8StartOfDay,
+  buildEast8RecentRange,
   formatEast8DateYMD,
   formatEast8TimeHM,
   formatEast8MonthDayTime,

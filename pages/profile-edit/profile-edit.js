@@ -326,17 +326,7 @@ Page({
   },
 
   validateCreateForm() {
-    const name = trimText(this.data.form.name);
-
-    if (!name) {
-      return '请填写姓名';
-    }
-
-    if (name.length > 20) {
-      return '姓名不能超过 20 个字';
-    }
-
-    return '';
+    return this.validateEditForm();
   },
 
   validateEditForm() {
@@ -379,9 +369,7 @@ Page({
   },
 
   buildCreatePayload() {
-    return {
-      name: trimText(this.data.form.name),
-    };
+    return this.buildEditValues();
   },
 
   buildEditValues() {

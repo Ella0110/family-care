@@ -241,22 +241,26 @@ async function verifyFrontendBehavior() {
 
   const profileServicePath = path.resolve(__dirname, '../services/profile-service.js');
   delete require.cache[profileServicePath];
+  let createProfilePayload = null;
   require.cache[profileServicePath] = {
     id: profileServicePath,
     filename: profileServicePath,
     loaded: true,
     exports: {
       async createProfile(data) {
+        createProfilePayload = data;
         return {
           profile: {
             _id: 'profile_new',
             name: data.name,
-            relation: null,
-            gender: null,
-            birthDate: null,
-            note: null,
-            emergencyContact: null,
-            longTermMedication: null,
+            relation: data.relation || null,
+            gender: data.gender || null,
+            birthDate: data.birthDate || null,
+            note: data.note || null,
+            emergencyContact: data.emergencyContact || null,
+            longTermMedication: Object.prototype.hasOwnProperty.call(data, 'longTermMedication')
+              ? data.longTermMedication
+              : null,
           },
           relationship: {
             _id: 'rel_new',
@@ -273,9 +277,11 @@ async function verifyFrontendBehavior() {
   };
 
   let redirectedUrl = '';
+  let switchedTabUrl = '';
   let navigatedBack = false;
   let navigatedUrl = '';
   let shownToast = '';
+  const storage = {};
   let appConfig = null;
   let profileEditConfig = null;
   let homeConfig = null;
@@ -305,6 +311,12 @@ async function verifyFrontendBehavior() {
     navigateTo({ url }) {
       navigatedUrl = url;
     },
+    switchTab({ url }) {
+      switchedTabUrl = url;
+    },
+    setStorageSync(key, value) {
+      storage[key] = value;
+    },
     showLoading() {},
     hideLoading() {},
     cloud: {
@@ -327,8 +339,31 @@ async function verifyFrontendBehavior() {
   createPage.onLoad({ mode: 'create' });
   assert.strictEqual(createPage.data.isEditMode, false);
   createPage.onNameInput({ detail: { value: '爸爸' } });
+  createPage.setData({
+    'form.relationSelection': '父亲',
+    'form.birthDate': '1950-01-01',
+    'form.emergencyContactName': '新一',
+    'form.emergencyContactPhone': '13800138000',
+    'form.longTermMedication': true,
+    'form.note': '长期监测',
+  });
+  assert.deepStrictEqual(createPage.buildCreatePayload(), {
+    name: '爸爸',
+    relation: '父亲',
+    gender: null,
+    birthDate: '1950-01-01',
+    emergencyContact: {
+      name: '新一',
+      phone: '13800138000',
+    },
+    longTermMedication: true,
+    note: '长期监测',
+  });
   await createPage.handleSubmit();
-  assert.match(redirectedUrl, /\/pages\/record\/record\?mode=create&profileId=profile_new/);
+  assert.deepStrictEqual(createProfilePayload, createPage.buildCreatePayload(), 'create page should submit the complete profile payload');
+  assert.strictEqual(storage.currentProfileId, 'profile_new', 'create page should persist currentProfileId after profile creation');
+  assert.strictEqual(switchedTabUrl, '/pages/data/data', 'create page should switch to the data tab after profile creation');
+  assert.strictEqual(store.getState().currentProfileId, 'profile_new', 'create page should update currentProfileId in store before switching tabs');
 
   const editPage = createPageInstance(profileEditConfig);
   editPage.onLoad({ mode: 'edit', profileId: 'profile_a' });
@@ -340,6 +375,14 @@ async function verifyFrontendBehavior() {
     'form.emergencyContactPhone': 'abc',
   });
   assert.strictEqual(editPage.validateEditForm(), '请输入正确的手机号');
+  editPage.setData({
+    'form.emergencyContactName': '新一',
+    'form.emergencyContactPhone': '',
+  });
+  assert.deepStrictEqual(editPage.buildEditPatch().emergencyContact, {
+    name: '新一',
+    phone: '',
+  });
   editPage.originalProfile = Object.assign({}, editPage.originalProfile, {
     emergencyContact: {
       name: '旧联系人',
