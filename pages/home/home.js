@@ -6,6 +6,9 @@ const memberService = require('../../services/member-service');
 const { getErrorMessage } = require('../../utils/error-messages');
 const { getBPStatusDisplay, getReferenceLines } = require('../../utils/bp-status');
 const { DEFAULT_FONT_SCALE, normalizeFontScale } = require('../../utils/font-scale');
+const { getAppLoginStatus } = require('../../utils/app-login-status');
+const { requestAlertSubscription } = require('../../utils/alert-subscription');
+const { removeProfileFromStore } = require('../../utils/profile-store');
 const {
   getCurrentRelationship,
   isOwner,
@@ -21,7 +24,7 @@ const {
 } = require('../../utils/profile-detail');
 
 const STALE_THRESHOLD = 30 * 1000;
-const SUBSCRIBE_ALERT_TEMPLATE_ID = 'lrhxG9oawoHDyh1AFVSgiv-cQE7-qTAn87-_nzBDxCY';
+const getLoginStatus = getAppLoginStatus;
 
 function pad(value) {
   return String(value).padStart(2, '0');
@@ -62,17 +65,6 @@ function formatMeasuredAt(value) {
   }
 
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${time}`;
-}
-
-function getLoginStatus() {
-  const app = getApp();
-  const globalData = (app && app.globalData) || {};
-
-  return {
-    isLoginReady: globalData.loginReady === true,
-    isLoginFailed: Boolean(globalData.loginError),
-    loginError: globalData.loginError || null,
-  };
 }
 
 function getCurrentFontScale() {
@@ -458,25 +450,7 @@ Page({
   },
 
   requestSubscribeForAlerts(onComplete) {
-    if (typeof wx.requestSubscribeMessage !== 'function') {
-      return Promise.resolve(typeof onComplete === 'function' ? onComplete() : null);
-    }
-
-    console.log('About to request subscribe');
-    return new Promise((resolve) => {
-      wx.requestSubscribeMessage({
-        tmplIds: [SUBSCRIBE_ALERT_TEMPLATE_ID],
-        success(res) {
-          console.log('Subscribe result:', JSON.stringify(res));
-        },
-        fail(err) {
-          console.warn('Subscribe request failed:', err);
-        },
-        complete: () => {
-          Promise.resolve(typeof onComplete === 'function' ? onComplete() : null).finally(resolve);
-        },
-      });
-    });
+    return requestAlertSubscription(onComplete);
   },
 
   resolveHomeView(state) {
@@ -1452,16 +1426,7 @@ Page({
 
     try {
       await profileService.deleteProfile(profile._id);
-      const state = store.getState();
-      const nextProfiles = (state.profiles || []).filter((item) => item && item._id !== profile._id);
-      const nextRelationships = (state.relationships || []).filter((item) => item && item.profileId !== profile._id);
-      const nextCurrentProfileId = nextProfiles.length === 1 ? nextProfiles[0]._id : null;
-
-      store.setState({
-        profiles: nextProfiles,
-        relationships: nextRelationships,
-        currentProfileId: nextCurrentProfileId,
-      });
+      removeProfileFromStore(profile._id);
 
       wx.showToast({
         title: `已删除「${profile.name}」`,

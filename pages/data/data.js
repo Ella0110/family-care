@@ -5,6 +5,7 @@ const { callSilent } = require('../../services/request');
 const { getErrorMessage } = require('../../utils/error-messages');
 const { getReferenceLines, getBPStatusDisplay } = require('../../utils/bp-status');
 const { DEFAULT_FONT_SCALE, normalizeFontScale } = require('../../utils/font-scale');
+const { getAppLoginStatus } = require('../../utils/app-login-status');
 const {
   getCurrentRelationship,
   isOwner,
@@ -76,16 +77,7 @@ function getCurrentFontScale() {
   const app = getApp();
   return normalizeFontScale(app && app.globalData ? app.globalData.fontScale : DEFAULT_FONT_SCALE);
 }
-
-function getLoginStatus() {
-  const app = getApp();
-  const globalData = (app && app.globalData) || {};
-
-  return {
-    isLoginReady: globalData.loginReady === true,
-    isLoginFailed: Boolean(globalData.loginError),
-  };
-}
+const getLoginStatus = getAppLoginStatus;
 
 function getErrorReason(error) {
   if (!error) {

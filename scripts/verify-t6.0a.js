@@ -84,6 +84,7 @@ assert.match(read('pages/data/data.js'), /pageReady:\s*false/, 'data page should
 assert.match(read('pages/data/data.js'), /_lastProfileId:\s*''/, 'data page should track the last rendered profile id');
 assert.match(read('pages/data/data.js'), /this\.setData\(\{\s*pageReady:\s*false\s*\}\)/, 'data page should enter loading state before switching profile content');
 assert.match(read('pages/data/data.js'), /pageReady:\s*true/, 'data page should mark pageReady true after data is ready');
-assert.match(read('pages/data/data.js'), /globalData\.loginReady === true/, 'data page should reuse app loginReady flag before rendering');
+assert.match(read('pages/data/data.js'), /getAppLoginStatus/, 'data page should reuse shared login status helper before rendering');
 assert.match(read('pages/data/data.js'), /if \(!loginStatus\.isLoginReady\) \{\s*this\.enterPageLoading\(\);\s*return;\s*\}/, 'data page should stay in loading state until app login finishes');
 assert.match(read('pages/data/data.js'), /const loginJustFinished = loginStatus\.isLoginReady && !this\.lastLoginReady/, 'data page should refresh once when login transitions from pending to ready');
+assert.match(read('pages/home/home.js'), /requestAlertSubscription/, 'home should reuse shared alert subscription helper');

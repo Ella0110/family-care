@@ -113,32 +113,17 @@ Page({
     const isTransferMode = options.mode === 'transfer';
 
     this.currentUserId = store.getState().user && store.getState().user._id;
-    this.hasOwnerAccess = isOwner(store.getState(), profileId);
     this.setData({
       profileId,
       profileName: profile ? profile.name : '当前档案',
       isTransferMode,
       pageTitle: isTransferMode ? '选择新管理员' : '档案成员',
     });
-
-    if (!this.hasOwnerAccess) {
-      wx.showToast({
-        title: '只有管理员可以查看',
-        icon: 'none',
-      });
-      setTimeout(() => {
-        goBackOrHome();
-      }, 1500);
-    }
   },
 
   onShow() {
-    if (!this.hasOwnerAccess) {
-      return;
-    }
-
     this.refreshPermissionState();
-    if (!this.ensureOwnerAccess()) {
+    if (!this.ensureProfileAccess()) {
       return;
     }
 
@@ -156,19 +141,30 @@ Page({
     });
   },
 
-  ensureOwnerAccess() {
+  ensureProfileAccess() {
     const state = store.getState();
     const relationship = getCurrentRelationship(state, this.data.profileId);
 
-    if (!this.data.profileId || !relationship || !isOwner(state, this.data.profileId)) {
+    if (!this.data.profileId || !relationship) {
       wx.showToast({
-        title: '只有管理员可以查看',
+        title: '你没有权限查看',
         icon: 'none',
       });
       setTimeout(() => {
         goBackOrHome();
       }, 1500);
       return false;
+    }
+
+    if (this.data.isTransferMode && !isOwner(state, this.data.profileId)) {
+      wx.showToast({
+        title: '只有管理员可以转让',
+        icon: 'none',
+      });
+      this.setData({
+        isTransferMode: false,
+        pageTitle: '档案成员',
+      });
     }
 
     return true;

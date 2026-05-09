@@ -1,0 +1,29 @@
+const { store } = require('../store/index');
+
+function findProfileById(profileId) {
+  return (store.getState().profiles || []).find((profile) => profile && profile._id === profileId) || null;
+}
+
+function removeProfileFromStore(profileId) {
+  if (!profileId) {
+    return store.getState();
+  }
+
+  const state = store.getState();
+  const nextProfiles = (state.profiles || []).filter((profile) => profile && profile._id !== profileId);
+  const nextRelationships = (state.relationships || []).filter(
+    (relationship) => relationship && relationship.profileId !== profileId,
+  );
+  const nextCurrentProfileId = nextProfiles.length ? nextProfiles[0]._id : null;
+
+  return store.setState({
+    profiles: nextProfiles,
+    relationships: nextRelationships,
+    currentProfileId: nextCurrentProfileId,
+  });
+}
+
+module.exports = {
+  findProfileById,
+  removeProfileFromStore,
+};

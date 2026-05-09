@@ -1,25 +1,160 @@
 <view class="page page-root profile-home-page" style="--font-scale: {{fontScale}};">
-  <view class="profile-home__topbar">
-    <view class="profile-home__title" bindtap="handleOpenProfileSwitcher">
-      {{profileTitle}}
-      <text wx:if="{{hasProfile}}" class="profile-home__arrow">▼</text>
+  <view wx:if="{{pageReady}}">
+    <view class="profile-home__topbar">
+      <view class="profile-home__title" bindtap="handleOpenProfileSwitcher">
+        {{profileTitle}}
+        <text wx:if="{{hasProfile}}" class="profile-home__arrow">▼</text>
+      </view>
+      <view class="profile-home__settings" bindtap="handleOpenUserSettings">设置</view>
+    </view>
+
+    <view wx:if="{{!hasProfile}}" class="profile-home__empty">
+      <empty-state
+        title="暂无档案"
+        subtitle="先为家人或自己建一个档案吧"
+        buttonText="为家人或自己建档案"
+        bind:buttontap="handleCreateProfile"
+      />
+    </view>
+
+    <view wx:elif="{{errorText}}" class="card profile-home__state">
+      <view class="profile-home__state-title">暂时无法加载</view>
+      <view class="profile-home__state-text">{{errorText}}</view>
+    </view>
+
+    <view wx:else class="profile-home__content">
+      <view class="card profile-home__hero">
+        <view class="profile-home__hero-top">
+          <view class="profile-home__avatar">{{profileInitial}}</view>
+          <view class="profile-home__hero-body">
+            <view class="profile-home__hero-name-row">
+              <view class="profile-home__hero-name">{{profileName}}</view>
+              <view wx:if="{{profileAgeText}}" class="profile-home__hero-age">{{profileAgeText}}</view>
+            </view>
+            <view wx:if="{{profileBirthYearText}}" class="profile-home__hero-birth">{{profileBirthYearText}}</view>
+          </view>
+          <view wx:if="{{canEditCurrentProfile}}" class="profile-home__edit" bindtap="handleEditProfile">编辑 ></view>
+        </view>
+
+        <view class="profile-home__overview">
+          <view class="profile-home__overview-title">健康概览</view>
+
+          <view class="profile-home__overview-row">
+            <view class="profile-home__overview-label">当前血压</view>
+            <view class="profile-home__overview-value {{latestRecordDisplay && latestRecordDisplay.isAbnormal ? 'profile-home__overview-value--danger' : ''}}">
+              {{latestRecordDisplay ? latestRecordDisplay.bpText : '暂无记录'}}
+            </view>
+          </view>
+
+          <view class="profile-home__overview-row">
+            <view class="profile-home__overview-label">当前心率</view>
+            <view class="profile-home__overview-value">{{latestRecordDisplay ? latestRecordDisplay.heartRateText : '--'}}</view>
+          </view>
+
+          <view wx:if="{{hasMedicationSummary}}" class="profile-home__overview-row">
+            <view class="profile-home__overview-label">长期用药</view>
+            <view class="profile-home__overview-value">{{medicationText}}</view>
+          </view>
+
+          <view wx:if="{{emergencyText}}" class="profile-home__overview-row">
+            <view class="profile-home__overview-label">紧急联系人</view>
+            <view class="profile-home__overview-value">{{emergencyText}}</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="card profile-home__members">
+        <view class="profile-home__section-head">
+          <view class="profile-home__section-title">成员管理（{{memberCount}}/10）</view>
+        </view>
+        <scroll-view scroll-x class="profile-home__members-scroll">
+          <view class="profile-home__members-list">
+            <view
+              wx:for="{{memberItems}}"
+              wx:key="relationshipId"
+              class="profile-home__member"
+              bindtap="handleOpenMembers"
+            >
+              <view wx:if="{{item.avatarUrl}}" class="profile-home__member-avatar profile-home__member-avatar--image">
+                <image class="profile-home__member-avatar-image" src="{{item.avatarUrl}}" mode="aspectFill" />
+              </view>
+              <view wx:else class="profile-home__member-avatar">{{item.avatarFallback}}</view>
+              <view class="profile-home__member-name">{{item.displayName}}</view>
+              <view class="profile-home__member-role">{{item.roleLabel}}</view>
+            </view>
+
+            <view
+              wx:if="{{canInviteCurrentProfile}}"
+              class="profile-home__member profile-home__member--invite"
+              bindtap="handleCreateInvitation"
+            >
+              <view class="profile-home__member-avatar profile-home__member-avatar--invite">+</view>
+              <view class="profile-home__member-name">邀请</view>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+
+      <view class="profile-home__shortcut-grid">
+        <view
+          class="card profile-home__shortcut {{!hasLatestRecord ? 'profile-home__shortcut--disabled' : ''}}"
+          bindtap="handleOpenReport"
+        >
+          <view class="profile-home__shortcut-icon profile-home__shortcut-icon--report">报</view>
+          <view class="profile-home__shortcut-body">
+            <view class="profile-home__shortcut-title">生成就诊报告</view>
+            <view class="profile-home__shortcut-subtitle">选择时间段，导出专业报表</view>
+          </view>
+          <view class="profile-home__shortcut-arrow">›</view>
+        </view>
+
+        <view class="card profile-home__shortcut" bindtap="handleOpenMedicationManagement">
+          <view class="profile-home__shortcut-icon profile-home__shortcut-icon--medication">药</view>
+          <view class="profile-home__shortcut-body">
+            <view class="profile-home__shortcut-title">药物管理</view>
+            <view class="profile-home__shortcut-subtitle">{{medicationShortcutText}}</view>
+          </view>
+          <view class="profile-home__shortcut-arrow">›</view>
+        </view>
+      </view>
+
+      <view class="card profile-home__settings-card">
+        <view class="profile-home__section-title">设置</view>
+
+        <view class="profile-home__setting-row">
+          <view class="profile-home__setting-main">
+            <view class="profile-home__setting-title">异常血压通知</view>
+            <view class="profile-home__setting-subtitle">血压异常时推送提醒</view>
+          </view>
+          <switch
+            checked="{{activeRelationshipSubscribeAlerts}}"
+            color="#3182F7"
+            bindchange="handleToggleSubscribeAlerts"
+          />
+        </view>
+
+        <view class="profile-home__setting-row profile-home__setting-row--link" bindtap="handleOpenFontSettings">
+          <view class="profile-home__setting-main">
+            <view class="profile-home__setting-title">字体大小</view>
+          </view>
+          <view class="profile-home__setting-link">{{fontScaleLabel}} ></view>
+        </view>
+      </view>
+
+      <view wx:if="{{canManageCurrentProfile}}" class="card profile-home__danger" bindtap="handleDeleteProfile">
+        <view class="profile-home__danger-icon">⚠</view>
+        <view class="profile-home__danger-main">
+          <view class="profile-home__danger-title">删除档案</view>
+          <view class="profile-home__danger-subtitle">删除后所有记录无法恢复</view>
+        </view>
+      </view>
+
+      <view class="profile-home__footer-link" bindtap="handleOpenProfileSwitcher">查看全部档案</view>
     </view>
   </view>
 
-  <view wx:if="{{!hasProfile}}" class="profile-home__empty">
-    <empty-state
-      icon="♥"
-      title="先建一个档案吧"
-      subtitle="档案页将在下一轮补完整，这里先打通 tab 同步"
-      buttonText="为家人或自己建档案"
-      bind:buttontap="handleCreateProfile"
-    />
-  </view>
-
-  <view wx:else class="card profile-home__card">
-    <view class="profile-home__status">当前档案</view>
-    <view class="profile-home__name">{{profileName}}</view>
-    <view class="profile-home__text">档案页开发中，T6.0b 将在这里承接档案资料、成员、用药和设置管理。</view>
+  <view wx:else class="profile-home__loading">
+    <view class="profile-home__loading-spinner"></view>
   </view>
 
   <profile-switcher
