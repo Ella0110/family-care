@@ -25,6 +25,7 @@ function createFakeCtx() {
     dashes: [],
     arcs: [],
     segments: [],
+    curves: [],
     _currentPoint: null,
     clearRect() {},
     fillRect() {},
@@ -54,7 +55,32 @@ function createFakeCtx() {
       this.arcs.push({ x, y, radius });
     },
     fill() {},
-    quadraticCurveTo() {},
+    quadraticCurveTo(cpx, cpy, x, y) {
+      this.curves.push({
+        type: 'quadratic',
+        cpx,
+        cpy,
+        x,
+        y,
+        strokeStyle: this.strokeStyle,
+        lineWidth: this.lineWidth,
+      });
+      this._currentPoint = { x, y };
+    },
+    bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y) {
+      this.curves.push({
+        type: 'bezier',
+        cp1x,
+        cp1y,
+        cp2x,
+        cp2y,
+        x,
+        y,
+        strokeStyle: this.strokeStyle,
+        lineWidth: this.lineWidth,
+      });
+      this._currentPoint = { x, y };
+    },
     closePath() {},
     setLineDash(value) {
       this.dashes.push(value);
@@ -208,6 +234,30 @@ assert.ok(thirtyDayTexts.includes('5/20'), '30-day x-axis should keep the second
 assert.ok(thirtyDayTexts.includes('5/30'), '30-day x-axis should keep the last-day label');
 assert.ok(!thirtyDayTexts.includes('5/15'), '30-day x-axis should no longer key off month-day semantics');
 assert.ok(thirtyDayTexts.includes('200'), 'blood pressure y-axis should extend to 200 when max is 180');
+assert.ok(thirtyDayCtx.arcs.length > 0, '30-day blood-pressure chart should still render visible points');
+
+const ninetyDayCtx = createFakeCtx();
+const ninetyDayChartData = {
+  mode: 90,
+  slots: Array.from({ length: 90 }, (_, index) => ({
+    index,
+    date: new Date(`2026-02-${String((index % 28) + 1).padStart(2, '0')}T00:00:00+08:00`),
+    label: `02/${String((index % 28) + 1).padStart(2, '0')}`,
+  })),
+  points: [
+    { slotIndex: 0, slotCount: 1, positionInSlot: 0, systolic: 180, diastolic: 100, systolicAlert: true, diastolicAlert: true, hasHeartRate: true, heartRate: 92, heartRateAlert: false },
+    { slotIndex: 1, slotCount: 1, positionInSlot: 0, systolic: 150, diastolic: 92, systolicAlert: true, diastolicAlert: true, hasHeartRate: true, heartRate: 88, heartRateAlert: false },
+    { slotIndex: 2, slotCount: 1, positionInSlot: 0, systolic: 132, diastolic: 84, systolicAlert: false, diastolicAlert: false, hasHeartRate: true, heartRate: 105, heartRateAlert: true },
+    { slotIndex: 3, slotCount: 1, positionInSlot: 0, systolic: 128, diastolic: 82, systolicAlert: false, diastolicAlert: false, hasHeartRate: true, heartRate: 79, heartRateAlert: false },
+  ],
+};
+drawBloodPressureTrendChart(ninetyDayCtx, ninetyDayChartData, threshold, { width: 300, height: 220 }, 90, { hideTitle: true });
+assert.strictEqual(ninetyDayCtx.arcs.length, 0, '90-day blood-pressure chart should not render point markers');
+assert.ok(ninetyDayCtx.curves.length > 0, '90-day blood-pressure chart should use smoothed curve segments');
+const ninetyDayBloodBlueCount = ninetyDayCtx.curves.filter((curve) => curve.strokeStyle === '#0356FC').length;
+const ninetyDayBloodRedCount = ninetyDayCtx.curves.filter((curve) => curve.strokeStyle === '#EF4444').length;
+assert.strictEqual(ninetyDayBloodBlueCount, 2, '90-day blood-pressure chart should render only the normal pair segments in blue');
+assert.strictEqual(ninetyDayBloodRedCount, 4, '90-day blood-pressure chart should render only the abnormal pair segments in red');
 
 const heartRateCtx = createFakeCtx();
 const heartRateChartData = {
@@ -229,5 +279,15 @@ assert.ok(heartRateTexts.includes('0'), 'heart-rate y-axis should start at 0');
 assert.ok(heartRateTexts.includes('50'), 'heart-rate y-axis should include 50');
 assert.ok(heartRateTexts.includes('100'), 'heart-rate y-axis should include 100 when max is 102');
 assert.ok(heartRateTexts.includes('150'), 'heart-rate y-axis should extend to the next 50-step bucket');
+assert.ok(heartRateCtx.arcs.length > 0, '30-day heart-rate chart should still render visible points');
+
+const ninetyDayHeartRateCtx = createFakeCtx();
+drawHeartRateChart(ninetyDayHeartRateCtx, ninetyDayChartData, threshold, { width: 300, height: 220 }, 90, { hideTitle: true });
+assert.strictEqual(ninetyDayHeartRateCtx.arcs.length, 0, '90-day heart-rate chart should not render point markers');
+assert.ok(ninetyDayHeartRateCtx.curves.length > 0, '90-day heart-rate chart should use smoothed curve segments');
+const ninetyDayHeartBlueCount = ninetyDayHeartRateCtx.curves.filter((curve) => curve.strokeStyle === '#0356FC').length;
+const ninetyDayHeartRedCount = ninetyDayHeartRateCtx.curves.filter((curve) => curve.strokeStyle === '#EF4444').length;
+assert.strictEqual(ninetyDayHeartBlueCount, 1, '90-day heart-rate chart should render only the normal pair segment in blue');
+assert.strictEqual(ninetyDayHeartRedCount, 2, '90-day heart-rate chart should render only the abnormal pair segments in red');
 
 console.log('[verify-t6.1] pass');

@@ -115,6 +115,10 @@ function getSlotWidth(totalSlots, plot, mode) {
     return (plot.right - plot.left) / (totalSlots - 1);
 }
 
+function getSlotStep(totalSlots, plot, mode) {
+    return getSlotWidth(totalSlots, plot, mode);
+}
+
 function getSlotCenter(index, totalSlots, plot, mode) {
     if (totalSlots <= 0) {
         return plot.right - plot.left;
@@ -340,6 +344,35 @@ function shouldBreakBetween(leftPoint, rightPoint) {
     );
 }
 
+function buildContinuousSegments(chartData, points, getValue, plot, range) {
+    const segments = [];
+    let currentSegment = [];
+
+    points.forEach((point, index) => {
+        const entry = {
+            point,
+            x: getPointX(point, chartData, plot),
+            y: valueToY(getValue(point), range, plot),
+        };
+
+        if (index === 0 || shouldBreakBetween(points[index - 1], point)) {
+            if (currentSegment.length) {
+                segments.push(currentSegment);
+            }
+            currentSegment = [entry];
+            return;
+        }
+
+        currentSegment.push(entry);
+    });
+
+    if (currentSegment.length) {
+        segments.push(currentSegment);
+    }
+
+    return segments;
+}
+
 function drawPolyline(ctx, chartData, points, getValue, color, plot, range) {
     if (points.length < 2) {
         return;
@@ -380,6 +413,118 @@ function drawPolyline(ctx, chartData, points, getValue, color, plot, range) {
     ctx.restore();
 }
 
+function drawSmoothPolyline(ctx, chartData, points, getValue, color, plot, range) {
+    const segments = buildContinuousSegments(
+        chartData,
+        points,
+        getValue,
+        plot,
+        range,
+    ).filter((segment) => segment.length >= 2);
+
+    if (!segments.length) {
+        return;
+    }
+
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+
+    segments.forEach((segment) => {
+        ctx.beginPath();
+        ctx.moveTo(segment[0].x, segment[0].y);
+
+        if (segment.length === 2) {
+            ctx.lineTo(segment[1].x, segment[1].y);
+            ctx.stroke();
+            return;
+        }
+
+        for (let index = 1; index < segment.length - 1; index += 1) {
+            const current = segment[index];
+            const next = segment[index + 1];
+            const middleX = (current.x + next.x) / 2;
+            const middleY = (current.y + next.y) / 2;
+            ctx.quadraticCurveTo(current.x, current.y, middleX, middleY);
+        }
+
+        const penultimate = segment[segment.length - 2];
+        const last = segment[segment.length - 1];
+        ctx.quadraticCurveTo(penultimate.x, penultimate.y, last.x, last.y);
+        ctx.stroke();
+    });
+
+    ctx.restore();
+}
+
+function drawSmoothPolylineByPair(
+    ctx,
+    chartData,
+    points,
+    getValue,
+    getPairColor,
+    plot,
+    range,
+) {
+    const segments = buildContinuousSegments(
+        chartData,
+        points,
+        getValue,
+        plot,
+        range,
+    ).filter((segment) => segment.length >= 2);
+
+    if (!segments.length) {
+        return;
+    }
+
+    ctx.save();
+    ctx.lineWidth = 1;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+
+    segments.forEach((segment) => {
+        for (let index = 0; index < segment.length - 1; index += 1) {
+            const current = segment[index];
+            const next = segment[index + 1];
+            const strokeColor = getPairColor(current.point, next.point);
+
+            ctx.beginPath();
+            ctx.strokeStyle = strokeColor;
+
+            if (segment.length === 2) {
+                ctx.moveTo(current.x, current.y);
+                ctx.lineTo(next.x, next.y);
+                ctx.stroke();
+                continue;
+            }
+
+            const previous = index > 0 ? segment[index - 1] : current;
+            const following =
+                index + 2 < segment.length ? segment[index + 2] : next;
+            const control1X = current.x + (next.x - previous.x) / 6;
+            const control1Y = current.y + (next.y - previous.y) / 6;
+            const control2X = next.x - (following.x - current.x) / 6;
+            const control2Y = next.y - (following.y - current.y) / 6;
+
+            ctx.moveTo(current.x, current.y);
+            ctx.bezierCurveTo(
+                control1X,
+                control1Y,
+                control2X,
+                control2Y,
+                next.x,
+                next.y,
+            );
+            ctx.stroke();
+        }
+    });
+
+    ctx.restore();
+}
+
 function drawSeriesPoints(
     ctx,
     chartData,
@@ -399,6 +544,18 @@ function drawSeriesPoints(
             abnormal ? 2 : 2,
         );
     });
+}
+
+function isBloodPressurePairAlert(leftPoint, rightPoint, key) {
+    if (key === "systolic") {
+        return Boolean(leftPoint.systolicAlert || rightPoint.systolicAlert);
+    }
+
+    if (key === "diastolic") {
+        return Boolean(leftPoint.diastolicAlert || rightPoint.diastolicAlert);
+    }
+
+    return false;
 }
 
 function drawRoundedBar(ctx, x, y, width, bottom, color) {
@@ -471,6 +628,34 @@ function drawBloodPressureTrendChart(
     );
     drawXAxisLabels(ctx, chartData.slots, plot, chartData.mode);
 
+    if (chartData.mode >= 90) {
+        drawSmoothPolylineByPair(
+            ctx,
+            chartData,
+            chartData.points,
+            (point) => point.systolic,
+            (leftPoint, rightPoint) =>
+                isBloodPressurePairAlert(leftPoint, rightPoint, "systolic")
+                    ? CHART_COLORS.alert
+                    : CHART_COLORS.systolic,
+            plot,
+            range,
+        );
+        drawSmoothPolylineByPair(
+            ctx,
+            chartData,
+            chartData.points,
+            (point) => point.diastolic,
+            (leftPoint, rightPoint) =>
+                isBloodPressurePairAlert(leftPoint, rightPoint, "diastolic")
+                    ? CHART_COLORS.alert
+                    : CHART_COLORS.diastolic,
+            plot,
+            range,
+        );
+        return;
+    }
+
     drawPolyline(
         ctx,
         chartData,
@@ -489,6 +674,7 @@ function drawBloodPressureTrendChart(
         plot,
         range,
     );
+
     drawSeriesPoints(
         ctx,
         chartData,
@@ -550,7 +736,7 @@ function drawHeartRateChart(
     if (chartData.mode <= 7) {
         const slotStep = Math.max(
             12,
-            getSlotStep(chartData.slots.length, plot),
+            getSlotStep(chartData.slots.length, plot, chartData.mode),
         );
         const barWidth = Math.max(8, Math.min(18, slotStep * 0.18));
 
@@ -570,6 +756,22 @@ function drawHeartRateChart(
                 color,
             );
         });
+        return;
+    }
+
+    if (chartData.mode >= 90) {
+        drawSmoothPolylineByPair(
+            ctx,
+            chartData,
+            heartRatePoints,
+            (point) => point.heartRate,
+            (leftPoint, rightPoint) =>
+                Boolean(leftPoint.heartRateAlert || rightPoint.heartRateAlert)
+                    ? CHART_COLORS.alert
+                    : CHART_COLORS.heartRate,
+            plot,
+            range,
+        );
         return;
     }
 
