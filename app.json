@@ -19,6 +19,7 @@
     "pages/user-settings/user-settings"
   ],
   "tabBar": {
+    "custom": true,
     "color": "#C7CDD9",
     "selectedColor": "#3182F7",
     "backgroundColor": "#ffffff",

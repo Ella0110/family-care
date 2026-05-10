@@ -18,6 +18,7 @@ assert.ok(appConfig.pages.includes('pages/profile-home/profile-home'), 'profile-
 assert.ok(appConfig.pages.includes('pages/home/home'), 'legacy home page should stay registered');
 
 assert.ok(appConfig.tabBar, 'app.json should define tabBar');
+assert.strictEqual(appConfig.tabBar.custom, true, 'tabBar should use custom mode');
 assert.deepStrictEqual(
   appConfig.tabBar.list.map((item) => item.pagePath),
   ['pages/data/data', 'pages/profile-home/profile-home'],
@@ -41,6 +42,10 @@ assert.deepStrictEqual(
   'components/record-panel/record-panel.wxml',
   'components/record-panel/record-panel.wxss',
   'components/record-panel/record-panel.json',
+  'custom-tab-bar/index.js',
+  'custom-tab-bar/index.wxml',
+  'custom-tab-bar/index.wxss',
+  'custom-tab-bar/index.json',
   'utils/record-editor.js',
   'assets/tab-data.png',
   'assets/tab-data-active.png',
@@ -52,6 +57,7 @@ assert.deepStrictEqual(
 
 assert.match(read('pages/data/data.wxml'), /profile-switcher/, 'data page should render profile switcher component');
 assert.match(read('pages/data/data.wxml'), /record-panel/, 'data page should render record panel component');
+assert.doesNotMatch(read('pages/data/data.wxml'), /class="data-add-button"/, 'data page should no longer render a local floating add button');
 assert.match(read('pages/data/data.wxml'), /全部记录/, 'data page should expose records-list navigation');
 assert.match(read('pages/data/data.wxml'), /数据分析/, 'data page should render the analysis card');
 assert.match(read('pages/data/data.wxml'), /wx:if="\{\{pageReady\}\}"/, 'data page should gate content behind pageReady');
@@ -63,6 +69,9 @@ assert.match(read('components/record-panel/record-panel.js'), /triggerEvent\('su
 assert.match(read('components/record-panel/record-panel.js'), /triggerEvent\('delete'/, 'record-panel should emit delete event');
 assert.match(read('components/record-panel/record-panel.js'), /wx\.showModal/, 'record-panel delete flow should use wx.showModal confirmation');
 assert.doesNotMatch(read('components/record-panel/record-panel.wxml'), /textarea|备注/, 'record-panel should not render note field');
+assert.match(read('custom-tab-bar/index.wxml'), /custom-tab-bar__plus/, 'custom tab bar should render a centered add button');
+assert.match(read('custom-tab-bar/index.js'), /switchTab/, 'custom tab bar should switch tabs through wx.switchTab');
+assert.match(read('custom-tab-bar/index.js'), /openRecordPanelOnDataTab/, 'custom tab bar should support opening the record panel after switching to data tab');
 
 assert.match(read('app.js'), /CURRENT_PROFILE_STORAGE_KEY/, 'app.js should define current profile storage key');
 assert.match(read('app.js'), /setStorageSync\(CURRENT_PROFILE_STORAGE_KEY/, 'app.js should persist currentProfileId');
@@ -80,6 +89,7 @@ assert.match(
 );
 assert.match(read('pages/data/data.js'), /pageReady:\s*false/, 'data page should initialize pageReady as false');
 assert.match(read('pages/data/data.js'), /_lastProfileId:\s*''/, 'data page should track the last rendered profile id');
+assert.match(read('pages/data/data.js'), /consumePendingRecordPanelOpen/, 'data page should consume pending record-panel requests from the custom tab bar');
 assert.match(read('pages/data/data.js'), /this\.setData\(\{\s*pageReady:\s*false\s*\}\)/, 'data page should enter loading state before switching profile content');
 assert.match(read('pages/data/data.js'), /pageReady:\s*true/, 'data page should mark pageReady true after data is ready');
 assert.match(read('pages/data/data.js'), /getAppLoginStatus/, 'data page should reuse shared login status helper before rendering');

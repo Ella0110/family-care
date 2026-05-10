@@ -1,5 +1,5 @@
 .profile-home-page {
-  padding-bottom: 64rpx;
+  padding-bottom: calc(188rpx + env(safe-area-inset-bottom));
 }
 
 .profile-home__topbar {

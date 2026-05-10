@@ -213,6 +213,7 @@ App({
     userProfileGranted: false,
     userProfile: null,
     inviteLaunchToken: null,
+    openRecordPanelOnDataTab: false,
   },
 
   onShow() {
@@ -232,6 +233,16 @@ App({
 
       clearCurrentProfileIdFromStorage();
     });
+  },
+
+  requestOpenRecordPanelOnDataTab() {
+    this.globalData.openRecordPanelOnDataTab = true;
+  },
+
+  consumePendingRecordPanelOpen() {
+    const pending = Boolean(this.globalData.openRecordPanelOnDataTab);
+    this.globalData.openRecordPanelOnDataTab = false;
+    return pending;
   },
 
   applyFontScale(fontScale, options = {}) {

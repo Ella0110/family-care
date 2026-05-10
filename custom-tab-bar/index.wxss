@@ -1,0 +1,80 @@
+.custom-tab-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1200;
+}
+
+.custom-tab-bar__panel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 108rpx;
+  padding: 16rpx 80rpx calc(env(safe-area-inset-bottom) + 12rpx);
+  background: #ffffff;
+  border-top: 1rpx solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.04);
+}
+
+.custom-tab-bar__item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6rpx;
+}
+
+/* 图标：固定 48rpx，mode=aspectFit 保证比例 */
+.custom-tab-bar__icon {
+  width: 48rpx;
+  height: 48rpx;
+  display: block;
+  flex-shrink: 0;
+}
+
+.custom-tab-bar__text {
+  font-size: 24rpx;
+  line-height: 32rpx;
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+.custom-tab-bar__item.is-active .custom-tab-bar__text {
+  color: #3182F7;
+  font-weight: 700;
+}
+
+/* "+" 悬浮按钮：圆形，居中悬浮在 tabBar 上方 */
+.custom-tab-bar__plus {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, -46%);
+  width: 108rpx;
+  height: 108rpx;
+  border-radius: 50%;
+  border: none;
+  background: #3182F7;
+  color: #FFFFFF;
+  font-size: 72rpx;
+  font-weight: 300;
+  line-height: 104rpx;
+  text-align: center;
+  box-shadow:
+    0 0 0 8rpx rgba(255, 255, 255, 1),
+    0 8rpx 24rpx rgba(49, 130, 247, 0.30);
+  padding: 0;
+  z-index: 1;
+}
+
+.custom-tab-bar__plus::after {
+  border: none;
+}
+
+.custom-tab-bar__plus--pressed {
+  background: #2563EB;
+  opacity: 0.92;
+}

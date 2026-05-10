@@ -1,0 +1,27 @@
+<view class="custom-tab-bar">
+  <view class="custom-tab-bar__panel">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="pagePath"
+      class="custom-tab-bar__item {{selectedPath === item.pagePath ? 'is-active' : ''}}"
+      data-path="{{item.pagePath}}"
+      bindtap="handleSwitchTab"
+    >
+      <image
+        class="custom-tab-bar__icon"
+        src="{{selectedPath === item.pagePath ? item.selectedIconPath : item.iconPath}}"
+        mode="aspectFit"
+      />
+      <text class="custom-tab-bar__text">{{item.text}}</text>
+    </view>
+
+    <button
+      wx:if="{{canOpenRecord}}"
+      class="custom-tab-bar__plus"
+      bindtap="handleOpenRecordPanel"
+      hover-class="custom-tab-bar__plus--pressed"
+    >
+      +
+    </button>
+  </view>
+</view>

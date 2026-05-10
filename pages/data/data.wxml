@@ -193,13 +193,6 @@
     <view class="data-loading__spinner"></view>
   </view>
 
-  <button
-    wx:if="{{pageReady && hasProfile && canWriteCurrentProfile}}"
-    class="data-add-button"
-    hover-class="data-add-button--pressed"
-    bindtap="handleOpenRecordPanel"
-  >+</button>
-
   <profile-switcher
     show="{{showProfileSwitcher}}"
     profiles="{{profiles}}"

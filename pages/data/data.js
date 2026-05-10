@@ -77,6 +77,15 @@ function getCurrentFontScale() {
 }
 const getLoginStatus = getAppLoginStatus;
 
+function consumePendingRecordPanelOpen() {
+  const app = getApp();
+  if (app && typeof app.consumePendingRecordPanelOpen === 'function') {
+    return app.consumePendingRecordPanelOpen();
+  }
+
+  return false;
+}
+
 function getErrorReason(error) {
   if (!error) {
     return 'unknown';
@@ -538,6 +547,7 @@ Page({
     }
 
     if (!profileId) {
+      consumePendingRecordPanelOpen();
       this.chartRenderToken += 1;
       this.lastLoadedProfileId = '';
       this.lastRefreshAt = 0;
@@ -576,11 +586,13 @@ Page({
       && (Date.now() - this.lastRefreshAt) < REFRESH_TTL_MS;
 
     if (shouldSkip) {
+      this.consumePendingRecordPanelOpen();
       return;
     }
 
     const profile = findProfile(profileId);
     if (!profile) {
+      consumePendingRecordPanelOpen();
       this.rangeRecords = [];
       this.chartData = null;
       this.setData({
@@ -623,6 +635,7 @@ Page({
         return;
       }
 
+      consumePendingRecordPanelOpen();
       this.chartRenderToken += 1;
       this.rangeRecords = [];
       this.chartData = null;
@@ -691,6 +704,7 @@ Page({
       heartRateSummary,
       periodOptions,
     }, () => {
+      this.consumePendingRecordPanelOpen();
       if (hasRangeRecords) {
         this.scheduleChartRender();
       } else {
@@ -825,6 +839,18 @@ Page({
       showRecordPanel: true,
       editingRecord: null,
     });
+  },
+
+  consumePendingRecordPanelOpen() {
+    if (!consumePendingRecordPanelOpen()) {
+      return;
+    }
+
+    if (!this.data.canWriteCurrentProfile || !this.data.currentProfileId) {
+      return;
+    }
+
+    this.handleOpenRecordPanel();
   },
 
   handleCloseRecordPanel() {
