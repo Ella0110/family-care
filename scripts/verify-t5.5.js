@@ -81,3 +81,7 @@ assert.match(read('pages/records-list/records-list.wxml'), /onConfirmSave/, 'rec
 assert.match(read('pages/records-list/records-list.js'), /showExportPreview:\s*false/, 'records-list page should track preview visibility');
 assert.match(read('pages/records-list/records-list.js'), /onCancelPreview\(/, 'records-list page should implement preview cancel handler');
 assert.match(read('pages/records-list/records-list.js'), /onConfirmSave\(/, 'records-list page should implement preview save handler');
+assert.match(read('pages/data/data.wxml'), /已有数据？导入历史记录/, 'data page empty state should offer import entry');
+assert.match(read('pages/data/data.js'), /handleImportRecords\(/, 'data page should handle import entry tap');
+assert.match(read('pages/import-records/import-records.js'), /const CONCURRENCY = 5/, 'import page should batch saves with concurrency 5');
+assert.match(read('pages/import-records/import-records.js'), /Promise\.all\(/, 'import page should use Promise.all for chunked batch import');

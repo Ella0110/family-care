@@ -32,6 +32,47 @@ function buildPreview(validRecords, errors) {
   };
 }
 
+async function batchImport(profileId, validRecords, onProgress) {
+  const CONCURRENCY = 5;
+  const results = { success: 0, failed: 0, errors: [] };
+  const records = Array.isArray(validRecords) ? validRecords.slice() : [];
+  let completed = 0;
+
+  for (let index = 0; index < records.length; index += CONCURRENCY) {
+    const chunk = records.slice(index, index + CONCURRENCY);
+
+    await Promise.all(
+      chunk.map((record) =>
+        recordService.saveRecord(
+          profileId,
+          record.payload,
+          record.measuredAt,
+          record.note,
+        ).then(() => {
+          results.success += 1;
+        }).catch((error) => {
+          results.failed += 1;
+          results.errors.push({
+            line: record._raw,
+            reason: getErrorMessage(error) || '保存失败',
+          });
+          console.warn('[import-records] save failed', {
+            record,
+            error,
+          });
+        }),
+      ),
+    );
+
+    completed += chunk.length;
+    if (typeof onProgress === 'function') {
+      onProgress(completed, records.length, results);
+    }
+  }
+
+  return results;
+}
+
 function goBackToRecords(profileId) {
   if (!profileId) {
     wx.redirectTo({
@@ -179,37 +220,20 @@ Page({
       importProgressText: `正在导入 0/${records.length}...`,
     });
 
-    let successCount = 0;
-    let failCount = 0;
-
     try {
-      for (let index = 0; index < records.length; index += 1) {
-        const record = records[index];
-        try {
-          await recordService.saveRecord(
-            this.data.profileId,
-            record.payload,
-            record.measuredAt,
-            record.note,
-          );
-          successCount += 1;
-        } catch (error) {
-          failCount += 1;
-          console.warn('[import-records] save failed', {
-            index,
-            record,
-            error,
+      const results = await batchImport(
+        this.data.profileId,
+        records,
+        (completed, total) => {
+          this.setData({
+            importProgressText: `正在导入 ${completed}/${total}...`,
           });
-        }
+        },
+      );
 
-        this.setData({
-          importProgressText: `正在导入 ${index + 1}/${records.length}...`,
-        });
-      }
-
-      const resultText = failCount > 0
-        ? `成功导入 ${successCount} 条记录，${failCount} 条导入失败`
-        : `成功导入 ${successCount} 条记录`;
+      const resultText = results.failed > 0
+        ? `成功导入 ${results.success} 条记录，${results.failed} 条导入失败`
+        : `成功导入 ${results.success} 条记录`;
 
       this.setData({
         hasImportResult: true,

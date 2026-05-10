@@ -56,6 +56,7 @@
             <view class="data-latest__empty-icon">♥</view>
             <view class="data-latest__empty-title">开启你的健康记录</view>
             <view class="data-latest__empty-text">每天定时测量并记录</view>
+            <view class="data-latest__empty-import" bindtap="handleImportRecords">已有数据？导入历史记录</view>
           </view>
         </view>
 

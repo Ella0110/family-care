@@ -881,6 +881,16 @@ Page({
     });
   },
 
+  handleImportRecords() {
+    if (!this.data.currentProfileId) {
+      return;
+    }
+
+    wx.navigateTo({
+      url: `/pages/import-records/import-records?profileId=${this.data.currentProfileId}`,
+    });
+  },
+
   handleExportBloodPressureChart() {
     this.exportChartImage('bp');
   },
