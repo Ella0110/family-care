@@ -3,9 +3,10 @@ const {
 } = require('./report-helpers');
 
 const CHART_COLORS = {
-  systolic: '#3182F7',
-  diastolic: '#10B981',
-  heartRate: '#3182F7',
+  systolic: '#1E40AF',
+  diastolic: '#93C5FD',
+  heartRate: '#3B82F6',
+  normalPoint: '#3B82F6',
   alert: '#EF4444',
   reference: '#D1D5DB',
   text: '#475569',
@@ -53,12 +54,18 @@ function clearCanvas(ctx, width, height) {
 }
 
 function drawTitle(ctx, leftTitle, rightTitle, canvasSize) {
+  if (!leftTitle && !rightTitle) {
+    return;
+  }
+
   ctx.save();
-  ctx.fillStyle = CHART_COLORS.title;
-  ctx.font = '15px sans-serif';
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  ctx.fillText(leftTitle, 0, 0);
+  if (leftTitle) {
+    ctx.fillStyle = CHART_COLORS.title;
+    ctx.font = '15px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(leftTitle, 0, 0);
+  }
 
   if (rightTitle) {
     ctx.fillStyle = CHART_COLORS.text;
@@ -242,6 +249,10 @@ function drawSinglePoint(ctx, x, y, color, radius) {
   ctx.restore();
 }
 
+function shouldBreakBetween(leftPoint, rightPoint) {
+  return !leftPoint || !rightPoint || (rightPoint.slotIndex - leftPoint.slotIndex) > 1;
+}
+
 function drawPolyline(ctx, chartData, points, getValue, color, plot, range) {
   if (!points.length) {
     return;
@@ -258,7 +269,7 @@ function drawPolyline(ctx, chartData, points, getValue, color, plot, range) {
     const x = getPointX(point, chartData, plot);
     const y = valueToY(getValue(point), range, plot);
 
-    if (index === 0) {
+    if (index === 0 || shouldBreakBetween(points[index - 1], point)) {
       ctx.moveTo(x, y);
     } else {
       ctx.lineTo(x, y);
@@ -269,61 +280,15 @@ function drawPolyline(ctx, chartData, points, getValue, color, plot, range) {
   ctx.restore();
 }
 
-function drawSegmentedPolyline(ctx, chartData, points, getValue, color, isAlert, plot, range) {
-  if (!points.length) {
-    return;
-  }
-
-  if (points.length === 1) {
-    const point = points[0];
-    if (isAlert(point)) {
-      drawSinglePoint(
-        ctx,
-        getPointX(point, chartData, plot),
-        valueToY(getValue(point), range, plot),
-        CHART_COLORS.alert,
-        3,
-      );
-    }
-    return;
-  }
-
-  for (let index = 0; index < points.length - 1; index += 1) {
-    const current = points[index];
-    const next = points[index + 1];
-    const abnormal = isAlert(current) || isAlert(next);
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.strokeStyle = abnormal ? CHART_COLORS.alert : color;
-    ctx.lineWidth = 1.5;
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-    ctx.moveTo(
-      getPointX(current, chartData, plot),
-      valueToY(getValue(current), range, plot),
-    );
-    ctx.lineTo(
-      getPointX(next, chartData, plot),
-      valueToY(getValue(next), range, plot),
-    );
-    ctx.stroke();
-    ctx.restore();
-  }
-}
-
-function drawAlertPoints(ctx, chartData, points, getValue, isAlert, plot, range) {
+function drawSeriesPoints(ctx, chartData, points, getValue, isAlert, plot, range) {
   points.forEach((point) => {
-    if (!isAlert(point)) {
-      return;
-    }
-
+    const abnormal = isAlert(point);
     drawSinglePoint(
       ctx,
       getPointX(point, chartData, plot),
       valueToY(getValue(point), range, plot),
-      CHART_COLORS.alert,
-      3,
+      abnormal ? CHART_COLORS.alert : CHART_COLORS.normalPoint,
+      abnormal ? 4 : 3,
     );
   });
 }
@@ -345,7 +310,7 @@ function drawRoundedBar(ctx, x, y, width, bottom, color) {
   ctx.restore();
 }
 
-function drawBloodPressureTrendChart(ctx, chartInput, threshold, canvasSize, mode) {
+function drawBloodPressureTrendChart(ctx, chartInput, threshold, canvasSize, mode, options = {}) {
   const chartData = safeChartData(chartInput, mode);
   const plot = {
     left: CHART_PADDING.left,
@@ -355,7 +320,12 @@ function drawBloodPressureTrendChart(ctx, chartInput, threshold, canvasSize, mod
   };
 
   clearCanvas(ctx, canvasSize.width, canvasSize.height);
-  drawTitle(ctx, '血压波动趋势', '单位: mmHg', canvasSize);
+  drawTitle(
+    ctx,
+    options.hideTitle ? '' : (options.leftTitle || '血压波动趋势'),
+    options.hideTitle ? '' : (options.rightTitle === undefined ? '单位: mmHg' : options.rightTitle),
+    canvasSize,
+  );
 
   if (!chartData.points.length) {
     return;
@@ -368,37 +338,13 @@ function drawBloodPressureTrendChart(ctx, chartInput, threshold, canvasSize, mod
   drawReferenceLine(ctx, threshold.diastolic, CHART_COLORS.reference, plot, range);
   drawXAxisLabels(ctx, chartData.slots, plot, chartData.mode);
 
-  if (chartData.mode <= 7) {
-    drawPolyline(ctx, chartData, chartData.points, (point) => point.systolic, CHART_COLORS.systolic, plot, range);
-    drawPolyline(ctx, chartData, chartData.points, (point) => point.diastolic, CHART_COLORS.diastolic, plot, range);
-    drawAlertPoints(ctx, chartData, chartData.points, (point) => point.systolic, (point) => point.systolicAlert, plot, range);
-    drawAlertPoints(ctx, chartData, chartData.points, (point) => point.diastolic, (point) => point.diastolicAlert, plot, range);
-    return;
-  }
-
-  drawSegmentedPolyline(
-    ctx,
-    chartData,
-    chartData.points,
-    (point) => point.systolic,
-    CHART_COLORS.systolic,
-    (point) => point.systolicAlert,
-    plot,
-    range,
-  );
-  drawSegmentedPolyline(
-    ctx,
-    chartData,
-    chartData.points,
-    (point) => point.diastolic,
-    CHART_COLORS.diastolic,
-    (point) => point.diastolicAlert,
-    plot,
-    range,
-  );
+  drawPolyline(ctx, chartData, chartData.points, (point) => point.systolic, CHART_COLORS.systolic, plot, range);
+  drawPolyline(ctx, chartData, chartData.points, (point) => point.diastolic, CHART_COLORS.diastolic, plot, range);
+  drawSeriesPoints(ctx, chartData, chartData.points, (point) => point.systolic, (point) => point.systolicAlert, plot, range);
+  drawSeriesPoints(ctx, chartData, chartData.points, (point) => point.diastolic, (point) => point.diastolicAlert, plot, range);
 }
 
-function drawHeartRateChart(ctx, chartInput, threshold, canvasSize, mode) {
+function drawHeartRateChart(ctx, chartInput, threshold, canvasSize, mode, options = {}) {
   const chartData = safeChartData(chartInput, mode);
   const heartRatePoints = chartData.points.filter((point) => point.hasHeartRate);
   const plot = {
@@ -409,7 +355,12 @@ function drawHeartRateChart(ctx, chartInput, threshold, canvasSize, mode) {
   };
 
   clearCanvas(ctx, canvasSize.width, canvasSize.height);
-  drawTitle(ctx, '心率变化 (bpm)', '', canvasSize);
+  drawTitle(
+    ctx,
+    options.hideTitle ? '' : (options.leftTitle || '心率变化 (bpm)'),
+    options.hideTitle ? '' : (options.rightTitle || ''),
+    canvasSize,
+  );
 
   if (!heartRatePoints.length) {
     return;
@@ -443,7 +394,7 @@ function drawHeartRateChart(ctx, chartInput, threshold, canvasSize, mode) {
     plot,
     range,
   );
-  drawAlertPoints(
+  drawSeriesPoints(
     ctx,
     chartData,
     heartRatePoints,

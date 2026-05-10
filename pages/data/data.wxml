@@ -1,10 +1,10 @@
 <view class="page page-root data-page" style="--font-scale: {{fontScale}};">
   <view wx:if="{{pageReady}}">
-    <view class="data-topbar">
-      <view class="data-topbar__title" bindtap="handleOpenProfileSwitcher">
-        {{profileTitle}}
-        <text wx:if="{{hasProfile}}" class="data-topbar__arrow">▼</text>
-      </view>
+    <view class="data-page__header">数据</view>
+
+    <view wx:if="{{hasProfile}}" class="data-profile-entry" bindtap="handleOpenProfileSwitcher">
+      <text class="data-profile-entry__text">{{profileTitle}}</text>
+      <text class="data-profile-entry__arrow">▼</text>
     </view>
 
     <view wx:if="{{!hasProfile}}" class="data-empty">
@@ -27,14 +27,24 @@
         <view class="card data-latest">
           <view wx:if="{{latestRecordDisplay}}" class="data-latest__content">
             <view class="data-latest__status {{latestRecordDisplay.statusClassName}}">
-              {{latestRecordDisplay.statusText}}
+              <view class="data-latest__status-dot {{latestRecordDisplay.statusClassName}}"></view>
+              <text>{{latestRecordDisplay.statusText}}</text>
             </view>
-            <view class="data-latest__value {{latestRecordDisplay.statusClassName}}">
-              {{latestRecordDisplay.valueText}}
+
+            <view class="data-latest__numbers">
+              <text class="data-latest__number {{latestRecordDisplay.systolicClassName}}">{{latestRecordDisplay.systolicText}}</text>
+              <text class="data-latest__separator"> / </text>
+              <text class="data-latest__number {{latestRecordDisplay.diastolicClassName}}">{{latestRecordDisplay.diastolicText}}</text>
+              <text class="data-latest__unit">mmHg</text>
             </view>
+
             <view class="data-latest__meta">
-              <text>心率 {{latestRecordDisplay.heartRateText}}</text>
-              <text>{{latestRecordDisplay.measuredAtText}}</text>
+              <view class="data-latest__meta-item {{latestRecordDisplay.heartRateClassName}}">
+                最近心率 {{latestRecordDisplay.heartRateText}}
+              </view>
+              <view class="data-latest__meta-item">
+                测量时间 {{latestRecordDisplay.measuredAtText}}
+              </view>
             </view>
           </view>
 
@@ -45,13 +55,15 @@
           </view>
         </view>
 
-        <view wx:if="{{hasAnyRecords}}" class="card data-trend">
-          <view class="data-trend__header">
-            <view class="data-trend__tabs">
+        <view wx:if="{{hasAnyRecords}}" class="card data-analysis">
+          <view class="data-analysis__title">数据分析</view>
+
+          <view class="data-analysis__toolbar">
+            <view class="data-analysis__tabs">
               <view
                 wx:for="{{periodOptions}}"
                 wx:key="days"
-                class="data-trend__tab {{selectedDays === item.days ? 'data-trend__tab--active' : ''}} {{!item.enabled ? 'data-trend__tab--disabled' : ''}}"
+                class="data-analysis__tab {{selectedDays === item.days ? 'data-analysis__tab--active' : ''}} {{!item.enabled ? 'data-analysis__tab--disabled' : ''}}"
                 data-days="{{item.days}}"
                 bindtap="handleSelectPeriod"
               >
@@ -59,52 +71,72 @@
               </view>
             </view>
 
-            <view class="data-trend__download" bindtap="handleExportChart">下载</view>
+            <view class="data-analysis__records-link" bindtap="handleViewAllRecords">全部记录 &gt;</view>
           </view>
 
           <view wx:if="{{hasRangeRecords}}">
-            <canvas id="dataBpChart" type="2d" class="data-trend__canvas"></canvas>
+            <view class="data-summary">
+              <view class="data-summary__item">
+                <view class="data-summary__label">已达标</view>
+                <view class="data-summary__value is-normal">{{rangeSummary.normalCount}} 次</view>
+              </view>
 
-            <canvas wx:if="{{hasHeartRateData}}" id="dataHeartRateChart" type="2d" class="data-trend__canvas data-trend__canvas--secondary"></canvas>
+              <view class="data-summary__item">
+                <view class="data-summary__label">未达标</view>
+                <view class="data-summary__value is-danger">{{rangeSummary.abnormalCount}} 次</view>
+              </view>
 
-            <view wx:elif="{{hasRangeRecords}}" class="data-trend__empty-card">
-              暂无心率数据
+              <view class="data-summary__item data-summary__item--wide">
+                <view class="data-summary__label">平均值</view>
+                <view class="data-summary__value">{{rangeSummary.averageText}} mmHg</view>
+              </view>
+            </view>
+
+            <view class="data-chart-section">
+              <view class="data-chart-section__header">
+                <view class="data-chart-section__title">血压数据</view>
+                <view class="data-chart-section__action" bindtap="handleExportBloodPressureChart">下载</view>
+              </view>
+
+              <canvas id="dataBpChart" type="2d" class="data-chart-section__canvas"></canvas>
+
+              <view class="data-chart-legend">
+                <view class="data-chart-legend__item">
+                  <view class="data-chart-legend__line data-chart-legend__line--systolic"></view>
+                  <text>收缩压</text>
+                </view>
+                <view class="data-chart-legend__item">
+                  <view class="data-chart-legend__line data-chart-legend__line--diastolic"></view>
+                  <text>舒张压</text>
+                </view>
+                <view class="data-chart-legend__item">
+                  <view class="data-chart-legend__dot"></view>
+                  <text>超标</text>
+                </view>
+              </view>
+            </view>
+
+            <view class="data-chart-section">
+              <view class="data-chart-section__header">
+                <view class="data-chart-section__title">心率数据</view>
+                <view class="data-chart-section__action" bindtap="handleExportHeartRateChart">下载</view>
+              </view>
+
+              <canvas wx:if="{{hasHeartRateData}}" id="dataHeartRateChart" type="2d" class="data-chart-section__canvas data-chart-section__canvas--secondary"></canvas>
+
+              <view wx:else class="data-chart-section__empty">
+                暂无心率数据
+              </view>
             </view>
           </view>
 
-          <view wx:else class="data-trend__empty-card">
+          <view wx:else class="data-chart-section__empty">
             当前时间范围内暂无趋势数据
           </view>
         </view>
 
-        <view wx:if="{{historyItems.length > 0}}" class="card data-history">
-          <view class="data-section-header">
-            <view class="data-section-header__title">历史明细</view>
-            <view class="data-section-header__link" bindtap="handleViewAllRecords">全部记录 &gt;</view>
-          </view>
-
-          <view
-            wx:for="{{historyItems}}"
-            wx:key="_id"
-            class="data-history__item"
-            data-record-id="{{item._id}}"
-            bindtap="handleHistoryRecordTap"
-          >
-            <view class="data-history__time">{{item.timeText}}</view>
-            <view class="data-history__main">
-              <view class="data-history__value">{{item.valueText}}</view>
-              <view wx:if="{{item.heartRateText}}" class="data-history__heart">{{item.heartRateText}}</view>
-            </view>
-            <view class="data-history__status {{item.statusClassName}}">{{item.statusText}}</view>
-            <view wx:if="{{item.canEdit}}" class="data-history__arrow">›</view>
-          </view>
-        </view>
-
-        <view wx:if="{{hasMedicationSummary}}" class="card data-medication">
-          <view class="data-section-header">
-            <view class="data-section-header__title">长期用药</view>
-          </view>
-          <view class="data-medication__text">长期用药：{{medicationText}}</view>
+        <view class="data-bottom-switcher" bindtap="handleOpenProfileSwitcher">
+          查看全部档案
         </view>
       </view>
     </view>
@@ -117,6 +149,7 @@
   <button
     wx:if="{{pageReady && hasProfile && canWriteCurrentProfile}}"
     class="data-add-button"
+    hover-class="data-add-button--pressed"
     bindtap="handleOpenRecordPanel"
   >
     +

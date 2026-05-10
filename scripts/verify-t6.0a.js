@@ -53,9 +53,7 @@ assert.deepStrictEqual(
 assert.match(read('pages/data/data.wxml'), /profile-switcher/, 'data page should render profile switcher component');
 assert.match(read('pages/data/data.wxml'), /record-panel/, 'data page should render record panel component');
 assert.match(read('pages/data/data.wxml'), /全部记录/, 'data page should expose records-list navigation');
-assert.match(read('pages/data/data.wxml'), /长期用药/, 'data page should expose medication summary');
-assert.match(read('pages/data/data.wxml'), /wx:if="\{\{hasMedicationSummary\}\}"/, 'medication summary should only render when medications exist');
-assert.doesNotMatch(read('pages/data/data.wxml'), /bindtap="handleMedicationTap"/, 'medication summary should be read-only');
+assert.match(read('pages/data/data.wxml'), /数据分析/, 'data page should render the analysis card');
 assert.match(read('pages/data/data.wxml'), /wx:if="\{\{pageReady\}\}"/, 'data page should gate content behind pageReady');
 assert.match(read('pages/data/data.wxml'), /wx:else/, 'data page should render a loading placeholder when pageReady is false');
 

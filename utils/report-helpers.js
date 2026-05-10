@@ -235,57 +235,12 @@ function countUniqueMeasuredDays(records) {
   return new Set((normalizedRecords || []).map((record) => record.dateKey)).size;
 }
 
-function selectSevenDayChartRecords(recordsForDay) {
-  const sortedDesc = (Array.isArray(recordsForDay) ? recordsForDay : [])
-    .slice()
-    .sort((left, right) => right.measuredAt.getTime() - left.measuredAt.getTime());
-  const latestByPeriod = new Map();
-
-  sortedDesc.forEach((record) => {
-    const period = normalizePeriodValue(record.period);
-    if (!latestByPeriod.has(period)) {
-      latestByPeriod.set(period, record);
-    }
-  });
-
-  let selected = [];
-
-  if (latestByPeriod.size >= 2) {
-    selected = Array.from(latestByPeriod.values())
-      .sort((left, right) => right.measuredAt.getTime() - left.measuredAt.getTime())
-      .slice(0, 3);
-  } else {
-    selected = sortedDesc.slice(0, 3);
-  }
-
-  return selected
+function getLatestPerDay(recordsForDay) {
+  const safeRecords = (Array.isArray(recordsForDay) ? recordsForDay : [])
     .slice()
     .sort((left, right) => left.measuredAt.getTime() - right.measuredAt.getTime());
-}
 
-function buildDailyAveragePoint(slot, recordsForDay, threshold) {
-  const safeRecords = Array.isArray(recordsForDay) ? recordsForDay : [];
-  const heartRateValues = safeRecords
-    .map((record) => record.heartRate)
-    .filter((value) => Number.isFinite(value));
-  const latestRecord = safeRecords[safeRecords.length - 1];
-  const averageRecord = {
-    _id: `${slot.dateKey}-avg`,
-    dateKey: slot.dateKey,
-    label: slot.label,
-    measuredAt: latestRecord ? latestRecord.measuredAt : slot.date,
-    systolic: average(safeRecords.map((record) => record.systolic)),
-    diastolic: average(safeRecords.map((record) => record.diastolic)),
-    heartRate: heartRateValues.length ? average(heartRateValues) : null,
-    period: 'other',
-    sourceCount: safeRecords.length,
-  };
-
-  return decorateAlertFlags(
-    averageRecord,
-    threshold,
-    safeRecords.some((record) => isHeartRateAbnormal(record)),
-  );
+  return safeRecords.length ? safeRecords[safeRecords.length - 1] : null;
 }
 
 function buildChartTimeline(records, days, threshold, now = new Date()) {
@@ -302,13 +257,13 @@ function buildChartTimeline(records, days, threshold, now = new Date()) {
       return;
     }
 
-    if (Number(days) <= 7) {
-      slot.items = selectSevenDayChartRecords(recordsForDay)
-        .map((record) => decorateAlertFlags(record, threshold));
-      return;
-    }
-
-    slot.items = [buildDailyAveragePoint(slot, recordsForDay, threshold)];
+    const latestRecord = getLatestPerDay(recordsForDay);
+    slot.items = latestRecord
+      ? [decorateAlertFlags(Object.assign({}, latestRecord, {
+        label: slot.label,
+        dateKey: slot.dateKey,
+      }), threshold)]
+      : [];
   });
 
   const points = [];
@@ -513,6 +468,7 @@ module.exports = {
   normalizeReportRecords,
   countUniqueMeasuredDays,
   buildChartTimeline,
+  getLatestPerDay,
   isHighRiskRecord,
   isHighRecord,
   isLowRecord,

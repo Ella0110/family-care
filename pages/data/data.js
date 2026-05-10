@@ -1,18 +1,16 @@
 const { store } = require('../../store/index');
 const recordService = require('../../services/record-service');
-const medicationService = require('../../services/medication-service');
 const { callSilent } = require('../../services/request');
 const { getErrorMessage } = require('../../utils/error-messages');
-const { getReferenceLines, getBPStatusDisplay } = require('../../utils/bp-status');
 const { DEFAULT_FONT_SCALE, normalizeFontScale } = require('../../utils/font-scale');
 const { getAppLoginStatus } = require('../../utils/app-login-status');
 const {
   getCurrentRelationship,
-  isOwner,
   isViewer,
   canWrite,
 } = require('../../utils/permission-helpers');
 const {
+  LOW_BP,
   getSinceForDays,
   toMeasuredDate,
   countUniqueMeasuredDays,
@@ -193,64 +191,104 @@ function formatExportDateRange(days, now = new Date()) {
   return `${start.getFullYear()}.${pad(start.getMonth() + 1)}.${pad(start.getDate())} - ${now.getFullYear()}.${pad(now.getMonth() + 1)}.${pad(now.getDate())}`;
 }
 
-function formatRomanGrade(detail) {
-  if (detail === '1级') {
-    return 'I 级';
+function average(values) {
+  if (!Array.isArray(values) || !values.length) {
+    return null;
   }
 
-  if (detail === '2级') {
-    return 'II 级';
-  }
-
-  if (detail === '3级') {
-    return 'III 级';
-  }
-
-  return detail || '';
+  return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
 }
 
-function formatLatestStatusText(status) {
-  if (!status) {
-    return '血压正常';
+function getLatestStatusMeta(record, threshold) {
+  if (!record || !record.payload) {
+    return {
+      text: '血压正常',
+      toneClassName: 'is-normal',
+    };
   }
 
-  if (status.level === 'high') {
-    const grade = status.detail ? ` (Grade ${status.detail.replace('级', '')})` : '';
-    return `血压${status.label}${grade}`;
+  const payload = record.payload || {};
+  const systolic = Number(payload.systolic);
+  const diastolic = Number(payload.diastolic);
+
+  if (systolic >= 180 || diastolic >= 120) {
+    return {
+      text: '血压过高（3级）',
+      toneClassName: 'is-danger',
+    };
   }
 
-  if (status.level === 'low') {
-    return '血压偏低';
+  if (systolic >= 160 || diastolic >= 100) {
+    return {
+      text: '血压偏高（2级）',
+      toneClassName: 'is-danger',
+    };
   }
 
-  return '血压正常';
+  if (systolic >= threshold.systolic || diastolic >= threshold.diastolic) {
+    return {
+      text: '血压偏高（1级）',
+      toneClassName: 'is-warning',
+    };
+  }
+
+  if (systolic < LOW_BP.systolic || diastolic < LOW_BP.diastolic) {
+    return {
+      text: '血压偏低',
+      toneClassName: 'is-warning',
+    };
+  }
+
+  return {
+    text: '血压正常',
+    toneClassName: 'is-normal',
+  };
 }
 
-function formatHistoryStatusText(status) {
-  if (!status) {
-    return '血压正常';
-  }
+function buildRangeSummary(records, threshold) {
+  const safeRecords = Array.isArray(records) ? records : [];
+  const systolicValues = safeRecords
+    .map((record) => Number(record && record.payload && record.payload.systolic))
+    .filter(Number.isFinite);
+  const diastolicValues = safeRecords
+    .map((record) => Number(record && record.payload && record.payload.diastolic))
+    .filter(Number.isFinite);
 
-  if (status.level === 'high') {
-    return status.detail
-      ? `血压${status.label} · ${formatRomanGrade(status.detail)}`
-      : `血压${status.label}`;
-  }
+  let normalCount = 0;
+  let abnormalCount = 0;
 
-  if (status.level === 'low') {
-    return '血压偏低';
-  }
+  safeRecords.forEach((record) => {
+    const payload = record && record.payload ? record.payload : {};
+    const systolic = Number(payload.systolic);
+    const diastolic = Number(payload.diastolic);
+    if (!Number.isFinite(systolic) || !Number.isFinite(diastolic)) {
+      return;
+    }
 
-  return '血压正常';
+    if (
+      systolic < threshold.systolic
+      && diastolic < threshold.diastolic
+      && systolic >= LOW_BP.systolic
+      && diastolic >= LOW_BP.diastolic
+    ) {
+      normalCount += 1;
+    } else {
+      abnormalCount += 1;
+    }
+  });
+
+  return {
+    normalCount,
+    abnormalCount,
+    averageText: systolicValues.length && diastolicValues.length
+      ? `${average(systolicValues)}/${average(diastolicValues)}`
+      : '--',
+  };
 }
 
-function buildMedicationSummary(activeMedications) {
-  const names = (Array.isArray(activeMedications) ? activeMedications : [])
-    .map((item) => String(item && item.drug || '').trim())
-    .filter(Boolean)
-    .slice(0, 3);
-
-  return names.length ? names.join('、') : '';
+function getRangeRecords(records, days, now = new Date()) {
+  const since = getSinceForDays(days, now).getTime();
+  return sortRecordsDesc(records).filter((record) => toTimestamp(record && record.measuredAt) >= since);
 }
 
 function buildLatestDisplay(record, profile) {
@@ -259,56 +297,32 @@ function buildLatestDisplay(record, profile) {
   }
 
   const payload = record.payload || {};
-  const referenceLines = getReferenceLines(profile && profile.settings && profile.settings.bp && profile.settings.bp.referenceLines);
-  const status = getBPStatusDisplay(payload.systolic, payload.diastolic, referenceLines);
+  const threshold = getThreshold(profile);
+  const status = getLatestStatusMeta(record, threshold);
+  const systolic = Number(payload.systolic);
+  const diastolic = Number(payload.diastolic);
+  const heartRate = payload.heartRate === null || payload.heartRate === undefined || payload.heartRate === ''
+    ? null
+    : Number(payload.heartRate);
+  const systolicAlert = Number.isFinite(systolic) && (systolic >= threshold.systolic || systolic < LOW_BP.systolic);
+  const diastolicAlert = Number.isFinite(diastolic) && (diastolic >= threshold.diastolic || diastolic < LOW_BP.diastolic);
+  const heartRateAlert = Number.isFinite(heartRate) && (heartRate > 100 || heartRate < 50);
 
   return {
-    statusText: formatLatestStatusText(status),
-    statusClassName: status.className,
-    valueText: `${payload.systolic} / ${payload.diastolic} mmHg`,
-    heartRateText: payload.heartRate ? `${payload.heartRate} bpm` : '--',
+    statusText: status.text,
+    statusClassName: status.toneClassName,
+    systolicText: Number.isFinite(systolic) ? String(systolic) : '--',
+    diastolicText: Number.isFinite(diastolic) ? String(diastolic) : '--',
+    systolicClassName: systolicAlert ? 'is-alert' : 'is-normal',
+    diastolicClassName: diastolicAlert ? 'is-alert' : 'is-normal',
+    heartRateText: Number.isFinite(heartRate) ? `${heartRate} bpm` : '--',
+    heartRateClassName: heartRateAlert ? 'is-alert' : '',
     measuredAtText: formatMeasuredAt(record.measuredAt),
   };
 }
 
-function canEditRecord(state, profileId, record) {
-  if (!record || !profileId || !canWrite(state, profileId)) {
-    return false;
-  }
-
-  if (isOwner(state, profileId)) {
-    return true;
-  }
-
-  const currentUserId = state.user && state.user._id;
-  return Boolean(currentUserId && record.recordedBy === currentUserId);
-}
-
-function buildHistoryItems(records, profile) {
-  const referenceLines = getReferenceLines(profile && profile.settings && profile.settings.bp && profile.settings.bp.referenceLines);
-  const state = store.getState();
-  const profileId = profile && profile._id;
-
-  return (Array.isArray(records) ? records : [])
-    .slice(0, 5)
-    .map((record) => {
-      const payload = record.payload || {};
-      const status = getBPStatusDisplay(payload.systolic, payload.diastolic, referenceLines);
-      return {
-        _id: record._id,
-        raw: record,
-        timeText: formatMeasuredAt(record.measuredAt),
-        valueText: `${payload.systolic} / ${payload.diastolic} mmHg`,
-        heartRateText: payload.heartRate ? `心率 ${payload.heartRate} bpm` : '',
-        statusText: formatHistoryStatusText(status),
-        statusClassName: status.className,
-        canEdit: canEditRecord(state, profileId, record),
-      };
-    });
-}
-
-function buildChartExportHeight(hasHeartRateData) {
-  return hasHeartRateData ? 900 : 660;
+function buildChartExportHeight() {
+  return 620;
 }
 
 Page({
@@ -330,9 +344,11 @@ Page({
     hasAnyRecords: false,
     hasRangeRecords: false,
     hasHeartRateData: false,
-    historyItems: [],
-    medicationText: '暂未添加',
-    hasMedicationSummary: false,
+    rangeSummary: {
+      normalCount: 0,
+      abnormalCount: 0,
+      averageText: '--',
+    },
     showProfileSwitcher: false,
     showRecordPanel: false,
     editingRecord: null,
@@ -351,7 +367,7 @@ Page({
     this.lastLoadedProfileId = '';
     this.coverageDayCount = NaN;
     this.allRecords = [];
-    this.activeMedications = [];
+    this.rangeRecords = [];
     this.chartData = null;
     this.chartThreshold = { systolic: 140, diastolic: 90 };
     this.exportTempFilePath = '';
@@ -494,7 +510,7 @@ Page({
       this.lastRefreshAt = 0;
       this.coverageDayCount = NaN;
       this.allRecords = [];
-      this.activeMedications = [];
+      this.rangeRecords = [];
       this.chartData = null;
       this.setData({
         pageReady: true,
@@ -507,9 +523,11 @@ Page({
         hasAnyRecords: false,
         hasRangeRecords: false,
         hasHeartRateData: false,
-        historyItems: [],
-        medicationText: '暂未添加',
-        hasMedicationSummary: false,
+        rangeSummary: {
+          normalCount: 0,
+          abnormalCount: 0,
+          averageText: '--',
+        },
         periodOptions: buildPeriodOptions(NaN),
       });
       return;
@@ -525,6 +543,8 @@ Page({
 
     const profile = findProfile(profileId);
     if (!profile) {
+      this.rangeRecords = [];
+      this.chartData = null;
       this.setData({
         pageReady: true,
         _lastProfileId: '',
@@ -544,10 +564,9 @@ Page({
     });
 
     try {
-      const [latestResult, recordResult, medicationResult] = await Promise.all([
+      const [latestResult, recordResult] = await Promise.all([
         recordService.fetchLatestRecord(profileId),
         this.fetchIndependentRecords(profileId),
-        medicationService.fetchMedications(profileId),
       ]);
 
       if (requestId !== this.requestId) {
@@ -558,9 +577,6 @@ Page({
       this.lastRefreshAt = Date.now();
       this.allRecords = Array.isArray(recordResult.records) ? recordResult.records.slice() : [];
       this.coverageDayCount = countUniqueMeasuredDays(this.allRecords);
-      this.activeMedications = Array.isArray(medicationResult.activeMedications)
-        ? medicationResult.activeMedications.slice()
-        : [];
       this.latestRecord = latestResult.record || this.allRecords[0] || null;
 
       this.applyViewModel();
@@ -570,6 +586,8 @@ Page({
       }
 
       this.chartRenderToken += 1;
+      this.rangeRecords = [];
+      this.chartData = null;
       this.setData({
         pageReady: true,
         _lastProfileId: profileId,
@@ -580,9 +598,11 @@ Page({
         hasAnyRecords: false,
         hasRangeRecords: false,
         hasHeartRateData: false,
-        historyItems: [],
-        medicationText: '暂未添加',
-        hasMedicationSummary: false,
+        rangeSummary: {
+          normalCount: 0,
+          abnormalCount: 0,
+          averageText: '--',
+        },
         periodOptions: buildPeriodOptions(NaN),
       });
     }
@@ -597,21 +617,20 @@ Page({
       ? this.data.selectedDays
       : ((periodOptions.find((item) => item.enabled) || periodOptions[0] || { days: 7 }).days);
     const latestRecordDisplay = buildLatestDisplay(this.latestRecord, profile);
-    const medicationText = buildMedicationSummary(this.activeMedications);
-    const hasMedicationSummary = Boolean(medicationText);
-    const historyItems = buildHistoryItems(this.allRecords, profile);
 
     this.chartThreshold = getThreshold(profile);
+    this.rangeRecords = getRangeRecords(this.allRecords, nextSelectedDays, new Date());
     this.chartData = buildChartTimeline(
-      this.allRecords,
+      this.rangeRecords,
       nextSelectedDays,
       this.chartThreshold,
       new Date(),
     );
 
     const hasAnyRecords = this.allRecords.length > 0;
-    const hasRangeRecords = Boolean(this.chartData && this.chartData.points && this.chartData.points.length);
+    const hasRangeRecords = this.rangeRecords.length > 0;
     const hasHeartRateData = Boolean(this.chartData && this.chartData.hasHeartRateData);
+    const rangeSummary = buildRangeSummary(this.rangeRecords, this.chartThreshold);
 
     this.setData({
       pageReady: true,
@@ -624,9 +643,7 @@ Page({
       hasAnyRecords,
       hasRangeRecords,
       hasHeartRateData,
-      historyItems,
-      medicationText,
-      hasMedicationSummary,
+      rangeSummary,
       periodOptions,
     }, () => {
       if (hasRangeRecords) {
@@ -697,6 +714,7 @@ Page({
       this.chartThreshold,
       { width, height },
       this.data.selectedDays,
+      { hideTitle: true },
     );
   },
 
@@ -720,6 +738,7 @@ Page({
       this.chartThreshold,
       { width, height },
       this.data.selectedDays,
+      { hideTitle: true },
     );
   },
 
@@ -817,21 +836,16 @@ Page({
     });
   },
 
-  handleHistoryRecordTap(event) {
-    const recordId = event.currentTarget.dataset.recordId;
-    const record = (this.data.historyItems || []).find((item) => item && item._id === recordId);
-
-    if (!record || !record.canEdit) {
-      return;
-    }
-
-    this.setData({
-      showRecordPanel: true,
-      editingRecord: record.raw,
-    });
+  handleExportBloodPressureChart() {
+    this.exportChartImage('bp');
   },
 
-  async handleExportChart() {
+  handleExportHeartRateChart() {
+    this.exportChartImage('hr');
+  },
+
+  async exportChartImage(chartType) {
+    const isHeartRateChart = chartType === 'hr';
     if (this.data.isExportingChart || !this.data.hasRangeRecords) {
       if (!this.data.hasRangeRecords) {
         wx.showToast({
@@ -842,15 +856,19 @@ Page({
       return;
     }
 
-    this.setData({
-      isExportingChart: true,
-    });
+    if (isHeartRateChart && !this.data.hasHeartRateData) {
+      wx.showToast({
+        title: '暂无心率数据',
+        icon: 'none',
+      });
+      return;
+    }
+
+    this.setData({ isExportingChart: true });
 
     try {
-      const exportHeight = buildChartExportHeight(this.data.hasHeartRateData);
-      this.setData({
-        exportCanvasHeight: exportHeight,
-      });
+      const exportHeight = buildChartExportHeight();
+      this.setData({ exportCanvasHeight: exportHeight });
 
       await wait(80);
       const target = await this.getCanvasNode('#dataExportCanvas');
@@ -866,7 +884,11 @@ Page({
       ctx.textAlign = 'center';
       ctx.fillStyle = '#111827';
       ctx.font = 'bold 24px sans-serif';
-      ctx.fillText(`${this.data.profileName || '当前档案'}的血压趋势`, EXPORT_CHART_CANVAS_WIDTH / 2, 60);
+      ctx.fillText(
+        `${this.data.profileName || '当前档案'}的${isHeartRateChart ? '心率数据' : '血压数据'}`,
+        EXPORT_CHART_CANVAS_WIDTH / 2,
+        60,
+      );
       ctx.fillStyle = '#6B7280';
       ctx.font = '14px sans-serif';
       ctx.fillText(
@@ -877,33 +899,26 @@ Page({
 
       ctx.save();
       ctx.translate(20, 130);
-      drawBloodPressureTrendChart(
-        ctx,
-        this.chartData,
-        this.chartThreshold,
-        { width: 710, height: 320 },
-        this.data.selectedDays,
-      );
-      ctx.restore();
-
-      if (this.data.hasHeartRateData) {
-        ctx.save();
-        ctx.translate(20, 480);
+      if (isHeartRateChart) {
         drawHeartRateChart(
           ctx,
           this.chartData,
           this.chartThreshold,
-          { width: 710, height: 260 },
+          { width: 710, height: 380 },
           this.data.selectedDays,
+          { hideTitle: true },
         );
-        ctx.restore();
       } else {
-        ctx.fillStyle = '#F9FAFB';
-        ctx.fillRect(20, 500, 710, 120);
-        ctx.fillStyle = '#6B7280';
-        ctx.font = '16px sans-serif';
-        ctx.fillText('暂无心率数据', EXPORT_CHART_CANVAS_WIDTH / 2, 570);
+        drawBloodPressureTrendChart(
+          ctx,
+          this.chartData,
+          this.chartThreshold,
+          { width: 710, height: 380 },
+          this.data.selectedDays,
+          { hideTitle: true },
+        );
       }
+      ctx.restore();
 
       const result = await wrapCanvasToTempFilePath(canvas, {
         x: 0,
@@ -924,9 +939,7 @@ Page({
         icon: 'none',
       });
     } finally {
-      this.setData({
-        isExportingChart: false,
-      });
+      this.setData({ isExportingChart: false });
     }
   },
 
