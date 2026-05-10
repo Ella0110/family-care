@@ -24,13 +24,31 @@ function createFakeCtx() {
     texts: [],
     dashes: [],
     arcs: [],
+    segments: [],
+    _currentPoint: null,
     clearRect() {},
     fillRect() {},
     save() {},
     restore() {},
-    beginPath() {},
-    moveTo() {},
-    lineTo() {},
+    beginPath() {
+      this._currentPoint = null;
+    },
+    moveTo(x, y) {
+      this._currentPoint = { x, y };
+    },
+    lineTo(x, y) {
+      if (this._currentPoint) {
+        this.segments.push({
+          x1: this._currentPoint.x,
+          y1: this._currentPoint.y,
+          x2: x,
+          y2: y,
+          strokeStyle: this.strokeStyle,
+          lineWidth: this.lineWidth,
+        });
+      }
+      this._currentPoint = { x, y };
+    },
     stroke() {},
     arc(x, y, radius) {
       this.arcs.push({ x, y, radius });
@@ -120,13 +138,17 @@ assert.strictEqual(
 const sevenDayCtx = createFakeCtx();
 const sevenDayChartData = {
   mode: 7,
-  slots: [
-    { index: 0, date: new Date('2026-05-04T00:00:00+08:00'), label: '05/04' },
-    { index: 1, date: new Date('2026-05-05T00:00:00+08:00'), label: '05/05' },
-  ],
+  slots: Array.from({ length: 7 }, (_, index) => ({
+    index,
+    date: new Date(`2026-05-${String(index + 4).padStart(2, '0')}T00:00:00+08:00`),
+    label: `05/${String(index + 4).padStart(2, '0')}`,
+  })),
   points: [
-    { slotIndex: 0, slotCount: 1, positionInSlot: 0, systolic: 149, diastolic: 91, systolicAlert: true, diastolicAlert: true, hasHeartRate: false },
-    { slotIndex: 1, slotCount: 1, positionInSlot: 0, systolic: 120, diastolic: 80, systolicAlert: false, diastolicAlert: false, hasHeartRate: false },
+    { slotIndex: 0, slotCount: 3, positionInSlot: 0, systolic: 149, diastolic: 91, systolicAlert: true, diastolicAlert: true, hasHeartRate: false },
+    { slotIndex: 0, slotCount: 3, positionInSlot: 1, systolic: 144, diastolic: 89, systolicAlert: true, diastolicAlert: false, hasHeartRate: false },
+    { slotIndex: 0, slotCount: 3, positionInSlot: 2, systolic: 140, diastolic: 88, systolicAlert: true, diastolicAlert: false, hasHeartRate: false },
+    { slotIndex: 6, slotCount: 2, positionInSlot: 0, systolic: 132, diastolic: 82, systolicAlert: false, diastolicAlert: false, hasHeartRate: false },
+    { slotIndex: 6, slotCount: 2, positionInSlot: 1, systolic: 120, diastolic: 80, systolicAlert: false, diastolicAlert: false, hasHeartRate: false },
   ],
 };
 drawBloodPressureTrendChart(sevenDayCtx, sevenDayChartData, threshold, { width: 300, height: 220 }, 7, { hideTitle: true });
@@ -141,6 +163,26 @@ const sevenDayPointXs = sevenDayCtx.arcs.map((item) => item.x);
 assert.ok(
   Math.min.apply(null, sevenDayPointXs) < Math.max.apply(null, sevenDayPointXs),
   '7-day points from the same range should be horizontally separated inside the day slot',
+);
+assert.ok(
+  Math.min.apply(null, sevenDayPointXs) >= 36 && Math.max.apply(null, sevenDayPointXs) <= 282,
+  '7-day points should stay inside the chart plotting width',
+);
+const sevenDayVerticalGridSegments = sevenDayCtx.segments.filter((segment) => (
+  segment.strokeStyle === '#E2E8F0' &&
+  Math.abs(segment.x1 - segment.x2) < 0.001 &&
+  Math.abs(segment.y1 - 36) < 0.001 &&
+  Math.abs(segment.y2 - 190) < 0.001
+));
+assert.ok(
+  sevenDayVerticalGridSegments.length >= 7,
+  '7-day chart should draw one light vertical guide line per day',
+);
+const blueTrendSegments = sevenDayCtx.segments.filter((segment) => segment.strokeStyle === '#0356FC');
+const arcCenters = sevenDayCtx.arcs.map((item) => `${item.x}:${item.y}`);
+assert.ok(
+  blueTrendSegments.some((segment) => !arcCenters.includes(`${segment.x1}:${segment.y1}`) && !arcCenters.includes(`${segment.x2}:${segment.y2}`)),
+  'trend lines should stop short of point centers to leave a visible gap around each point',
 );
 
 const thirtyDayCtx = createFakeCtx();

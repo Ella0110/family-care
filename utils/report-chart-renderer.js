@@ -22,6 +22,8 @@ const CHART_PADDING = {
     bottom: 30,
 };
 
+const POINT_LINE_GAP = 3;
+
 function safeChartData(chartData, mode) {
     if (
         chartData &&
@@ -97,20 +99,37 @@ function drawGrid(ctx, ticks, range, plot) {
     ctx.restore();
 }
 
-function getSlotCenter(index, totalSlots, plot) {
-    if (totalSlots <= 1) {
-        return (plot.left + plot.right) / 2;
+function getSlotWidth(totalSlots, plot, mode) {
+    if (totalSlots <= 0) {
+        return plot.right - plot.left;
     }
 
-    return plot.left + (index / (totalSlots - 1)) * (plot.right - plot.left);
-}
+    if (mode <= 7) {
+        return (plot.right - plot.left) / totalSlots;
+    }
 
-function getSlotStep(totalSlots, plot) {
     if (totalSlots <= 1) {
         return plot.right - plot.left;
     }
 
     return (plot.right - plot.left) / (totalSlots - 1);
+}
+
+function getSlotCenter(index, totalSlots, plot, mode) {
+    if (totalSlots <= 0) {
+        return plot.right - plot.left;
+    }
+
+    if (mode <= 7) {
+        const slotWidth = getSlotWidth(totalSlots, plot, mode);
+        return plot.left + slotWidth * index + slotWidth / 2;
+    }
+
+    if (totalSlots <= 1) {
+        return (plot.left + plot.right) / 2;
+    }
+
+    return plot.left + (index / (totalSlots - 1)) * (plot.right - plot.left);
 }
 
 function formatMonthDayNoPadding(date) {
@@ -137,7 +156,11 @@ function getInteriorXAxisIndexes(totalSlots) {
 }
 
 function shouldShowXAxisLabel(slot, index, totalSlots, mode) {
-    if (!slot || !(slot.date instanceof Date) || Number.isNaN(slot.date.getTime())) {
+    if (
+        !slot ||
+        !(slot.date instanceof Date) ||
+        Number.isNaN(slot.date.getTime())
+    ) {
         return false;
     }
 
@@ -166,9 +189,29 @@ function drawXAxisLabels(ctx, slots, plot, mode) {
 
         ctx.fillText(
             formatMonthDayNoPadding(slot.date),
-            getSlotCenter(index, slots.length, plot),
+            getSlotCenter(index, slots.length, plot, mode),
             plot.bottom + 12,
         );
+    });
+
+    ctx.restore();
+}
+
+function drawVerticalGuides(ctx, slots, plot, mode) {
+    if (mode > 7 || !Array.isArray(slots) || !slots.length) {
+        return;
+    }
+
+    ctx.save();
+    ctx.strokeStyle = CHART_COLORS.grid;
+    ctx.lineWidth = 1;
+
+    slots.forEach((slot, index) => {
+        const x = getSlotCenter(index, slots.length, plot, mode);
+        ctx.beginPath();
+        ctx.moveTo(x, plot.top);
+        ctx.lineTo(x, plot.bottom);
+        ctx.stroke();
     });
 
     ctx.restore();
@@ -186,13 +229,18 @@ function getPointX(point, chartData, plot) {
         point.slotIndex,
         chartData.slots.length,
         plot,
+        chartData.mode,
     );
     if (chartData.mode > 7 || point.slotCount <= 1) {
         return slotCenter;
     }
 
-    const step = getSlotStep(chartData.slots.length, plot);
-    const offsetUnit = step / 3;
+    const slotWidth = getSlotWidth(
+        chartData.slots.length,
+        plot,
+        chartData.mode,
+    );
+    const offsetUnit = slotWidth / 3;
     let offset = 0;
 
     if (point.slotCount === 2) {
@@ -293,29 +341,42 @@ function shouldBreakBetween(leftPoint, rightPoint) {
 }
 
 function drawPolyline(ctx, chartData, points, getValue, color, plot, range) {
-    if (!points.length) {
+    if (points.length < 2) {
         return;
     }
 
     ctx.save();
-    ctx.beginPath();
     ctx.strokeStyle = color;
     ctx.lineWidth = 1;
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
 
     points.forEach((point, index) => {
-        const x = getPointX(point, chartData, plot);
-        const y = valueToY(getValue(point), range, plot);
-
         if (index === 0 || shouldBreakBetween(points[index - 1], point)) {
-            ctx.moveTo(x, y);
-        } else {
-            ctx.lineTo(x, y);
+            return;
         }
-    });
 
-    ctx.stroke();
+        const previousPoint = points[index - 1];
+        const x1 = getPointX(previousPoint, chartData, plot);
+        const y1 = valueToY(getValue(previousPoint), range, plot);
+        const x2 = getPointX(point, chartData, plot);
+        const y2 = valueToY(getValue(point), range, plot);
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (!distance || distance <= POINT_LINE_GAP * 2) {
+            return;
+        }
+
+        const offsetX = (dx / distance) * POINT_LINE_GAP;
+        const offsetY = (dy / distance) * POINT_LINE_GAP;
+
+        ctx.beginPath();
+        ctx.moveTo(x1 + offsetX, y1 + offsetY);
+        ctx.lineTo(x2 - offsetX, y2 - offsetY);
+        ctx.stroke();
+    });
     ctx.restore();
 }
 
@@ -393,6 +454,7 @@ function drawBloodPressureTrendChart(
     const ticks = buildAxisTicks(range);
 
     drawGrid(ctx, ticks, range, plot);
+    drawVerticalGuides(ctx, chartData.slots, plot, chartData.mode);
     drawReferenceLine(
         ctx,
         threshold.systolic,
@@ -482,6 +544,7 @@ function drawHeartRateChart(
     const ticks = buildAxisTicks(range);
 
     drawGrid(ctx, ticks, range, plot);
+    drawVerticalGuides(ctx, chartData.slots, plot, chartData.mode);
     drawXAxisLabels(ctx, chartData.slots, plot, chartData.mode);
 
     if (chartData.mode <= 7) {
