@@ -243,6 +243,43 @@ function getLatestPerDay(recordsForDay) {
   return safeRecords.length ? safeRecords[safeRecords.length - 1] : null;
 }
 
+function selectSevenDayRecords(recordsForDay) {
+  const safeRecords = (Array.isArray(recordsForDay) ? recordsForDay : [])
+    .slice()
+    .sort((left, right) => left.measuredAt.getTime() - right.measuredAt.getTime());
+
+  if (!safeRecords.length) {
+    return [];
+  }
+
+  const periodBuckets = new Map();
+
+  safeRecords.forEach((record) => {
+    const period = normalizePeriodValue(record.period);
+    if (!periodBuckets.has(period)) {
+      periodBuckets.set(period, []);
+    }
+    periodBuckets.get(period).push(record);
+  });
+
+  const activePeriods = PERIOD_ORDER.filter((period) => {
+    const bucket = periodBuckets.get(period);
+    return Array.isArray(bucket) && bucket.length > 0;
+  });
+
+  if (activePeriods.length >= 2) {
+    return activePeriods
+      .slice(0, 3)
+      .map((period) => {
+        const bucket = periodBuckets.get(period);
+        return bucket[bucket.length - 1];
+      })
+      .sort((left, right) => left.measuredAt.getTime() - right.measuredAt.getTime());
+  }
+
+  return safeRecords.slice(-3);
+}
+
 function buildChartTimeline(records, days, threshold, now = new Date()) {
   const normalizedRecords = Array.isArray(records) && records.length && records[0] && records[0].dateKey
     ? records
@@ -257,13 +294,14 @@ function buildChartTimeline(records, days, threshold, now = new Date()) {
       return;
     }
 
-    const latestRecord = getLatestPerDay(recordsForDay);
-    slot.items = latestRecord
-      ? [decorateAlertFlags(Object.assign({}, latestRecord, {
-        label: slot.label,
-        dateKey: slot.dateKey,
-      }), threshold)]
-      : [];
+    const selectedRecords = Number(days) <= 7
+      ? selectSevenDayRecords(recordsForDay)
+      : (getLatestPerDay(recordsForDay) ? [getLatestPerDay(recordsForDay)] : []);
+
+    slot.items = selectedRecords.map((record) => decorateAlertFlags(Object.assign({}, record, {
+      label: slot.label,
+      dateKey: slot.dateKey,
+    }), threshold));
   });
 
   const points = [];
