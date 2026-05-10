@@ -22,6 +22,24 @@ function showToast(title, duration = 1500) {
   });
 }
 
+function getReadableErrorMessage(error) {
+  const fallbackMessage = getErrorMessage(error);
+  const rawMessage = error && typeof error.message === 'string'
+    ? String(error.message).trim()
+    : '';
+
+  if (
+    fallbackMessage === getErrorMessage({ code: 'INTERNAL_ERROR' })
+    && rawMessage
+    && rawMessage !== 'Internal error'
+    && rawMessage !== '服务异常'
+  ) {
+    return rawMessage;
+  }
+
+  return fallbackMessage;
+}
+
 function goBackOrHome() {
   const pages = getCurrentPages();
 
@@ -485,6 +503,11 @@ Page({
           return;
         }
 
+        console.log('[profile-edit] updateProfile patch', {
+          profileId: this.data.profileId,
+          patch,
+        });
+
         const result = await profileService.updateProfile(this.data.profileId, patch);
         try {
           syncProfileIntoStore(this.data.profileId, result.profile);
@@ -506,7 +529,9 @@ Page({
         return;
       }
 
-      const result = await profileService.createProfile(this.buildCreatePayload());
+      const payload = this.buildCreatePayload();
+      console.log('[profile-edit] createProfile payload', payload);
+      const result = await profileService.createProfile(payload);
       try {
         syncCreatedProfileIntoStore(result.profile, result.relationship);
       } catch (syncError) {
@@ -519,7 +544,14 @@ Page({
         url: '/pages/data/data',
       });
     } catch (error) {
-      showToast(getErrorMessage(error));
+      console.error('[profile-edit] save failed', {
+        mode: this.data.isEditMode ? 'edit' : 'create',
+        profileId: this.data.profileId,
+        code: error && error.code,
+        message: error && error.message,
+        result: error && error.result,
+      });
+      showToast(getReadableErrorMessage(error));
     } finally {
       this.setData({ isSaving: false });
     }

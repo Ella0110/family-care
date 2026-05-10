@@ -3,6 +3,23 @@ const authModule = require('./_shared/auth');
 const { assertNonEmptyString } = require('./_shared/validation');
 const { normalizeProfilePatch } = require('./_shared/profile-utils');
 
+function buildProfileDocumentData(profile) {
+  return {
+    name: profile.name,
+    relation: profile.relation,
+    gender: profile.gender,
+    birthDate: profile.birthDate,
+    note: profile.note,
+    emergencyContact: profile.emergencyContact,
+    longTermMedication: profile.longTermMedication,
+    createdBy: profile.createdBy,
+    createdAt: profile.createdAt,
+    updatedAt: profile.updatedAt,
+    deletedAt: profile.deletedAt,
+    settings: profile.settings,
+  };
+}
+
 function mergeEmergencyContact(currentEmergencyContact, patchEmergencyContact) {
   if (patchEmergencyContact === undefined) {
     return currentEmergencyContact === undefined ? null : currentEmergencyContact;
@@ -63,8 +80,8 @@ function createUpdateProfileHandler(deps = {}) {
       updatedAt: now(),
     });
 
-    await database.collection(COLLECTIONS.PROFILES).doc(profileId).update({
-      data: Object.assign({}, nextPatch, { updatedAt: nextProfile.updatedAt }),
+    await database.collection(COLLECTIONS.PROFILES).doc(profileId).set({
+      data: buildProfileDocumentData(nextProfile),
     });
 
     return {
