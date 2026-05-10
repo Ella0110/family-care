@@ -35,6 +35,26 @@ function goBackOrHome() {
   });
 }
 
+function syncProfileIntoStore(profileId, nextProfile) {
+  const state = store.getState();
+  store.setState({
+    profiles: (state.profiles || []).map((profile) =>
+      profile && profile._id === profileId ? nextProfile : profile
+    ),
+  });
+}
+
+function syncCreatedProfileIntoStore(profile, relationship) {
+  const state = store.getState();
+  const newProfileId = profile && profile._id;
+  store.setState({
+    profiles: (state.profiles || []).concat(profile),
+    relationships: (state.relationships || []).concat(relationship),
+    currentProfileId: newProfileId,
+  });
+  wx.setStorageSync('currentProfileId', newProfileId);
+}
+
 function findProfile(profileId) {
   const state = store.getState();
   return (state.profiles || []).find((profile) => profile && profile._id === profileId) || null;
@@ -466,12 +486,15 @@ Page({
         }
 
         const result = await profileService.updateProfile(this.data.profileId, patch);
-        const state = store.getState();
-        store.setState({
-          profiles: (state.profiles || []).map((profile) =>
-            profile && profile._id === this.data.profileId ? result.profile : profile,
-          ),
-        });
+        try {
+          syncProfileIntoStore(this.data.profileId, result.profile);
+        } catch (syncError) {
+          console.error('[profile-edit] store sync after updateProfile failed', {
+            profileId: this.data.profileId,
+            patch,
+            syncError,
+          });
+        }
         wx.showToast({
           title: '已保存',
           icon: 'success',
@@ -484,14 +507,14 @@ Page({
       }
 
       const result = await profileService.createProfile(this.buildCreatePayload());
-      const state = store.getState();
-      const newProfileId = result.profile._id;
-      store.setState({
-        profiles: (state.profiles || []).concat(result.profile),
-        relationships: (state.relationships || []).concat(result.relationship),
-        currentProfileId: newProfileId,
-      });
-      wx.setStorageSync('currentProfileId', newProfileId);
+      try {
+        syncCreatedProfileIntoStore(result.profile, result.relationship);
+      } catch (syncError) {
+        console.error('[profile-edit] store sync after createProfile failed', {
+          profileId: result && result.profile && result.profile._id,
+          syncError,
+        });
+      }
       wx.switchTab({
         url: '/pages/data/data',
       });

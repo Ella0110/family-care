@@ -259,6 +259,7 @@ async function verifyFrontendBehavior() {
   const profileServicePath = path.resolve(__dirname, '../services/profile-service.js');
   delete require.cache[profileServicePath];
   let createProfilePayload = null;
+  let updateProfilePayload = null;
   require.cache[profileServicePath] = {
     id: profileServicePath,
     filename: profileServicePath,
@@ -286,6 +287,7 @@ async function verifyFrontendBehavior() {
         };
       },
       async updateProfile(profileId, patch) {
+        updateProfilePayload = { profileId, patch };
         return {
           profile: Object.assign({}, store.getState().profiles.find((item) => item._id === profileId), patch),
         };
@@ -315,6 +317,10 @@ async function verifyFrontendBehavior() {
   };
   global.getCurrentPages = () => [{ route: 'pages/home/home' }, { route: 'pages/profile-edit/profile-edit' }];
   global.getApp = () => ({ globalData: { loginReady: true, loginError: null } });
+  global.setTimeout = (handler) => {
+    handler();
+    return 1;
+  };
   global.wx = {
     showToast({ title }) {
       shownToast = title;
@@ -425,6 +431,32 @@ async function verifyFrontendBehavior() {
     'form.emergencyContactPhone': '',
   });
   assert.strictEqual(editPage.buildEditPatch().emergencyContact, null);
+  editPage.setData({
+    'form.emergencyContactName': '新一',
+    'form.emergencyContactPhone': '13800138000',
+  });
+  let syncFailureLogged = false;
+  const originalConsoleError = console.error;
+  const unsubscribeSyncFailureProbe = store.subscribe(() => {
+    throw new Error('subscriber exploded');
+  });
+  console.error = (...args) => {
+    if (String(args[0] || '').indexOf('[profile-edit] store sync after updateProfile failed') >= 0) {
+      syncFailureLogged = true;
+    }
+  };
+  await editPage.handleSubmit();
+  console.error = originalConsoleError;
+  unsubscribeSyncFailureProbe();
+  assert.strictEqual(updateProfilePayload.profileId, 'profile_a');
+  assert.deepStrictEqual(updateProfilePayload.patch.emergencyContact, {
+    name: '新一',
+    phone: '13800138000',
+  });
+  assert.strictEqual(syncFailureLogged, true, 'edit flow should catch store sync failures after successful save');
+  assert.strictEqual(shownToast, '已保存', 'edit flow should still report success after cloud save');
+  assert.strictEqual(navigatedBack, true, 'edit flow should still leave the page after successful save');
+  navigatedBack = false;
 
   store.setState({
     user: { _id: 'user_owner' },
