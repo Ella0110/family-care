@@ -17,7 +17,7 @@ const ERROR_MESSAGES = Object.freeze({
   CANNOT_INVITE_SELF: '不能接受自己发出的邀请',
   CANNOT_TRANSFER_TO_SELF: '不能转让给自己',
   INVALID_PHONE: '请输入正确的手机号',
-  INVALID_EMERGENCY_CONTACT: '紧急联系人信息不完整',
+  INVALID_EMERGENCY_CONTACT: '请同时填写紧急联系人姓名和手机号',
   NOT_A_MEMBER: '你不是该档案的成员',
   NOT_IMPLEMENTED: '该功能正在开发中',
   INTERNAL_ERROR: '服务异常，请稍后再试',

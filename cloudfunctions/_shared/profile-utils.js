@@ -89,6 +89,12 @@ function normalizeEmergencyContact(value) {
     return null;
   }
 
+  const hasName = Boolean(normalized.name);
+  const hasPhone = Boolean(normalized.phone);
+  if (hasName !== hasPhone) {
+    throw createError('INVALID_EMERGENCY_CONTACT', 'emergencyContact requires both name and phone');
+  }
+
   return normalized;
 }
 

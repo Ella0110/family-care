@@ -91,6 +91,17 @@ function normalizeEmergencyContact(contact) {
   };
 }
 
+function getEmergencyContactValidationMessage(name, phone) {
+  const hasName = Boolean(name);
+  const hasPhone = Boolean(phone);
+
+  if (hasName !== hasPhone) {
+    return '请同时填写紧急联系人姓名和手机号';
+  }
+
+  return '';
+}
+
 Page({
   data: {
     mode: 'create',
@@ -355,6 +366,14 @@ Page({
 
     if (emergencyContactName && emergencyContactName.length > 20) {
       return '紧急联系人姓名不能超过 20 个字';
+    }
+
+    const emergencyContactMessage = getEmergencyContactValidationMessage(
+      emergencyContactName,
+      emergencyContactPhone,
+    );
+    if (emergencyContactMessage) {
+      return emergencyContactMessage;
     }
 
     if (emergencyContactPhone && !PHONE_PATTERN.test(emergencyContactPhone)) {

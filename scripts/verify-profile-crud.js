@@ -66,6 +66,17 @@ async function main() {
   assert.strictEqual(updated.profile.note, '长期监测');
   assert.strictEqual(updated.profile.emergencyContact.name, '姐姐');
 
+  const incompleteEmergencyContact = await updateProfile({
+    profileId: created.profile._id,
+    patch: {
+      emergencyContact: {
+        name: '只有姓名',
+      },
+    },
+  }, {});
+  assert.strictEqual(incompleteEmergencyContact.success, false);
+  assert.strictEqual(incompleteEmergencyContact.code, 'INVALID_EMERGENCY_CONTACT');
+
   const deleted = await deleteProfile({ profileId: created.profile._id }, {});
   assert.strictEqual(deleted.success, true);
 

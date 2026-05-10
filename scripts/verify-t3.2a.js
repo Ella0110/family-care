@@ -89,13 +89,34 @@ async function verifyCloudHandlers() {
     patch: {
       emergencyContact: {
         name: '新一',
+      },
+    },
+  }, {});
+  assert.strictEqual(emergencyOnly.success, false);
+  assert.strictEqual(emergencyOnly.code, 'INVALID_EMERGENCY_CONTACT');
+
+  const phoneOnly = await updateProfile({
+    profileId: created.profile._id,
+    patch: {
+      emergencyContact: {
         phone: '13800138000',
       },
     },
   }, {});
-  assert.strictEqual(emergencyOnly.success, true);
-  assert.strictEqual(emergencyOnly.profile.name, '爸爸');
-  assert.deepStrictEqual(emergencyOnly.profile.emergencyContact, {
+  assert.strictEqual(phoneOnly.success, false);
+  assert.strictEqual(phoneOnly.code, 'INVALID_EMERGENCY_CONTACT');
+
+  const fullEmergency = await updateProfile({
+    profileId: created.profile._id,
+    patch: {
+      emergencyContact: {
+        name: '新一',
+        phone: '13800138000',
+      },
+    },
+  }, {});
+  assert.strictEqual(fullEmergency.success, true);
+  assert.deepStrictEqual(fullEmergency.profile.emergencyContact, {
     name: '新一',
     phone: '13800138000',
   });
@@ -185,12 +206,8 @@ async function verifyCloudHandlers() {
       },
     },
   }, {});
-  assert.strictEqual(legacyUpdate.success, true);
-  assert.strictEqual(legacyUpdate.profile.name, '老档案');
-  assert.deepStrictEqual(legacyUpdate.profile.emergencyContact, {
-    name: null,
-    phone: '13800138001',
-  });
+  assert.strictEqual(legacyUpdate.success, false);
+  assert.strictEqual(legacyUpdate.code, 'INVALID_EMERGENCY_CONTACT');
 }
 
 async function verifyFrontendBehavior() {
@@ -377,11 +394,25 @@ async function verifyFrontendBehavior() {
   assert.strictEqual(editPage.validateEditForm(), '请输入正确的手机号');
   editPage.setData({
     'form.emergencyContactName': '新一',
-    'form.emergencyContactPhone': '',
+    'form.emergencyContactPhone': '13800138000',
   });
   assert.deepStrictEqual(editPage.buildEditPatch().emergencyContact, {
     name: '新一',
-    phone: '',
+    phone: '13800138000',
+  });
+  editPage.setData({
+    'form.emergencyContactName': '',
+    'form.emergencyContactPhone': '13800138000',
+  });
+  assert.strictEqual(editPage.validateEditForm(), '请同时填写紧急联系人姓名和手机号');
+  editPage.setData({
+    'form.emergencyContactName': '新一',
+    'form.emergencyContactPhone': 'abc',
+  });
+  assert.strictEqual(editPage.validateEditForm(), '请输入正确的手机号');
+  editPage.setData({
+    'form.emergencyContactName': '新一',
+    'form.emergencyContactPhone': '13800138000',
   });
   editPage.originalProfile = Object.assign({}, editPage.originalProfile, {
     emergencyContact: {
