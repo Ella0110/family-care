@@ -13,13 +13,16 @@ const rendererJs = read('utils/report-chart-renderer.js');
 const helpers = require('../utils/report-helpers');
 
 assert.match(dataWxss, /#F0F5FF/i, 'data page should use the light blue page background');
-assert.match(dataWxml, />数据</, 'data page should show a fixed 数据 header');
 assert.match(dataWxml, /数据分析/, 'data page should render the data analysis section title');
-assert.match(dataWxml, /全部记录/, 'data page should keep a records-list entry near the chart tabs');
+assert.match(dataWxml, /全部记录 >/u, 'data page should render 全部记录 > as literal text');
+assert.doesNotMatch(dataWxml, /&gt;/, 'data page should not rely on HTML entities for >');
+assert.doesNotMatch(dataWxml, />数据</, 'data page should not render a duplicate in-content 数据 title');
+assert.doesNotMatch(dataWxml, /查看全部档案/, 'data page should not render the extra 查看全部档案 entry');
 assert.doesNotMatch(dataWxml, /历史明细/, 'data page should remove the history section');
 assert.doesNotMatch(dataWxml, /长期用药/, 'data page should remove the medication summary section');
 assert.match(dataJs, /handleExportBloodPressureChart/, 'data page should expose a blood pressure chart export action');
 assert.match(dataJs, /handleExportHeartRateChart/, 'data page should expose a heart rate chart export action');
+assert.match(dataWxss, /bottom:\s*calc\(env\(safe-area-inset-bottom\)\s*\+\s*60px\)/, 'floating add button should sit directly above the tabBar');
 assert.match(rendererJs, /#1E40AF/i, 'renderer should use the updated deep blue systolic color');
 assert.match(rendererJs, /#93C5FD/i, 'renderer should use the updated light blue diastolic color');
 

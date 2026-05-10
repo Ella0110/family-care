@@ -35,14 +35,6 @@ page {
   }
 }
 
-.data-page__header {
-  text-align: center;
-  font-size: var(--font-xl);
-  font-weight: 700;
-  color: #111827;
-  margin-bottom: 20rpx;
-}
-
 .data-profile-entry {
   display: inline-flex;
   align-items: center;
@@ -356,21 +348,13 @@ page {
   background: #EF4444;
 }
 
-.data-bottom-switcher {
-  margin: 32rpx 0 12rpx;
-  text-align: center;
-  color: #3182f7;
-  font-size: var(--font-sm);
-  font-weight: 600;
-}
-
 .data-add-button {
   position: fixed;
   left: 50%;
-  bottom: calc(96rpx + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  bottom: calc(env(safe-area-inset-bottom) + 60px);
   width: 112rpx;
   height: 112rpx;
-  margin-left: -56rpx;
   border-radius: 50%;
   border: none;
   background: #3182f7;
@@ -378,6 +362,7 @@ page {
   font-size: 60rpx;
   line-height: 112rpx;
   box-shadow: 0 2px 8px rgba(49, 130, 247, 0.3);
+  z-index: 999;
 }
 
 .data-add-button--pressed {

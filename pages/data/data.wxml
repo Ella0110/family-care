@@ -1,7 +1,5 @@
 <view class="page page-root data-page" style="--font-scale: {{fontScale}};">
   <view wx:if="{{pageReady}}">
-    <view class="data-page__header">数据</view>
-
     <view wx:if="{{hasProfile}}" class="data-profile-entry" bindtap="handleOpenProfileSwitcher">
       <text class="data-profile-entry__text">{{profileTitle}}</text>
       <text class="data-profile-entry__arrow">▼</text>
@@ -71,7 +69,7 @@
               </view>
             </view>
 
-            <view class="data-analysis__records-link" bindtap="handleViewAllRecords">全部记录 &gt;</view>
+            <view class="data-analysis__records-link" bindtap="handleViewAllRecords">全部记录 ></view>
           </view>
 
           <view wx:if="{{hasRangeRecords}}">
@@ -135,9 +133,6 @@
           </view>
         </view>
 
-        <view class="data-bottom-switcher" bindtap="handleOpenProfileSwitcher">
-          查看全部档案
-        </view>
       </view>
     </view>
   </view>
