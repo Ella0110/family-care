@@ -113,6 +113,17 @@ async function main() {
   assert.strictEqual(store.getCachedLatestRecord('profile_a')._id, 'saved_record');
   assert.ok(Array.isArray(store.getCachedRecords('profile_a')));
   assert.strictEqual(store.getCachedRecords('profile_a')[0]._id, 'saved_record');
+  assert.strictEqual(calls[0].data.skipPush, undefined);
+
+  calls = [];
+  await recordService.saveRecord(
+    'profile_a',
+    { systolic: 155, diastolic: 98 },
+    Date.now(),
+    'batch import test',
+    { skipPush: true },
+  );
+  assert.strictEqual(calls[0].data.skipPush, true, 'record-service should forward skipPush when requested');
 
   store.setCachedLatestRecord('profile_a', { _id: 'latest_before_update', profileId: 'profile_a' });
   store.setCachedRecords('profile_a', [{ _id: 'record_before_update', profileId: 'profile_a' }]);

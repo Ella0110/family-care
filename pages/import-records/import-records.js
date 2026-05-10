@@ -48,6 +48,7 @@ async function batchImport(profileId, validRecords, onProgress) {
           record.payload,
           record.measuredAt,
           record.note,
+          { skipPush: true },
         ).then(() => {
           results.success += 1;
         }).catch((error) => {

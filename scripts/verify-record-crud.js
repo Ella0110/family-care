@@ -94,9 +94,26 @@ async function main() {
   assert.strictEqual(buildTipText('妈妈', { systolic: 152, diastolic: 96 }), '妈妈的血压152/96 请关注');
   assert.strictEqual(buildTipText('测试档案名字很长很长很长', { systolic: 152, diastolic: 96 }), '血压152/96 请关注');
 
+  const pushCountBeforeSkip = pushCalls.length;
+  const savedSkipPush = await saveRecord({
+    profileId: createdProfile.profile._id,
+    measuredAt: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
+    payload: {
+      systolic: 166,
+      diastolic: 102,
+      heartRate: 75,
+    },
+    note: '历史导入',
+    skipPush: true,
+  }, {});
+  assert.strictEqual(savedSkipPush.success, true);
+  assert.strictEqual(savedSkipPush.alertTriggered, true);
+  assert.strictEqual(savedSkipPush.alertSentTo.length, 1);
+  assert.strictEqual(pushCalls.length, pushCountBeforeSkip, 'skipPush should suppress subscribe message sends');
+
   const listed = await getRecords({ profileId: createdProfile.profile._id }, {});
   assert.strictEqual(listed.success, true);
-  assert.strictEqual(listed.records.length, 1);
+  assert.strictEqual(listed.records.length, 2);
 
   const updated = await updateRecord({
     recordId: saved.record._id,
@@ -114,6 +131,9 @@ async function main() {
 
   const deleted = await deleteRecord({ recordId: saved.record._id }, {});
   assert.strictEqual(deleted.success, true);
+
+  const deletedSkipPush = await deleteRecord({ recordId: savedSkipPush.record._id }, {});
+  assert.strictEqual(deletedSkipPush.success, true);
 
   const listedAfterDelete = await getRecords({ profileId: createdProfile.profile._id }, {});
   assert.strictEqual(listedAfterDelete.success, true);

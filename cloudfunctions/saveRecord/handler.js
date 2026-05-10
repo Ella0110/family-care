@@ -34,6 +34,7 @@ function createSaveRecordHandler(deps = {}) {
     const note = normalizeRecordNote(event.note);
     const timestamp = now();
     const profile = await auth.getActiveProfile(profileId);
+    const skipPush = event && event.skipPush === true;
 
     const record = {
       profileId,
@@ -82,8 +83,15 @@ function createSaveRecordHandler(deps = {}) {
       typeof cloudSdk.openapi.subscribeMessage.send === 'function',
     );
 
-    if (!alertTriggered || alertSentTo.length === 0 || !canSendSubscribeMessage) {
-      if (alertTriggered && alertSentTo.length > 0 && !canSendSubscribeMessage) {
+    if (!alertTriggered || alertSentTo.length === 0 || skipPush || !canSendSubscribeMessage) {
+      if (alertTriggered && alertSentTo.length > 0 && skipPush) {
+        console.log('[saveRecord] skip push for imported record', {
+          profileId,
+          recordId,
+        });
+      }
+
+      if (alertTriggered && alertSentTo.length > 0 && !skipPush && !canSendSubscribeMessage) {
         console.warn('[saveRecord] subscribeMessage.send unavailable, skip push');
       }
 

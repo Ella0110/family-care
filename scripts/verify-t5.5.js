@@ -85,3 +85,4 @@ assert.match(read('pages/data/data.wxml'), /已有数据？导入历史记录/, 
 assert.match(read('pages/data/data.js'), /handleImportRecords\(/, 'data page should handle import entry tap');
 assert.match(read('pages/import-records/import-records.js'), /const CONCURRENCY = 5/, 'import page should batch saves with concurrency 5');
 assert.match(read('pages/import-records/import-records.js'), /Promise\.all\(/, 'import page should use Promise.all for chunked batch import');
+assert.match(read('pages/import-records/import-records.js'), /skipPush:\s*true/, 'import page should skip push notifications during import');

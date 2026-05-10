@@ -78,9 +78,10 @@ function upsertRecord(records, record) {
  * @param {{ systolic: number, diastolic: number, heartRate?: number }} payload
  * @param {number|string} measuredAt
  * @param {string} [note]
+ * @param {{ skipPush?: boolean }} [options]
  * @returns {Promise<{ record: Object, alertTriggered: boolean, alertSentTo: string[] }>}
  */
-async function saveRecord(profileId, payload, measuredAt, note) {
+async function saveRecord(profileId, payload, measuredAt, note, options = {}) {
   const data = {
     profileId,
     type: 'bp',
@@ -90,6 +91,10 @@ async function saveRecord(profileId, payload, measuredAt, note) {
 
   if (note) {
     data.note = note;
+  }
+
+  if (options && options.skipPush === true) {
+    data.skipPush = true;
   }
 
   const result = await call('saveRecord', data, { silent: true });
