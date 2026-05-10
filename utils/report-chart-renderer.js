@@ -78,9 +78,8 @@ function drawTitle(ctx, leftTitle, rightTitle, canvasSize) {
     ctx.restore();
 }
 
-function drawGrid(ctx, ticks, range, plot) {
+function drawGrid(ctx, ticks, range, plot, mode) {
     ctx.save();
-    ctx.strokeStyle = CHART_COLORS.grid;
     ctx.fillStyle = CHART_COLORS.text;
     ctx.font = "11px sans-serif";
     ctx.textAlign = "right";
@@ -88,11 +87,16 @@ function drawGrid(ctx, ticks, range, plot) {
 
     ticks.forEach((value) => {
         const y = valueToY(value, range, plot);
-
-        ctx.beginPath();
-        ctx.moveTo(plot.left, y);
-        ctx.lineTo(plot.right, y);
-        ctx.stroke();
+        if (mode > 7) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.strokeStyle = CHART_COLORS.grid;
+            ctx.lineWidth = 1;
+            ctx.moveTo(plot.left, y);
+            ctx.lineTo(plot.right, y);
+            ctx.stroke();
+            ctx.restore();
+        }
         ctx.fillText(String(value), plot.left - 10, y);
     });
 
@@ -210,13 +214,14 @@ function drawVerticalGuides(ctx, slots, plot, mode) {
     ctx.strokeStyle = CHART_COLORS.grid;
     ctx.lineWidth = 1;
 
-    slots.forEach((slot, index) => {
-        const x = getSlotCenter(index, slots.length, plot, mode);
+    const slotWidth = getSlotWidth(slots.length, plot, mode);
+    for (let index = 0; index <= slots.length; index += 1) {
+        const x = plot.left + slotWidth * index;
         ctx.beginPath();
         ctx.moveTo(x, plot.top);
         ctx.lineTo(x, plot.bottom);
         ctx.stroke();
-    });
+    }
 
     ctx.restore();
 }
@@ -464,7 +469,7 @@ function drawSmoothPolylineByPair(
     chartData,
     points,
     getValue,
-    getPairColor,
+    getColorForValue,
     plot,
     range,
 ) {
@@ -489,40 +494,97 @@ function drawSmoothPolylineByPair(
         for (let index = 0; index < segment.length - 1; index += 1) {
             const current = segment[index];
             const next = segment[index + 1];
-            const strokeColor = getPairColor(current.point, next.point);
-
-            ctx.beginPath();
-            ctx.strokeStyle = strokeColor;
-
-            if (segment.length === 2) {
-                ctx.moveTo(current.x, current.y);
-                ctx.lineTo(next.x, next.y);
-                ctx.stroke();
-                continue;
-            }
-
             const previous = index > 0 ? segment[index - 1] : current;
             const following =
                 index + 2 < segment.length ? segment[index + 2] : next;
-            const control1X = current.x + (next.x - previous.x) / 6;
-            const control1Y = current.y + (next.y - previous.y) / 6;
-            const control2X = next.x - (following.x - current.x) / 6;
-            const control2Y = next.y - (following.y - current.y) / 6;
+            const control1 = {
+                x: current.x + (next.x - previous.x) / 6,
+                y: current.y + (next.y - previous.y) / 6,
+            };
+            const control2 = {
+                x: next.x - (following.x - current.x) / 6,
+                y: next.y - (following.y - current.y) / 6,
+            };
 
-            ctx.moveTo(current.x, current.y);
-            ctx.bezierCurveTo(
-                control1X,
-                control1Y,
-                control2X,
-                control2Y,
-                next.x,
-                next.y,
+            drawSampledCurveSegment(
+                ctx,
+                current,
+                next,
+                control1,
+                control2,
+                plot,
+                range,
+                getColorForValue,
+                segment.length === 2,
             );
-            ctx.stroke();
         }
     });
 
     ctx.restore();
+}
+
+function yToValue(y, range, plot) {
+    const span = range.max - range.min || 1;
+    const ratio = (plot.bottom - y) / (plot.bottom - plot.top || 1);
+    return range.min + ratio * span;
+}
+
+function sampleLinePoint(start, end, t) {
+    return {
+        x: start.x + (end.x - start.x) * t,
+        y: start.y + (end.y - start.y) * t,
+    };
+}
+
+function sampleBezierPoint(start, control1, control2, end, t) {
+    const oneMinusT = 1 - t;
+    return {
+        x:
+            oneMinusT ** 3 * start.x +
+            3 * oneMinusT ** 2 * t * control1.x +
+            3 * oneMinusT * t ** 2 * control2.x +
+            t ** 3 * end.x,
+        y:
+            oneMinusT ** 3 * start.y +
+            3 * oneMinusT ** 2 * t * control1.y +
+            3 * oneMinusT * t ** 2 * control2.y +
+            t ** 3 * end.y,
+    };
+}
+
+function drawSampledCurveSegment(
+    ctx,
+    start,
+    end,
+    control1,
+    control2,
+    plot,
+    range,
+    getColorForValue,
+    useStraightLine,
+) {
+    const sampleCount = useStraightLine ? 24 : 32;
+    let previousPoint = start;
+
+    for (let step = 1; step <= sampleCount; step += 1) {
+        const t = step / sampleCount;
+        const previousT = (step - 1) / sampleCount;
+        const nextPoint = useStraightLine
+            ? sampleLinePoint(start, end, t)
+            : sampleBezierPoint(start, control1, control2, end, t);
+        const midpoint = useStraightLine
+            ? sampleLinePoint(start, end, (t + previousT) / 2)
+            : sampleBezierPoint(start, control1, control2, end, (t + previousT) / 2);
+        const strokeColor = getColorForValue(yToValue(midpoint.y, range, plot));
+
+        ctx.beginPath();
+        ctx.strokeStyle = strokeColor;
+        ctx.moveTo(previousPoint.x, previousPoint.y);
+        ctx.lineTo(nextPoint.x, nextPoint.y);
+        ctx.stroke();
+
+        previousPoint = nextPoint;
+    }
 }
 
 function drawSeriesPoints(
@@ -544,18 +606,6 @@ function drawSeriesPoints(
             abnormal ? 2 : 2,
         );
     });
-}
-
-function isBloodPressurePairAlert(leftPoint, rightPoint, key) {
-    if (key === "systolic") {
-        return Boolean(leftPoint.systolicAlert || rightPoint.systolicAlert);
-    }
-
-    if (key === "diastolic") {
-        return Boolean(leftPoint.diastolicAlert || rightPoint.diastolicAlert);
-    }
-
-    return false;
 }
 
 function drawRoundedBar(ctx, x, y, width, bottom, color) {
@@ -610,7 +660,7 @@ function drawBloodPressureTrendChart(
     const range = getBloodPressureRange(chartData.points, threshold);
     const ticks = buildAxisTicks(range);
 
-    drawGrid(ctx, ticks, range, plot);
+    drawGrid(ctx, ticks, range, plot, chartData.mode);
     drawVerticalGuides(ctx, chartData.slots, plot, chartData.mode);
     drawReferenceLine(
         ctx,
@@ -634,8 +684,8 @@ function drawBloodPressureTrendChart(
             chartData,
             chartData.points,
             (point) => point.systolic,
-            (leftPoint, rightPoint) =>
-                isBloodPressurePairAlert(leftPoint, rightPoint, "systolic")
+            (value) =>
+                value >= threshold.systolic || value < 90
                     ? CHART_COLORS.alert
                     : CHART_COLORS.systolic,
             plot,
@@ -646,8 +696,8 @@ function drawBloodPressureTrendChart(
             chartData,
             chartData.points,
             (point) => point.diastolic,
-            (leftPoint, rightPoint) =>
-                isBloodPressurePairAlert(leftPoint, rightPoint, "diastolic")
+            (value) =>
+                value >= threshold.diastolic || value < 60
                     ? CHART_COLORS.alert
                     : CHART_COLORS.diastolic,
             plot,
@@ -729,7 +779,7 @@ function drawHeartRateChart(
     const range = getHeartRateRange(heartRatePoints);
     const ticks = buildAxisTicks(range);
 
-    drawGrid(ctx, ticks, range, plot);
+    drawGrid(ctx, ticks, range, plot, chartData.mode);
     drawVerticalGuides(ctx, chartData.slots, plot, chartData.mode);
     drawXAxisLabels(ctx, chartData.slots, plot, chartData.mode);
 
@@ -765,8 +815,8 @@ function drawHeartRateChart(
             chartData,
             heartRatePoints,
             (point) => point.heartRate,
-            (leftPoint, rightPoint) =>
-                Boolean(leftPoint.heartRateAlert || rightPoint.heartRateAlert)
+            (value) =>
+                value > HR_THRESHOLD.high || value < HR_THRESHOLD.low
                     ? CHART_COLORS.alert
                     : CHART_COLORS.heartRate,
             plot,
