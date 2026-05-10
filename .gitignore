@@ -5,3 +5,4 @@ local.config.js
 .env
 /node_modules
 cloudfunctions/*/_shared/
+design-references/
