@@ -286,6 +286,34 @@ function buildRangeSummary(records, threshold) {
   };
 }
 
+function buildHeartRateSummary(records) {
+  const safeRecords = Array.isArray(records) ? records : [];
+  const heartRateValues = safeRecords
+    .map(function (record) {
+      return record && record.payload ? Number(record.payload.heartRate) : NaN;
+    })
+    .filter(Number.isFinite);
+
+  var normalCount = 0;
+  var abnormalCount = 0;
+
+  heartRateValues.forEach(function (hr) {
+    if (hr > 100 || hr < 50) {
+      abnormalCount += 1;
+    } else {
+      normalCount += 1;
+    }
+  });
+
+  return {
+    normalCount: normalCount,
+    abnormalCount: abnormalCount,
+    averageText: heartRateValues.length
+      ? String(Math.round(heartRateValues.reduce(function (sum, v) { return sum + v; }, 0) / heartRateValues.length))
+      : '--',
+  };
+}
+
 function getRangeRecords(records, days, now = new Date()) {
   const since = getSinceForDays(days, now).getTime();
   return sortRecordsDesc(records).filter((record) => toTimestamp(record && record.measuredAt) >= since);
@@ -345,6 +373,11 @@ Page({
     hasRangeRecords: false,
     hasHeartRateData: false,
     rangeSummary: {
+      normalCount: 0,
+      abnormalCount: 0,
+      averageText: '--',
+    },
+    heartRateSummary: {
       normalCount: 0,
       abnormalCount: 0,
       averageText: '--',
@@ -528,6 +561,11 @@ Page({
           abnormalCount: 0,
           averageText: '--',
         },
+        heartRateSummary: {
+          normalCount: 0,
+          abnormalCount: 0,
+          averageText: '--',
+        },
         periodOptions: buildPeriodOptions(NaN),
       });
       return;
@@ -603,6 +641,11 @@ Page({
           abnormalCount: 0,
           averageText: '--',
         },
+        heartRateSummary: {
+          normalCount: 0,
+          abnormalCount: 0,
+          averageText: '--',
+        },
         periodOptions: buildPeriodOptions(NaN),
       });
     }
@@ -631,6 +674,7 @@ Page({
     const hasRangeRecords = this.rangeRecords.length > 0;
     const hasHeartRateData = Boolean(this.chartData && this.chartData.hasHeartRateData);
     const rangeSummary = buildRangeSummary(this.rangeRecords, this.chartThreshold);
+    const heartRateSummary = buildHeartRateSummary(this.rangeRecords);
 
     this.setData({
       pageReady: true,
@@ -644,6 +688,7 @@ Page({
       hasRangeRecords,
       hasHeartRateData,
       rangeSummary,
+      heartRateSummary,
       periodOptions,
     }, () => {
       if (hasRangeRecords) {

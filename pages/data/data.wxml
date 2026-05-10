@@ -1,6 +1,7 @@
 <view class="page page-root data-page" style="--font-scale: {{fontScale}};">
   <view wx:if="{{pageReady}}">
     <view wx:if="{{hasProfile}}" class="data-profile-entry" bindtap="handleOpenProfileSwitcher">
+      <view class="data-profile-entry__dot"></view>
       <text class="data-profile-entry__text">{{profileTitle}}</text>
       <text class="data-profile-entry__arrow">▼</text>
     </view>
@@ -22,26 +23,31 @@
       </view>
 
       <view wx:else>
+        <!-- 最近血压卡片（保持不动） -->
         <view class="card data-latest">
           <view wx:if="{{latestRecordDisplay}}" class="data-latest__content">
             <view class="data-latest__status {{latestRecordDisplay.statusClassName}}">
-              <view class="data-latest__status-dot {{latestRecordDisplay.statusClassName}}"></view>
+              <view class="data-latest__status-dot"></view>
               <text>{{latestRecordDisplay.statusText}}</text>
             </view>
 
             <view class="data-latest__numbers">
-              <text class="data-latest__number {{latestRecordDisplay.systolicClassName}}">{{latestRecordDisplay.systolicText}}</text>
-              <text class="data-latest__separator"> / </text>
-              <text class="data-latest__number {{latestRecordDisplay.diastolicClassName}}">{{latestRecordDisplay.diastolicText}}</text>
+              <text class="data-latest__systolic {{latestRecordDisplay.systolicClassName}}">{{latestRecordDisplay.systolicText}}</text>
+              <text class="data-latest__separator">/</text>
+              <text class="data-latest__diastolic {{latestRecordDisplay.diastolicClassName}}">{{latestRecordDisplay.diastolicText}}</text>
               <text class="data-latest__unit">mmHg</text>
             </view>
 
+            <view class="data-latest__divider"></view>
+
             <view class="data-latest__meta">
-              <view class="data-latest__meta-item {{latestRecordDisplay.heartRateClassName}}">
-                最近心率 {{latestRecordDisplay.heartRateText}}
+              <view class="data-latest__meta-group">
+                <text class="data-latest__meta-label">最近心率</text>
+                <text class="data-latest__meta-value data-latest__meta-hr {{latestRecordDisplay.heartRateClassName}}">{{latestRecordDisplay.heartRateText}}</text>
               </view>
-              <view class="data-latest__meta-item">
-                测量时间 {{latestRecordDisplay.measuredAtText}}
+              <view class="data-latest__meta-group">
+                <text class="data-latest__meta-label">测量时间</text>
+                <text class="data-latest__meta-value">{{latestRecordDisplay.measuredAtText}}</text>
               </view>
             </view>
           </view>
@@ -53,82 +59,127 @@
           </view>
         </view>
 
-        <view wx:if="{{hasAnyRecords}}" class="card data-analysis">
-          <view class="data-analysis__title">数据分析</view>
+        <!-- 数据分析卡片 -->
+        <view wx:if="{{hasAnyRecords}}" class="data-analysis">
 
-          <view class="data-analysis__toolbar">
-            <view class="data-analysis__tabs">
+          <!-- 第一行：数据分析 + 全部记录 -->
+          <!-- <view class="da-row da-row--header">
+            <text class="da-title">数据分析</text>
+            
+          </view> -->
+
+          <!-- 第二行：7/30/90 tabs -->
+          <view class="da-row da-row--tabs">
+            <view class="da-tabs">
               <view
                 wx:for="{{periodOptions}}"
                 wx:key="days"
-                class="data-analysis__tab {{selectedDays === item.days ? 'data-analysis__tab--active' : ''}} {{!item.enabled ? 'data-analysis__tab--disabled' : ''}}"
+                class="da-tab {{selectedDays === item.days ? 'da-tab--active' : ''}} {{!item.enabled ? 'da-tab--disabled' : ''}}"
                 data-days="{{item.days}}"
                 bindtap="handleSelectPeriod"
-              >
-                {{item.label}}
-              </view>
+              >{{item.label}}</view>
             </view>
-
-            <view class="data-analysis__records-link" bindtap="handleViewAllRecords">全部记录 ></view>
+            <view class="da-allrecords" bindtap="handleViewAllRecords">全部记录 ></view>
           </view>
 
           <view wx:if="{{hasRangeRecords}}">
-            <view class="data-summary">
-              <view class="data-summary__item">
-                <view class="data-summary__label">已达标</view>
-                <view class="data-summary__value is-normal">{{rangeSummary.normalCount}} 次</view>
-              </view>
 
-              <view class="data-summary__item">
-                <view class="data-summary__label">未达标</view>
-                <view class="data-summary__value is-danger">{{rangeSummary.abnormalCount}} 次</view>
+            <!-- ===== 血压区块 ===== -->
+            <!-- 第三行：血压数据 ? + ↓ 下载图表 -->
+            <view class="da-row da-row--section-header">
+              <view class="da-section-title-group">
+                <text class="da-section-title">血压趋势 (mmHg)</text>
+                <!-- <text class="da-section-help">?</text> -->
               </view>
-
-              <view class="data-summary__item data-summary__item--wide">
-                <view class="data-summary__label">平均值</view>
-                <view class="data-summary__value">{{rangeSummary.averageText}} mmHg</view>
+              <view class="da-download" bindtap="handleExportBloodPressureChart">
+                <text class="da-download-arrow">↓</text>
+                <!-- <text class="da-download-text">下载图表</text> -->
               </view>
             </view>
 
-            <view class="data-chart-section">
-              <view class="data-chart-section__header">
-                <view class="data-chart-section__title">血压数据</view>
-                <view class="data-chart-section__action" bindtap="handleExportBloodPressureChart">下载</view>
+            <!-- 第四行：统计摘要 -->
+            <view class="da-summary">
+              <view class="da-summary__item">
+                <view class="da-summary__value da-summary__value--normal">{{rangeSummary.normalCount}}</view>
+                <view class="da-summary__label">已达标(次)</view>
               </view>
-
-              <canvas id="dataBpChart" type="2d" class="data-chart-section__canvas"></canvas>
-
-              <view class="data-chart-legend">
-                <view class="data-chart-legend__item">
-                  <view class="data-chart-legend__line data-chart-legend__line--systolic"></view>
-                  <text>收缩压</text>
-                </view>
-                <view class="data-chart-legend__item">
-                  <view class="data-chart-legend__line data-chart-legend__line--diastolic"></view>
-                  <text>舒张压</text>
-                </view>
-                <view class="data-chart-legend__item">
-                  <view class="data-chart-legend__dot"></view>
-                  <text>超标</text>
-                </view>
+              <view class="da-summary__item">
+                <view class="da-summary__value da-summary__value--danger">{{rangeSummary.abnormalCount}}</view>
+                <view class="da-summary__label">不达标(次)</view>
+              </view>
+              <view class="da-summary__item">
+                <view class="da-summary__value">{{rangeSummary.averageText}}</view>
+                <view class="da-summary__label">均值(mmHg)</view>
               </view>
             </view>
 
-            <view class="data-chart-section">
-              <view class="data-chart-section__header">
-                <view class="data-chart-section__title">心率数据</view>
-                <view class="data-chart-section__action" bindtap="handleExportHeartRateChart">下载</view>
+            <!-- 第五行：血压折线图 -->
+            <canvas id="dataBpChart" type="2d" class="da-canvas"></canvas>
+
+            <view class="da-legend">
+              <view class="da-legend__item">
+                <!-- <view class="da-legend__line da-legend__line--systolic"></view> -->
+                <view class="da-legend__dot"></view>
+                <text>血压偏高</text>
               </view>
+              <view class="da-legend__item">
+                <view class="da-legend__dot_normal"></view>
+                <text>血压正常</text>
+              </view>
+              <!-- <view class="da-legend__item">
+                <view class="da-legend__dot"></view>
+                <text>异常点</text>
+              </view> -->
+            </view>
 
-              <canvas wx:if="{{hasHeartRateData}}" id="dataHeartRateChart" type="2d" class="data-chart-section__canvas data-chart-section__canvas--secondary"></canvas>
+            <!-- ===== 心率区块 ===== -->
+            <view class="da-divider"></view>
 
-              <view wx:else class="data-chart-section__empty">
-                暂无心率数据
+            <view class="da-row da-row--section-header">
+              <view class="da-section-title-group">
+                <text class="da-section-title">心率趋势 (bpm)</text>
+                <!-- <text class="da-section-help">?</text> -->
+              </view>
+              <view class="da-download" bindtap="handleExportHeartRateChart">
+                <text class="da-download-arrow">↓</text>
+                <!-- <text class="da-download-text">下载图表</text> -->
               </view>
             </view>
+
+            <view class="da-summary">
+              <view class="da-summary__item">
+                <view class="da-summary__value da-summary__value--normal">{{heartRateSummary.normalCount}}</view>
+                <view class="da-summary__label">已达标(次)</view>
+              </view>
+              <view class="da-summary__item">
+                <view class="da-summary__value da-summary__value--danger">{{heartRateSummary.abnormalCount}}</view>
+                <view class="da-summary__label">不达标(次)</view>
+              </view>
+              <view class="da-summary__item">
+                <view class="da-summary__value">{{heartRateSummary.averageText}}</view>
+                <view class="da-summary__label">均值(bpm)</view>
+              </view>
+            </view>
+
+            <canvas wx:if="{{hasHeartRateData}}" id="dataHeartRateChart" type="2d" class="da-canvas da-canvas--short"></canvas>
+
+            <view wx:if="{{hasHeartRateData}}" class="da-legend">
+              <view class="da-legend__item">
+                <!-- <view class="da-legend__line da-legend__line--hr"></view> -->
+                <view class="da-legend__dot"></view>
+                <text>心率偏高</text>
+              </view>
+              <view class="da-legend__item">
+                <view class="da-legend__dot_normal"></view>
+                <text>正常心率</text>
+              </view>
+            </view>
+
+            <view wx:if="{{!hasHeartRateData}}" class="da-empty">暂无心率数据</view>
+
           </view>
 
-          <view wx:else class="data-chart-section__empty">
+          <view wx:else class="da-empty">
             当前时间范围内暂无趋势数据
           </view>
         </view>
@@ -146,9 +197,7 @@
     class="data-add-button"
     hover-class="data-add-button--pressed"
     bindtap="handleOpenRecordPanel"
-  >
-    +
-  </button>
+  >+</button>
 
   <profile-switcher
     show="{{showProfileSwitcher}}"
@@ -168,27 +217,18 @@
     bind:close="handleCloseRecordPanel"
   />
 
-  <canvas
-    id="dataExportCanvas"
-    type="2d"
-    class="data-export-canvas"
-    style="height: {{exportCanvasHeight}}px;"
-  ></canvas>
+  <canvas id="dataExportCanvas" type="2d" class="data-export-canvas" style="height: {{exportCanvasHeight}}px;"></canvas>
 
   <view wx:if="{{showPermissionModal}}" class="data-permission-modal">
     <view class="data-permission-modal__mask"></view>
-    <view class="data-permission-modal__panel card">
+    <view class="data-permission-modal__panel">
       <view class="data-permission-modal__title">无法保存图片</view>
-      <view class="data-permission-modal__subtitle">需要开启“相册写入”权限</view>
-      <view class="data-permission-modal__step">步骤 1：点击下方“去设置”按钮</view>
-      <view class="data-permission-modal__step">步骤 2：将“添加到相册”设为允许</view>
+      <view class="data-permission-modal__subtitle">需要开启"相册写入"权限</view>
+      <view class="data-permission-modal__step">步骤 1：点击下方"去设置"按钮</view>
+      <view class="data-permission-modal__step">步骤 2：将"添加到相册"设为允许</view>
       <view class="data-permission-modal__actions">
-        <button class="btn-primary data-permission-modal__button" bindtap="handleOpenPermissionSetting">
-          去设置
-        </button>
-        <button class="btn-secondary data-permission-modal__button" bindtap="handleClosePermissionModal">
-          暂不下载
-        </button>
+        <button class="btn-primary data-permission-modal__button" bindtap="handleOpenPermissionSetting">去设置</button>
+        <button class="btn-secondary data-permission-modal__button" bindtap="handleClosePermissionModal">暂不下载</button>
       </view>
     </view>
   </view>

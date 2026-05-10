@@ -1,13 +1,16 @@
+/* ========== 页面基础 ========== */
 page {
-  background-color: #F0F5FF;
+  background-color: #EEF4FE;
 }
 
 .data-page {
   min-height: 100vh;
+  padding: 0 28rpx;
   padding-bottom: calc(220rpx + env(safe-area-inset-bottom));
-  background: #F0F5FF;
+  background: #EEF4FE;
 }
 
+/* ========== Loading ========== */
 .data-loading {
   display: flex;
   align-items: center;
@@ -26,356 +29,484 @@ page {
 }
 
 @keyframes data-loading-spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
+/* ========== 档案切换入口 ========== */
 .data-profile-entry {
   display: inline-flex;
   align-items: center;
-  gap: 10rpx;
-  margin-bottom: 24rpx;
-  padding: 14rpx 20rpx;
-  border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.86);
-  color: #1e3a8a;
+  gap: 12rpx;
+  padding: 24rpx 0 20rpx;
+}
+
+.data-profile-entry__dot {
+  width: 18rpx;
+  height: 18rpx;
+  border-radius: 50%;
+  background: #EF4444;
+  flex-shrink: 0;
 }
 
 .data-profile-entry__text {
-  font-size: var(--font-sm);
-  font-weight: 600;
+  font-size: 38rpx;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: 1rpx;
 }
 
 .data-profile-entry__arrow {
-  font-size: 20rpx;
-  color: #64748b;
+  font-size: 22rpx;
+  color: #94A3B8;
+  margin-left: 4rpx;
 }
 
+/* ========== 空态 ========== */
 .data-empty {
   padding-top: 120rpx;
 }
 
-.data-state,
-.data-latest,
-.data-analysis {
+/* ========== 错误态 ========== */
+.data-state {
   margin-bottom: 24rpx;
 }
 
 .data-state__title {
-  font-size: var(--font-lg);
+  font-size: 32rpx;
   font-weight: 700;
   color: #111827;
 }
 
 .data-state__text {
   margin-top: 12rpx;
-  font-size: var(--font-sm);
+  font-size: 26rpx;
   color: #64748b;
 }
+
+/* ==========================================================
+   最近血压卡片（以下全部保持用户已调好的样式，不做任何修改）
+   ========================================================== */
+.data-latest {
+  margin-bottom: 48rpx;
+  padding: 64rpx 64rpx 48rpx;
+  border-radius: 64rpx;
+  background: #FFFFFF;
+  box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.04);
+}
+
+.data-latest__content {}
 
 .data-latest__status {
   display: inline-flex;
   align-items: center;
-  gap: 12rpx;
-  font-size: var(--font-sm);
+  gap: 10rpx;
+  font-size: 26rpx;
   font-weight: 600;
+  line-height: 1;
 }
 
-.data-latest__status.is-danger {
-  color: #dc2626;
-}
-
-.data-latest__status.is-warning {
-  color: #d97706;
-}
-
-.data-latest__status.is-normal {
-  color: #059669;
-}
+.data-latest__status.is-danger { color: #DC2626; }
+.data-latest__status.is-warning { color: #F59E0B; }
+.data-latest__status.is-normal { color: #000000; }
 
 .data-latest__status-dot {
-  width: 14rpx;
-  height: 14rpx;
+  width: 16rpx;
+  height: 16rpx;
   border-radius: 50%;
   background: currentColor;
 }
 
-.data-latest__status-dot.is-danger {
-  background: #dc2626;
-}
-
-.data-latest__status-dot.is-warning {
-  background: #d97706;
-}
-
-.data-latest__status-dot.is-normal {
-  background: #059669;
-}
-
 .data-latest__numbers {
   display: flex;
-  align-items: flex-end;
-  gap: 6rpx;
-  margin-top: 18rpx;
+  align-items: baseline;
+  margin-top: 24rpx;
+  margin-bottom: 56rpx;
   line-height: 1;
 }
 
-.data-latest__number {
-  font-size: 78rpx;
-  font-weight: 700;
+.data-latest__systolic {
+  font-size: 3.75rem;
+  font-weight: 800;
+  font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+               "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  letter-spacing: -2rpx;
 }
 
-.data-latest__number.is-normal {
-  color: #2563eb;
-}
-
-.data-latest__number.is-alert {
-  color: #dc2626;
-}
+.data-latest__systolic.is-normal { color: #000000; }
+.data-latest__systolic.is-alert { color: #DC2626; }
 
 .data-latest__separator {
-  padding-bottom: 8rpx;
-  font-size: 54rpx;
-  font-weight: 500;
-  color: #2563eb;
+  font-size: 1.875rem;
+  font-weight: 900;
+  color: #CBD5E1;
+  margin: 0 12rpx;
+  line-height: 2.25rem;
 }
 
+.data-latest__diastolic {
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: -2rpx;
+  font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+               "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+.data-latest__diastolic.is-normal { color: #000000; }
+.data-latest__diastolic.is-alert { color: #F59E0B; }
+
 .data-latest__unit {
-  padding-bottom: 10rpx;
-  margin-left: 8rpx;
-  font-size: var(--font-sm);
-  color: #94a3b8;
+  font-size: 28rpx;
+  font-weight: 900;
+  color: #94A3B8;
+  margin-left: 12rpx;
+  align-self: flex-end;
+  padding-bottom: 12rpx;
+}
+
+.data-latest__divider {
+  height: 1rpx;
+  background: #E5E7EB;
+  margin: 28rpx 0 24rpx;
 }
 
 .data-latest__meta {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20rpx;
-  margin-top: 20rpx;
-  font-size: var(--font-sm);
-  color: #64748b;
+  align-items: flex-start;
+  gap: 88rpx;
 }
 
-.data-latest__meta-item.is-alert {
-  color: #dc2626;
+.data-latest__meta-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
 }
+
+.data-latest__meta-label {
+  font-size: 24rpx;
+  color: #94A3B8;
+  font-weight: 400;
+}
+
+.data-latest__meta-value {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.data-latest__meta-hr { color: #000000; }
+.data-latest__meta-hr.is-alert { color: #DC2626; }
 
 .data-latest__empty {
   text-align: center;
-  padding: 24rpx 0 12rpx;
+  padding: 40rpx 0 24rpx;
 }
 
 .data-latest__empty-icon {
-  font-size: 72rpx;
-  color: #d1d5db;
+  font-size: 80rpx;
+  color: #CBD5E1;
 }
 
 .data-latest__empty-title {
-  margin-top: 12rpx;
-  font-size: var(--font-lg);
-  font-weight: 600;
+  margin-top: 16rpx;
+  font-size: 32rpx;
+  font-weight: 700;
   color: #111827;
 }
 
 .data-latest__empty-text {
   margin-top: 8rpx;
-  font-size: var(--font-sm);
-  color: #64748b;
+  font-size: 26rpx;
+  color: #94A3B8;
 }
 
-.data-analysis__title {
-  font-size: var(--font-lg);
-  font-weight: 700;
-  color: #111827;
+/* ==========================================================
+   数据分析卡片（以下为重新设计的结构）
+   ========================================================== */
+.data-analysis {
+  padding: 48rpx 48rpx 40rpx;
+  border-radius: 64rpx;
+  background: #FFFFFF;
+  box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.04);
+  margin-bottom: 24rpx;
 }
 
-.data-analysis__toolbar {
+/* --- 通用行 --- */
+.da-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16rpx;
-  margin-top: 20rpx;
+  /* gap:rpx; */
 }
 
-.data-analysis__tabs {
+/* 第一行：数据分析 + 全部记录 */
+.da-row--header {
+  margin-bottom: 24rpx;
+}
+
+.da-title {
+  font-size: 34rpx;
+  font-weight: 800;
+  color: #0F172A;
+}
+
+.da-allrecords {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #3182F7;
+}
+
+/* 第二行：Tabs */
+.da-row--tabs {
+  margin-bottom: 48rpx;
+}
+
+.da-tabs {
   display: flex;
-  gap: 12rpx;
-}
-
-.data-analysis__tab {
-  min-width: 110rpx;
-  padding: 12rpx 0;
+  align-items: center;
+  background: #F1F5F9;
   border-radius: 999rpx;
+  padding: 4rpx;
+  /* gap:24rpx; */
+}
+
+.da-tab {
+  min-width: 100rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 500rpx;
   text-align: center;
-  background: #e5edff;
-  color: #64748b;
-  font-size: var(--font-sm);
+  color: #64748B;
+  font-size: 26rpx;
   font-weight: 600;
+  transition: all 0.2s;
 }
 
-.data-analysis__tab--active {
-  background: #dbeafe;
-  color: #1d4ed8;
+.da-tab--active {
+  background: #FFFFFF;
+  color: #1D4ED8;
+  box-shadow: 0 1rpx 6rpx rgba(0, 0, 0, 0.08);
 }
 
-.data-analysis__tab--disabled {
-  opacity: 0.45;
+.da-tab--disabled {
+  opacity: 0.4;
 }
 
-.data-analysis__records-link,
-.data-chart-section__action {
-  font-size: var(--font-sm);
-  font-weight: 600;
-  color: #3182f7;
+/* 第三行：区块标题 + 下载 */
+.da-row--section-header {
+  margin-bottom: 20rpx;
 }
 
-.data-summary {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16rpx;
-  margin-top: 24rpx;
-}
-
-.data-summary__item {
-  padding: 20rpx;
-  border-radius: 20rpx;
-  background: #f8fbff;
-}
-
-.data-summary__item--wide {
-  grid-column: span 1;
-}
-
-.data-summary__label {
-  font-size: var(--font-xs);
-  color: #64748b;
-}
-
-.data-summary__value {
-  margin-top: 10rpx;
-  font-size: var(--font-base);
-  font-weight: 700;
-  color: #111827;
-}
-
-.data-summary__value.is-normal {
-  color: #2563eb;
-}
-
-.data-summary__value.is-danger {
-  color: #dc2626;
-}
-
-.data-chart-section {
-  margin-top: 28rpx;
-}
-
-.data-chart-section__header {
+.da-section-title-group {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16rpx;
+  gap: 8rpx;
 }
 
-.data-chart-section__title {
-  font-size: var(--font-base);
+.da-section-title {
+  font-size: 30rpx;
   font-weight: 700;
-  color: #111827;
+  color: #1E293B;
 }
 
-.data-chart-section__canvas {
-  width: 100%;
-  height: 460rpx;
-  margin-top: 20rpx;
+.da-section-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 50%;
+  background: #E2E8F0;
+  color: #94A3B8;
+  font-size: 20rpx;
+  font-weight: 700;
 }
 
-.data-chart-section__canvas--secondary {
-  margin-top: 20rpx;
+.da-download {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
 }
 
-.data-chart-section__empty {
-  margin-top: 20rpx;
-  padding: 48rpx 24rpx;
-  border-radius: 24rpx;
-  background: #f8fbff;
+.da-download-arrow {
+  font-size: 24rpx;
+  color: #3182F7;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 50%;
+  padding:8rpx;
+  background: #f7f7f7;
+  font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+               "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+.da-download-text {
+  font-size: 24rpx;
+  color: #3182F7;
+  font-weight: 600;
+}
+
+/* --- 统计摘要 --- */
+.da-summary {
+  display: flex;
+  align-items: stretch;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.da-summary__item {
+  flex: 1;
+  padding: 20rpx 16rpx;
+  border-radius: 50rpx;
+  background: #F8FAFC;
   text-align: center;
-  color: #64748b;
-  font-size: var(--font-sm);
 }
 
-.data-chart-legend {
+.da-summary__value {
+  font-size: 40rpx;
+  font-weight: 800;
+  color: #1E293B;
+  line-height: 1.2;
+}
+
+.da-summary__value--normal {
+  color: #1E293B;
+}
+
+.da-summary__value--danger {
+  color: #DC2626;
+}
+
+.da-summary__label {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #94A3B8;
+  font-weight: 400;
+}
+
+/* --- 图表 --- */
+.da-canvas {
+  width: 100%;
+  height: 420rpx;
+  margin-bottom: 16rpx;
+}
+
+.da-canvas--short {
+  height: 360rpx;
+}
+
+/* --- 图例 --- */
+.da-legend {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 28rpx;
-  flex-wrap: wrap;
-  margin-top: 10rpx;
-  color: #475569;
-  font-size: var(--font-xs);
+  margin-bottom: 8rpx;
+  color: #64748B;
+  font-size: 22rpx;
 }
 
-.data-chart-legend__item {
+.da-legend__item {
   display: inline-flex;
   align-items: center;
-  gap: 10rpx;
+  gap: 8rpx;
 }
 
-.data-chart-legend__line {
-  width: 36rpx;
+.da-legend__line {
+  width: 28rpx;
   height: 0;
   border-top-width: 4rpx;
   border-top-style: solid;
 }
 
-.data-chart-legend__line--systolic {
+.da-legend__line--systolic {
   border-top-color: #1E40AF;
 }
 
-.data-chart-legend__line--diastolic {
+.da-legend__line--diastolic {
   border-top-color: #93C5FD;
 }
 
-.data-chart-legend__dot {
+.da-legend__line--hr {
+  border-top-color: #F59E0B;
+}
+
+.da-legend__dot {
   width: 12rpx;
   height: 12rpx;
   border-radius: 50%;
   background: #EF4444;
 }
 
+.da-legend__dot_normal {
+    width: 12rpx;
+    height: 12rpx;
+    border-radius: 50%;
+    background: #3182F7;
+  }
+
+/* --- 区块分隔线 --- */
+.da-divider {
+  height: 1rpx;
+  background: #E5E7EB;
+  margin: 32rpx 0;
+}
+
+/* --- 空态 --- */
+.da-empty {
+  padding: 48rpx 24rpx;
+  border-radius: 16rpx;
+  background: #F8FAFC;
+  text-align: center;
+  color: #94A3B8;
+  font-size: 26rpx;
+  margin-top: 16rpx;
+}
+
+/* ==========================================================
+   悬浮录入按钮
+   ========================================================== */
 .data-add-button {
   position: fixed;
   left: 50%;
-  transform: translateX(-50%);
-  bottom: calc(env(safe-area-inset-bottom) + 60px);
+  bottom: calc(env(safe-area-inset-bottom) + 56px);
   width: 112rpx;
   height: 112rpx;
+  margin-left: -56rpx;
   border-radius: 50%;
   border: none;
-  background: #3182f7;
-  color: #ffffff;
-  font-size: 60rpx;
-  line-height: 112rpx;
-  box-shadow: 0 2px 8px rgba(49, 130, 247, 0.3);
+  background: #3182F7;
+  color: #FFFFFF;
+  font-size: 56rpx;
+  font-weight: 300;
+  line-height: 108rpx;
+  text-align: center;
+  box-shadow: 0 8rpx 24rpx rgba(49, 130, 247, 0.35);
   z-index: 999;
+  padding: 0;
+}
+
+.data-add-button::after {
+  border: none;
 }
 
 .data-add-button--pressed {
-  transform: scale(0.95);
-  background: #2563eb;
+  background: #2563EB;
+  box-shadow: 0 4rpx 16rpx rgba(49, 130, 247, 0.4);
+  opacity: 0.9;
 }
 
+/* ========== 导出画布 ========== */
 .data-export-canvas {
   position: fixed;
   left: -9999px;
   width: 375px;
 }
 
+/* ========== 权限挽回弹窗 ========== */
 .data-permission-modal {
   position: fixed;
   inset: 0;
@@ -385,40 +516,44 @@ page {
 .data-permission-modal__mask {
   position: absolute;
   inset: 0;
-  background: rgba(17, 24, 39, 0.36);
+  background: rgba(17, 24, 39, 0.4);
 }
 
 .data-permission-modal__panel {
   position: absolute;
-  left: 32rpx;
-  right: 32rpx;
+  left: 48rpx;
+  right: 48rpx;
   top: 50%;
   transform: translateY(-50%);
+  padding: 48rpx 40rpx;
+  border-radius: 24rpx;
+  background: #FFFFFF;
 }
 
 .data-permission-modal__title {
-  font-size: var(--font-lg);
+  font-size: 32rpx;
   font-weight: 700;
   text-align: center;
+  color: #111827;
 }
 
 .data-permission-modal__subtitle {
   margin-top: 12rpx;
   text-align: center;
-  color: var(--color-text-secondary);
-  font-size: var(--font-base);
+  color: #64748B;
+  font-size: 28rpx;
 }
 
 .data-permission-modal__step {
   margin-top: 16rpx;
-  font-size: var(--font-sm);
-  color: var(--color-text-secondary);
+  font-size: 26rpx;
+  color: #64748B;
 }
 
 .data-permission-modal__actions {
   display: flex;
-  gap: 16rpx;
-  margin-top: 28rpx;
+  gap: 20rpx;
+  margin-top: 36rpx;
 }
 
 .data-permission-modal__button {
