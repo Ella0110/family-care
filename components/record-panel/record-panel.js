@@ -1,4 +1,3 @@
-const { store } = require('../../store/index');
 const { getErrorMessage } = require('../../utils/error-messages');
 const {
   MAX_FUTURE_SKEW_MS,
@@ -45,19 +44,6 @@ function buildEmptyFieldFlags() {
   };
 }
 
-function getProfileThreshold(profileId) {
-  const profile = (store.getState().profiles || []).find((item) => item && item._id === profileId) || null;
-  return (
-    profile
-    && profile.settings
-    && profile.settings.bp
-    && profile.settings.bp.threshold
-  ) || {
-    systolic: 140,
-    diastolic: 90,
-  };
-}
-
 function sanitizeDigits(value) {
   return String(value || '').replace(/\D/g, '').slice(0, 3);
 }
@@ -91,36 +77,25 @@ function getFirstFocusableField(form) {
   return 'systolic';
 }
 
-function getAlertFields(profileId, form) {
-  const threshold = getProfileThreshold(profileId);
-  const systolic = parseInteger(form && form.systolic);
-  const diastolic = parseInteger(form && form.diastolic);
-
-  return {
-    systolic: Number.isInteger(systolic) && systolic > threshold.systolic,
-    diastolic: Number.isInteger(diastolic) && diastolic > threshold.diastolic,
-    heartRate: false,
-  };
-}
-
 function shouldAutoAdvance(fieldName, currentValue) {
-  if (fieldName === 'heartRate') {
-    return currentValue.length >= 3;
-  }
-
   const len = currentValue.length;
   const num = parseInteger(currentValue);
+  const range = FIELD_LIMITS[fieldName];
 
   if (len < 2) {
     return false;
   }
 
-  if (len >= 3) {
+  if (len === 2 && Number.isInteger(num) && num >= 30 && num <= range.max) {
     return true;
   }
 
-  if (len === 2 && Number.isInteger(num) && num >= 30) {
-    return true;
+  if (len === 3) {
+    if (Number.isInteger(num) && num >= range.min && num <= range.max) {
+      return true;
+    }
+
+    return 'error';
   }
 
   return false;
@@ -240,11 +215,6 @@ Component({
   data: {
     keypadKeys: KEYPAD_KEYS,
     activeField: 'systolic',
-    alertFields: {
-      systolic: false,
-      diastolic: false,
-      heartRate: false,
-    },
     isEditMode: false,
     recordId: '',
     panelTitle: '记录血压',
@@ -290,16 +260,6 @@ Component({
       if (this.data.show) {
         this.hydrateForm(getSourceRecord(this.properties));
       }
-    },
-
-    profileId(profileId) {
-      if (!this.data.show) {
-        return;
-      }
-
-      this.setData({
-        alertFields: getAlertFields(profileId, this.data.form),
-      });
     },
   },
 
@@ -355,7 +315,6 @@ Component({
       this.clearTransientTimers();
       this.setData({
         activeField: getFirstFocusableField(form),
-        alertFields: getAlertFields(this.data.profileId, form),
         isEditMode,
         recordId: isEditMode ? record._id : '',
         panelTitle: isEditMode ? '编辑记录' : '记录血压',
@@ -413,7 +372,6 @@ Component({
       const nextData = {
         form,
         measuredDateLabel: formatMeasuredDateLabel(form.measuredDate),
-        alertFields: getAlertFields(this.data.profileId, form),
       };
 
       if (this.data.hasValidationIssue || Object.values(this.data.fieldErrors || {}).some(Boolean)) {
@@ -470,7 +428,27 @@ Component({
       const nextForm = Object.assign({}, this.data.form, {
         [field]: nextValue,
       });
-      const nextField = shouldAutoAdvance(field, nextValue) ? this.getNextAutoField(field, nextForm) : field;
+      const autoAdvance = shouldAutoAdvance(field, nextValue);
+      if (autoAdvance === 'error') {
+        const fieldErrors = buildEmptyFieldFlags();
+        fieldErrors[field] = true;
+        const range = FIELD_LIMITS[field];
+        const labelMap = {
+          systolic: '收缩压',
+          diastolic: '舒张压',
+          heartRate: '心率',
+        };
+
+        this.applyValidationFailure(buildValidationFailure(
+          `${labelMap[field]}数值超出合理范围（${range.min}-${range.max}）`,
+          fieldErrors,
+          field,
+          [field],
+        ));
+        return;
+      }
+
+      const nextField = autoAdvance ? this.getNextAutoField(field, nextForm) : field;
 
       this.setData({
         activeField: nextField,
@@ -575,7 +553,6 @@ Component({
       this.setData({
         form: nextForm,
         measuredDateLabel: formatMeasuredDateLabel(nextForm.measuredDate),
-        alertFields: getAlertFields(this.data.profileId, nextForm),
         activeField: validation.focusField || this.data.activeField,
         hasValidationIssue: true,
         errorText: validation.message,

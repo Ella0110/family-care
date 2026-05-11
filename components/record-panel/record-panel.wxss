@@ -104,7 +104,6 @@
     color: #cbd5e1;
 }
 
-.record-panel__metric-value.is-alert,
 .record-panel__metric-value.is-error {
     color: #ef4444;
 }
@@ -222,7 +221,7 @@
 }
 
 .record-panel__key--backspace {
-    font-size: 60rpx;
+    font-size: 56rpx;
 }
 
 .record-panel__actions {
@@ -278,7 +277,7 @@
 }
 
 .record-panel__dialog-mask {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(15, 23, 42, 0.9);
 }
 
 .record-panel__feedback-card {

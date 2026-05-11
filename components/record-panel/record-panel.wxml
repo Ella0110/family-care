@@ -44,7 +44,7 @@
         bindtap="handleFieldTap"
       >
         <view class="record-panel__metric-label {{activeField === 'systolic' ? 'is-active' : ''}} {{fieldErrors.systolic ? 'is-error' : ''}}">收缩压</view>
-        <view class="record-panel__metric-value {{!form.systolic ? 'is-placeholder' : ''}} {{fieldErrors.systolic ? 'is-error' : ''}} {{!fieldErrors.systolic && alertFields.systolic ? 'is-alert' : ''}}">
+        <view class="record-panel__metric-value {{!form.systolic ? 'is-placeholder' : ''}} {{fieldErrors.systolic ? 'is-error' : ''}}">
           {{form.systolic || '--'}}
         </view>
         <view wx:if="{{activeField === 'systolic'}}" class="record-panel__metric-line"></view>
@@ -56,7 +56,7 @@
         bindtap="handleFieldTap"
       >
         <view class="record-panel__metric-label {{activeField === 'diastolic' ? 'is-active' : ''}} {{fieldErrors.diastolic ? 'is-error' : ''}}">舒张压</view>
-        <view class="record-panel__metric-value {{!form.diastolic ? 'is-placeholder' : ''}} {{fieldErrors.diastolic ? 'is-error' : ''}} {{!fieldErrors.diastolic && alertFields.diastolic ? 'is-alert' : ''}}">
+        <view class="record-panel__metric-value {{!form.diastolic ? 'is-placeholder' : ''}} {{fieldErrors.diastolic ? 'is-error' : ''}}">
           {{form.diastolic || '--'}}
         </view>
         <view wx:if="{{activeField === 'diastolic'}}" class="record-panel__metric-line"></view>

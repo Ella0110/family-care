@@ -21,7 +21,7 @@
 .record-dialog-layer__mask {
   position: absolute;
   inset: 0;
-  background: rgba(15, 23, 42, 0.45);
+  background: rgba(15, 23, 42, 0.9);
 }
 
 .record-feedback-layer {
@@ -40,7 +40,7 @@
   min-width: 360rpx;
   padding: 52rpx 48rpx;
   border-radius: 32rpx;
-  background: rgba(255, 255, 255, 0.95);
+  background: #ffffff;
   box-shadow: 0 20rpx 60rpx rgba(15, 23, 42, 0.16);
 }
 
