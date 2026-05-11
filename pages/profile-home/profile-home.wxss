@@ -13,7 +13,7 @@
   display: inline-flex;
   align-items: center;
   gap: 10rpx;
-  font-size: var(--font-xl);
+  font-size: var(--font-lg);
   font-weight: 700;
   color: var(--color-text);
 }
@@ -24,10 +24,26 @@
 }
 
 .profile-home__settings {
-  color: var(--color-primary);
-  font-size: var(--font-base);
-  font-weight: 600;
-}
+    color: var(--color-primary);
+    font-size: var(--font-base);
+    font-weight: 600;
+  
+    /* 1. 添加背景颜色 */
+    background-color: #ffffff; 
+  
+    /* 2. 添加内边距，撑开背景区域 (上下, 左右) */
+    padding: 8rpx 24rpx; 
+  
+    /* 3. 修改圆角：用较大的固定数值实现胶囊形状 */
+    border-radius: 100rpx; 
+  
+    /* 4. 如果需要边框，必须写完整缩写属性 */
+    /* 如果背景已经是白色且在浅色底上，有时只加背景就够了 */
+    border: 1px solid #ffffff; 
+  
+    /* 5. 确保它是行内块或通过 flex 布局，以便 padding 生效 */
+    display: inline-block; 
+  }
 
 .profile-home__empty {
   padding-top: 120rpx;
@@ -47,7 +63,7 @@
 .profile-home__content {
   display: flex;
   flex-direction: column;
-  gap: 24rpx;
+  gap: 36rpx;
 }
 
 .profile-home__hero-top {
@@ -83,21 +99,21 @@
 }
 
 .profile-home__hero-name {
-  font-size: var(--font-xl);
+  font-size: var(--font-lg);
   font-weight: 700;
   color: var(--color-text);
 }
 
 .profile-home__hero-age {
   padding: 6rpx 14rpx;
-  border-radius: 999rpx;
+  border-radius: 100rpx;
   background: #f3f4f6;
   color: var(--color-text-secondary);
-  font-size: var(--font-sm);
+  font-size: var(--font-xs);
 }
 
 .profile-home__hero-birth {
-  margin-top: 10rpx;
+  margin-top: 8rpx;
   color: var(--color-text-secondary);
   font-size: var(--font-sm);
 }

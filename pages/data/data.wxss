@@ -92,7 +92,7 @@ page {
    最近血压卡片（以下全部保持用户已调好的样式，不做任何修改）
    ========================================================== */
 .data-latest {
-    margin-bottom: 48rpx;
+    margin-bottom: 36rpx;
     padding: 64rpx 64rpx 48rpx;
     border-radius: 64rpx;
     background: #ffffff;

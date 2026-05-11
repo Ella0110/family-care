@@ -2,7 +2,7 @@
   <view wx:if="{{pageReady}}">
     <view class="profile-home__topbar">
       <view class="profile-home__title" bindtap="handleOpenProfileSwitcher">
-        {{profileTitle}}
+        用户档案
         <text wx:if="{{hasProfile}}" class="profile-home__arrow">▼</text>
       </view>
       <view class="profile-home__settings" bindtap="handleOpenUserSettings">设置</view>
@@ -37,7 +37,7 @@
         </view>
 
         <view class="profile-home__overview">
-          <view class="profile-home__overview-title">健康概览</view>
+          <!-- <view class="profile-home__overview-title">健康概览</view> -->
 
           <view class="profile-home__overview-row">
             <view class="profile-home__overview-label">当前血压</view>
