@@ -87,7 +87,7 @@ async function main() {
   assert.strictEqual(pushCalls.length, 1);
   assert.strictEqual(pushCalls[0].touser, 'user_record');
   assert.strictEqual(pushCalls[0].templateId, 'lrhxG9oawoHDyh1AFVSgiv-cQE7-qTAn87-_nzBDxCY');
-  assert.strictEqual(pushCalls[0].page, 'pages/home/home');
+  assert.strictEqual(pushCalls[0].page, 'pages/data/data');
   assert.strictEqual(pushCalls[0].data.thing1.value, '血压偏高');
   assert.strictEqual(pushCalls[0].data.thing2.value, '妈妈');
   assert.strictEqual(pushCalls[0].data.thing4.value, '妈妈的血压152/96 请关注');

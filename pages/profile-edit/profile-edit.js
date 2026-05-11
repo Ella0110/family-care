@@ -48,8 +48,8 @@ function goBackOrHome() {
     return;
   }
 
-  wx.redirectTo({
-    url: '/pages/home/home',
+  wx.switchTab({
+    url: '/pages/profile-home/profile-home',
   });
 }
 
@@ -541,7 +541,7 @@ Page({
         });
       }
       wx.switchTab({
-        url: '/pages/data/data',
+        url: '/pages/profile-home/profile-home',
       });
     } catch (error) {
       console.error('[profile-edit] save failed', {

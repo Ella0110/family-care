@@ -1,4 +1,32 @@
 <view class="page page-root" style="--font-scale: {{fontScale}};">
+  <view wx:if="{{feedbackToastVisible}}" class="record-feedback-layer">
+    <view class="record-feedback-layer__mask"></view>
+    <view class="record-feedback-card">
+      <view class="record-feedback-card__icon {{feedbackToastTone === 'danger' ? 'is-danger' : ''}}">
+        {{feedbackToastIconText}}
+      </view>
+      <view class="record-feedback-card__title">{{feedbackToastTitle}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{showDeleteConfirm}}" class="record-dialog-layer">
+    <view class="record-dialog-layer__mask" bindtap="handleDeleteDialogMaskTap"></view>
+    <view class="record-dialog" catchtap="noop">
+      <view class="record-dialog__icon">🗑</view>
+      <view class="record-dialog__title">确定删除此记录？</view>
+      <view class="record-dialog__subtitle">删除后数据将无法恢复，并会影响您的健康趋势分析。</view>
+      <button
+        class="record-dialog__confirm"
+        bindtap="handleDeleteConfirm"
+        loading="{{isDeleting}}"
+        disabled="{{isDeleting}}"
+      >
+        确定删除
+      </button>
+      <view class="record-dialog__cancel" bindtap="handleDeleteCancel">取消</view>
+    </view>
+  </view>
+
   <view class="record-header">
     <view class="record-header__back" bindtap="handleCancel">返回</view>
     <view class="record-header__text">

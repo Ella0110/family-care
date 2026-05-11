@@ -285,6 +285,7 @@ Page({
     },
 
     onShow() {
+        this.syncTabBarVisibility();
         this.syncFontScale();
         const loginStatus = getAppLoginStatus();
         this.lastLoginReady = loginStatus.isLoginReady;
@@ -306,6 +307,7 @@ Page({
     },
 
     onUnload() {
+        this.setTabBarVisible(true);
         if (this._unsubscribe) {
             this._unsubscribe();
             this._unsubscribe = null;
@@ -375,6 +377,25 @@ Page({
                 relationship ? relationship.subscribeAlerts : true,
             ),
         });
+    },
+
+    setTabBarVisible(visible) {
+        const tabBar =
+            typeof this.getTabBar === "function" ? this.getTabBar() : null;
+        if (tabBar && typeof tabBar.setVisible === "function") {
+            tabBar.setVisible(visible !== false);
+        }
+    },
+
+    syncTabBarVisibility(overrides = {}) {
+        const showProfileSwitcher = Object.prototype.hasOwnProperty.call(
+            overrides,
+            "showProfileSwitcher",
+        )
+            ? overrides.showProfileSwitcher
+            : this.data.showProfileSwitcher;
+
+        this.setTabBarVisible(!showProfileSwitcher);
     },
 
     enterPageLoading() {
@@ -570,6 +591,14 @@ Page({
 
     handleCloseProfileSwitcher() {
         this.setData({ showProfileSwitcher: false });
+    },
+
+    handleProfileSwitcherVisibilityChange(event) {
+        this.syncTabBarVisibility({
+            showProfileSwitcher: Boolean(
+                event && event.detail && event.detail.visible,
+            ),
+        });
     },
 
     handleSelectProfile(event) {

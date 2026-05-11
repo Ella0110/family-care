@@ -26,8 +26,8 @@ function goBackOrHome() {
     return;
   }
 
-  wx.redirectTo({
-    url: '/pages/home/home',
+  wx.switchTab({
+    url: '/pages/profile-home/profile-home',
   });
 }
 

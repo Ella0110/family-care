@@ -9,7 +9,6 @@ function read(relativePath) {
 const profileHomeJs = read('pages/profile-home/profile-home.js');
 const profileHomeWxml = read('pages/profile-home/profile-home.wxml');
 const profileHomeJson = JSON.parse(read('pages/profile-home/profile-home.json'));
-const homeJs = read('pages/home/home.js');
 const dataJs = read('pages/data/data.js');
 const profileMembersJs = read('pages/profile-members/profile-members.js');
 
@@ -42,7 +41,6 @@ assert.match(profileHomeWxml, /查看全部档案/, 'profile-home should render 
 assert.match(profileHomeWxml, /<switch\b/, 'profile-home should use native switch for alerts toggle');
 assert.match(profileHomeWxml, /profile-switcher/, 'profile-home should render profile-switcher component');
 
-assert.match(homeJs, /requestSubscribeForAlerts/, 'home should currently contain reusable subscribe logic');
 assert.match(dataJs, /pageReady:\s*false/, 'data page should keep loading gate behavior after T6.0b work');
 assert.match(profileMembersJs, /ensureProfileAccess/, 'profile-members should allow profile viewers to enter read-only member page');
 assert.doesNotMatch(profileMembersJs, /只有管理员可以查看/, 'profile-members should no longer block non-owner viewers from opening member list');

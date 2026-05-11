@@ -166,5 +166,6 @@
     return-tab="/pages/profile-home/profile-home"
     bind:select="handleSelectProfile"
     bind:close="handleCloseProfileSwitcher"
+    bind:visibilitychange="handleProfileSwitcherVisibilityChange"
   />
 </view>

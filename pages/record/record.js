@@ -42,6 +42,8 @@ function getCurrentFontScale() {
   return normalizeFontScale(app && app.globalData ? app.globalData.fontScale : DEFAULT_FONT_SCALE);
 }
 
+const FEEDBACK_TOAST_DURATION_MS = 1500;
+
 function goBackOrHome() {
   const pages = getCurrentPages();
 
@@ -50,8 +52,8 @@ function goBackOrHome() {
     return;
   }
 
-  wx.redirectTo({
-    url: '/pages/home/home',
+  wx.switchTab({
+    url: '/pages/data/data',
   });
 }
 
@@ -69,6 +71,11 @@ Page({
     isLoadingRecord: false,
     isSaving: false,
     isDeleting: false,
+    showDeleteConfirm: false,
+    feedbackToastVisible: false,
+    feedbackToastTitle: '',
+    feedbackToastTone: 'success',
+    feedbackToastIconText: '✓',
     canDeleteRecord: true,
     errorText: '',
     minMeasuredDate: '2000-01-01',
@@ -133,10 +140,45 @@ Page({
     this.syncFontScale();
   },
 
+  onUnload() {
+    this.clearFeedbackTimer();
+  },
+
   syncFontScale() {
     this.setData({
       fontScale: getCurrentFontScale(),
     });
+  },
+
+  clearFeedbackTimer() {
+    if (this.feedbackTimer) {
+      clearTimeout(this.feedbackTimer);
+      this.feedbackTimer = null;
+    }
+  },
+
+  showFeedbackToast(title, tone = 'success', onComplete) {
+    this.clearFeedbackTimer();
+    this.setData({
+      isSaving: false,
+      isDeleting: false,
+      showDeleteConfirm: false,
+      feedbackToastVisible: true,
+      feedbackToastTitle: title,
+      feedbackToastTone: tone,
+      feedbackToastIconText: tone === 'danger' ? '×' : '✓',
+    });
+
+    this.feedbackTimer = setTimeout(() => {
+      this.feedbackTimer = null;
+      this.setData({
+        feedbackToastVisible: false,
+      }, () => {
+        if (typeof onComplete === 'function') {
+          onComplete();
+        }
+      });
+    }, FEEDBACK_TOAST_DURATION_MS);
   },
 
   async loadEditRecord() {
@@ -282,15 +324,13 @@ Page({
         data.note,
       );
 
-      wx.showToast({
-        title: result.alertTriggered ? '血压偏高，已记录' : '已保存',
-        icon: result.alertTriggered ? 'none' : 'success',
-        duration: result.alertTriggered ? 1500 : 800,
-      });
-
-      setTimeout(() => {
-        wx.navigateBack({ delta: 1 });
-      }, result.alertTriggered ? 1500 : 800);
+      this.showFeedbackToast(
+        result.alertTriggered ? '血压偏高，已记录' : '记录已保存',
+        result.alertTriggered ? 'danger' : 'success',
+        () => {
+          wx.navigateBack({ delta: 1 });
+        },
+      );
     } catch (error) {
       const message = getErrorMessage(error);
       this.setData({ errorText: message });
@@ -337,15 +377,9 @@ Page({
         title = '血压恢复正常，已更新';
       }
 
-      wx.showToast({
-        title,
-        icon: nextAttention ? 'none' : 'success',
-        duration: nextAttention ? 1500 : 800,
-      });
-
-      setTimeout(() => {
+      this.showFeedbackToast(title, nextAttention ? 'danger' : 'success', () => {
         wx.navigateBack({ delta: 1 });
-      }, nextAttention ? 1500 : 800);
+      });
     } catch (error) {
       const message = getErrorMessage(error);
       this.setData({ errorText: message });
@@ -367,43 +401,52 @@ Page({
       return;
     }
 
-    this.setData({ isDeleting: true });
-    wx.showModal({
-      title: '确定删除这条记录？',
-      content: '删除后无法恢复',
-      confirmText: '删除',
-      confirmColor: '#b42318',
-      cancelText: '取消',
-      success: async (res) => {
-        if (!res.confirm) {
-          this.setData({ isDeleting: false });
-          return;
-        }
-
-        try {
-          await deleteRecordById(this.data.recordId, this.data.profileId);
-          wx.showToast({
-            title: '已删除',
-            icon: 'success',
-          });
-          setTimeout(() => {
-            wx.navigateBack({ delta: 1 });
-          }, 800);
-        } catch (error) {
-          const message = getErrorMessage(error);
-          this.setData({
-            isDeleting: false,
-            errorText: message,
-          });
-          wx.showToast({
-            title: message,
-            icon: 'none',
-          });
-        }
-      },
-      fail: () => {
-        this.setData({ isDeleting: false });
-      },
+    this.setData({
+      showDeleteConfirm: true,
+      errorText: '',
     });
   },
+
+  handleDeleteDialogMaskTap() {
+    if (this.data.isDeleting) {
+      return;
+    }
+
+    this.setData({ showDeleteConfirm: false });
+  },
+
+  handleDeleteCancel() {
+    if (this.data.isDeleting) {
+      return;
+    }
+
+    this.setData({ showDeleteConfirm: false });
+  },
+
+  async handleDeleteConfirm() {
+    if (this.data.isDeleting || !this.data.recordId) {
+      return;
+    }
+
+    this.setData({ isDeleting: true });
+
+    try {
+      await deleteRecordById(this.data.recordId, this.data.profileId);
+      this.showFeedbackToast('记录已删除', 'danger', () => {
+        wx.navigateBack({ delta: 1 });
+      });
+    } catch (error) {
+      const message = getErrorMessage(error);
+      this.setData({
+        isDeleting: false,
+        errorText: message,
+      });
+      wx.showToast({
+        title: message,
+        icon: 'none',
+      });
+    }
+  },
+
+  noop() {},
 });

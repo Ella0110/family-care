@@ -18,6 +18,14 @@ Component({
     },
   },
 
+  observers: {
+    show(visible) {
+      this.triggerEvent('visibilitychange', {
+        visible: visible === true,
+      });
+    },
+  },
+
   methods: {
     handleMaskTap() {
       this.triggerEvent('close');

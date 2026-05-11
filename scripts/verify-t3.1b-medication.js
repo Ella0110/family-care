@@ -235,7 +235,7 @@ async function main() {
       success({ confirm: true, cancel: false });
     },
   };
-  global.getCurrentPages = () => [{ route: 'pages/home/home' }, { route: 'pages/medication-edit/medication-edit' }];
+  global.getCurrentPages = () => [{ route: 'pages/profile-home/profile-home' }, { route: 'pages/medication-edit/medication-edit' }];
 
   const medicationEditPath = path.resolve(__dirname, '../pages/medication-edit/medication-edit.js');
   delete require.cache[medicationEditPath];

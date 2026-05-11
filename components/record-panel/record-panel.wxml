@@ -1,5 +1,34 @@
 <view wx:if="{{show}}" class="record-panel">
   <view class="record-panel__mask" bindtap="handleMaskTap"></view>
+
+  <view wx:if="{{feedbackToastVisible}}" class="record-panel__feedback-layer">
+    <view class="record-panel__feedback-backdrop"></view>
+    <view class="record-panel__feedback-card">
+      <view class="record-panel__feedback-icon {{feedbackToastTone === 'danger' ? 'is-danger' : ''}}">
+        {{feedbackToastIconText}}
+      </view>
+      <view class="record-panel__feedback-title">{{feedbackToastTitle}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{showDeleteConfirm}}" class="record-panel__dialog-layer">
+    <view class="record-panel__dialog-mask" bindtap="handleDeleteDialogMaskTap"></view>
+    <view class="record-panel__dialog" catchtap="noop">
+      <view class="record-panel__dialog-icon">🗑</view>
+      <view class="record-panel__dialog-title">确定删除此记录？</view>
+      <view class="record-panel__dialog-subtitle">删除后数据将无法恢复，并会影响您的健康趋势分析。</view>
+      <button
+        class="record-panel__dialog-confirm"
+        bindtap="handleDeleteConfirm"
+        loading="{{isDeleting}}"
+        disabled="{{isDeleting}}"
+      >
+        确定删除
+      </button>
+      <view class="record-panel__dialog-cancel" bindtap="handleDeleteCancel">取消</view>
+    </view>
+  </view>
+
   <view class="record-panel__sheet" catchtap="noop">
     <view class="record-panel__grabber"></view>
 
@@ -9,7 +38,7 @@
     </view>
 
     <view class="record-panel__field">
-      <view class="record-panel__label">测量时间</view>
+      <view class="record-panel__label {{fieldErrors.measuredAt ? 'is-error' : ''}}">测量时间</view>
       <view class="record-panel__datetime">
         <picker
           mode="date"
@@ -18,53 +47,69 @@
           end="{{maxMeasuredDate}}"
           bindchange="onMeasuredDateChange"
         >
-          <view class="record-panel__datetime-item">{{form.measuredDate}}</view>
+          <view class="record-panel__datetime-item {{fieldErrors.measuredAt ? 'is-error' : ''}}">
+            {{form.measuredDate}}
+          </view>
         </picker>
         <picker
           mode="time"
           value="{{form.measuredTime}}"
           bindchange="onMeasuredTimeChange"
         >
-          <view class="record-panel__datetime-item">{{form.measuredTime}}</view>
+          <view class="record-panel__datetime-item {{fieldErrors.measuredAt ? 'is-error' : ''}}">
+            {{form.measuredTime}}
+          </view>
         </picker>
       </view>
     </view>
 
     <view class="record-panel__field">
       <view class="record-panel__label">测量结果</view>
-      <view class="record-panel__inputs">
-        <input
-          class="record-panel__input record-panel__input--bp"
-          type="number"
-          placeholder="高压"
-          value="{{form.systolic}}"
-          bindinput="onSystolicInput"
-        />
+      <view class="record-panel__measurements">
+        <view class="record-panel__metric {{shakingFields.systolic ? 'error-shake' : ''}}">
+          <view class="record-panel__metric-label {{fieldErrors.systolic ? 'is-error' : ''}}">高压</view>
+          <input
+            class="record-panel__input {{fieldErrors.systolic ? 'is-error' : ''}}"
+            type="number"
+            placeholder="高压"
+            value="{{form.systolic}}"
+            bindinput="onSystolicInput"
+          />
+        </view>
         <view class="record-panel__slash">/</view>
-        <input
-          class="record-panel__input record-panel__input--bp"
-          type="number"
-          placeholder="低压"
-          value="{{form.diastolic}}"
-          bindinput="onDiastolicInput"
-        />
-        <input
-          class="record-panel__input record-panel__input--hr"
-          type="number"
-          placeholder="心率"
-          value="{{form.heartRate}}"
-          bindinput="onHeartRateInput"
-        />
+        <view class="record-panel__metric {{shakingFields.diastolic ? 'error-shake' : ''}}">
+          <view class="record-panel__metric-label {{fieldErrors.diastolic ? 'is-error' : ''}}">低压</view>
+          <input
+            class="record-panel__input {{fieldErrors.diastolic ? 'is-error' : ''}}"
+            type="number"
+            placeholder="低压"
+            value="{{form.diastolic}}"
+            bindinput="onDiastolicInput"
+          />
+        </view>
+        <view class="record-panel__metric record-panel__metric--heart-rate {{shakingFields.heartRate ? 'error-shake' : ''}}">
+          <view class="record-panel__metric-label {{fieldErrors.heartRate ? 'is-error' : ''}}">心率</view>
+          <input
+            class="record-panel__input {{fieldErrors.heartRate ? 'is-error' : ''}}"
+            type="number"
+            placeholder="心率"
+            value="{{form.heartRate}}"
+            bindinput="onHeartRateInput"
+          />
+        </view>
       </view>
     </view>
 
-    <view wx:if="{{errorText}}" class="record-panel__error">{{errorText}}</view>
+    <view wx:if="{{errorText}}" class="record-panel__error-banner">
+      <text class="record-panel__error-icon">!</text>
+      <text class="record-panel__error-text">{{errorText}}</text>
+    </view>
 
     <button
       class="btn-primary record-panel__save"
       bindtap="handleSave"
       loading="{{isSaving}}"
-      disabled="{{isSaving || isDeleting}}"
+      disabled="{{isSaving || isDeleting || hasValidationIssue || feedbackToastVisible}}"
     >
       确认保存
     </button>
@@ -73,7 +118,7 @@
       wx:if="{{isEditMode}}"
       class="record-panel__delete"
       bindtap="handleDelete"
-      disabled="{{isSaving || isDeleting}}"
+      disabled="{{isSaving || isDeleting || feedbackToastVisible}}"
     >
       删除记录
     </button>

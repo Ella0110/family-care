@@ -30,7 +30,6 @@
 ### 路由与 tab 结构
 - 当前主入口是 `pages/data/data` 和 `pages/profile-home/profile-home`
 - `app.json` 已启用 `tabBar.custom: true`
-- 旧 `pages/home/home` 仍保留在 pages 路由表中，但不再是 tabBar 主入口
 
 ### 自定义 tabBar
 - `custom-tab-bar/index.js` 当前直接内嵌 base64 SVG 图标，不依赖 PNG 才能显示图标
@@ -85,8 +84,7 @@
 - `utils/app-login-status.js`、`utils/profile-store.js`、`utils/alert-subscription.js` 已经被 `home / data / profile-home` 复用，不再各页散写同类逻辑
 
 ### 当前仍保留的旧结构
-- `pages/home/home` 还在，且仍承载旧的单档案 / 多档案逻辑；它不是 tabBar 入口，但外部链接和部分旧流程仍可能进入
-- `profile-detail`、`profile-settings` 的真实使用状态本次未核对到页面代码，若要接手这两个页面请先再读实际文件；当前在路由表里都还存在
+- 待确认：历史验证脚本和文档中是否仍有旧 `home/profile-detail/profile-settings` 文案残留；代码路由层已删除这些页面
 
 ## 关键工程约定（不要违反的硬规则）
 1. 云函数 `_shared` 用构建复制方案，不能直接依赖父目录，见 [deployment-notes.md](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/docs/deployment-notes.md:1)
@@ -197,7 +195,6 @@
 - [utils/record-editor.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/utils/record-editor.js:1)：`record` 页面和 `record-panel` 共用的保存 / 更新 / 删除逻辑
 - [utils/report-chart-renderer.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/utils/report-chart-renderer.js:1)：数据页和报告页共享的图表绘制逻辑
 - [utils/report-helpers.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/utils/report-helpers.js:1)：数据页和报告页共享的图表数据预处理逻辑
-- [pages/home/home.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/pages/home/home.js:1)：旧主页面仍保留；历史逻辑和部分流程还在这里
 - [pages/profile-members/profile-members.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/pages/profile-members/profile-members.js:1)：成员管理页；当前允许所有已关联角色查看，owner 负责角色调整、移除与转让流程
 - [pages/invite-create/invite-create.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/pages/invite-create/invite-create.js:1)：邀请发起页，昵称/头像输入与分享入口
 - [pages/invite-accept/invite-accept.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/pages/invite-accept/invite-accept.js:1)：邀请接受状态机

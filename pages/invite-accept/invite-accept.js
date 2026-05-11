@@ -166,8 +166,8 @@ Page({
   },
 
   handleDecline() {
-    wx.reLaunch({
-      url: '/pages/home/home',
+    wx.switchTab({
+      url: '/pages/data/data',
     });
   },
 
@@ -267,8 +267,8 @@ Page({
       store.setCurrentProfileId(this.data.acceptedProfileId);
     }
 
-    wx.reLaunch({
-      url: '/pages/home/home',
+    wx.switchTab({
+      url: '/pages/data/data',
     });
   },
 });

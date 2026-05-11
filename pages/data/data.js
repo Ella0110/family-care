@@ -452,6 +452,7 @@ Page({
   },
 
   onShow() {
+    this.syncTabBarVisibility();
     this.syncFontScale();
     const loginStatus = getLoginStatus();
     this.lastLoginReady = loginStatus.isLoginReady;
@@ -471,6 +472,7 @@ Page({
   },
 
   onUnload() {
+    this.setTabBarVisible(true);
     if (this._unsubscribe) {
       this._unsubscribe();
       this._unsubscribe = null;
@@ -518,6 +520,24 @@ Page({
       isViewerMode: profile ? isViewer(state, currentProfileId) : false,
       relationshipRole: relationship ? relationship.role : '',
     });
+  },
+
+  setTabBarVisible(visible) {
+    const tabBar = typeof this.getTabBar === 'function' ? this.getTabBar() : null;
+    if (tabBar && typeof tabBar.setVisible === 'function') {
+      tabBar.setVisible(visible !== false);
+    }
+  },
+
+  syncTabBarVisibility(overrides = {}) {
+    const showProfileSwitcher = Object.prototype.hasOwnProperty.call(overrides, 'showProfileSwitcher')
+      ? overrides.showProfileSwitcher
+      : this.data.showProfileSwitcher;
+    const showRecordPanel = Object.prototype.hasOwnProperty.call(overrides, 'showRecordPanel')
+      ? overrides.showRecordPanel
+      : this.data.showRecordPanel;
+
+    this.setTabBarVisible(!(showProfileSwitcher || showRecordPanel));
   },
 
   enterPageLoading() {
@@ -813,6 +833,12 @@ Page({
     this.setData({ showProfileSwitcher: false });
   },
 
+  handleProfileSwitcherVisibilityChange(event) {
+    this.syncTabBarVisibility({
+      showProfileSwitcher: Boolean(event && event.detail && event.detail.visible),
+    });
+  },
+
   handleSelectProfile(event) {
     const profileId = event.detail && event.detail.profileId;
     if (!profileId || profileId === this.data.currentProfileId) {
@@ -857,6 +883,12 @@ Page({
     this.setData({
       showRecordPanel: false,
       editingRecord: null,
+    });
+  },
+
+  handleRecordPanelVisibilityChange(event) {
+    this.syncTabBarVisibility({
+      showRecordPanel: Boolean(event && event.detail && event.detail.visible),
     });
   },
 

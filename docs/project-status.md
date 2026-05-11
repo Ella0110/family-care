@@ -50,11 +50,9 @@
 - 应用壳层：
   - `app.json` 当前使用 `custom: true` 的自定义 `tabBar`
   - 主入口页面是 `pages/data/data`（数据 tab）和 `pages/profile-home/profile-home`（档案 tab）
-  - 旧 `pages/home/home` 仍保留在路由表中，但不再是 tabBar 入口
 - 当前页面结构：
   - tab 页面：`pages/data/data`、`pages/profile-home/profile-home`
-  - 业务页面：`home`、`profile-edit`、`profile-threshold-edit`、`record`、`records-list`、`import-records`、`medication-edit`、`invite-create`、`invite-accept`、`profile-members`、`report`、`user-profile-edit`、`user-settings`
-  - 待确认 / 骨架页：`profile-detail`、`profile-settings`
+  - 业务页面：`profile-edit`、`profile-threshold-edit`、`record`、`records-list`、`import-records`、`medication-edit`、`invite-create`、`invite-accept`、`profile-members`、`report`、`user-profile-edit`、`user-settings`
 - 自定义 tabBar：
   - `custom-tab-bar/index.js`、`index.wxml`、`index.wxss`
   - 当前使用内嵌 base64 SVG 图标，不依赖 `app.json` 里列出的 PNG 才能显示

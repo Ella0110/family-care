@@ -76,8 +76,8 @@ async function batchImport(profileId, validRecords, onProgress) {
 
 function goBackToRecords(profileId) {
   if (!profileId) {
-    wx.redirectTo({
-      url: '/pages/home/home',
+    wx.switchTab({
+      url: '/pages/data/data',
     });
     return;
   }

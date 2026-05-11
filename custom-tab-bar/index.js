@@ -35,6 +35,7 @@ Component({
     tabs: TAB_ITEMS,
     selectedPath: "pages/data/data",
     canOpenRecord: false,
+    show: true,
   },
 
   lifetimes: {
@@ -62,6 +63,12 @@ Component({
   },
 
   methods: {
+    setVisible(visible) {
+      this.setData({
+        show: visible !== false,
+      });
+    },
+
     syncFromStore() {
       const state = store.getState();
       const currentProfileId = state.currentProfileId || "";

@@ -83,19 +83,8 @@ async function main() {
     pageConfig = config;
   };
   global.getApp = () => ({ globalData: {} });
-  global.getCurrentPages = () => [{ route: 'pages/record/record' }, { route: 'pages/home/home' }];
+  global.getCurrentPages = () => [{ route: 'pages/record/record' }, { route: 'pages/data/data' }];
   global.wx = {
-    requestSubscribeMessage({ success, complete }) {
-      events.push('subscribe');
-      if (typeof success === 'function') {
-        success({
-          'lrhxG9oawoHDyh1AFVSgiv-cQE7-qTAn87-_nzBDxCY': 'accept',
-        });
-      }
-      if (typeof complete === 'function') {
-        complete();
-      }
-    },
     showToast() {},
     navigateBack() {},
     redirectTo() {},
@@ -117,7 +106,7 @@ async function main() {
 
   global.setTimeout = originalSetTimeout;
 
-  assert.deepStrictEqual(events.slice(0, 2), ['subscribe', 'save']);
+  assert.deepStrictEqual(events, ['save']);
   assert.strictEqual(page.data.isSaving, false);
   console.log('[verify-t5.3a-subscribe] pass');
 }

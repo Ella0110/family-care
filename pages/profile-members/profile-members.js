@@ -78,8 +78,8 @@ function goBackOrHome() {
     return;
   }
 
-  wx.reLaunch({
-    url: '/pages/home/home',
+  wx.switchTab({
+    url: '/pages/profile-home/profile-home',
   });
 }
 

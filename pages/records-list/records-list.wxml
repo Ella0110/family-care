@@ -1,11 +1,11 @@
 <view class="page page-root" style="--font-scale: {{fontScale}};">
-  <view class="records-header">
+  <!-- <view class="records-header">
     <view class="records-header__back" bindtap="handleBack">返回</view>
     <view class="records-header__text">
       <view class="records-header__title">{{profileName}} 的记录</view>
       <view class="records-header__subtitle">按测量时间倒序展示</view>
     </view>
-  </view>
+  </view> -->
 
   <view wx:if="{{isViewerMode}}" class="records-viewer-tip">
     你以查看者身份访问，不可修改记录
