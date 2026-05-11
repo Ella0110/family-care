@@ -1,11 +1,12 @@
-# 项目交接文档（T5 起点）
+# 项目交接文档（T6 进行中）
 
 ## 项目身份
 - 产品名：来自儿女的关心（family-care）
 - 仓库：`family-care`
-- 当前 git HEAD（本交接文档编写时）：`97bb237f924e7abe7c5b123baee298cb87f3c7d5`
-- 上次完成阶段：T4.2b（修复版）
-- 下次开始阶段：T5.1（就诊报告导出）
+- 当前 git HEAD（本交接文档编写时）：`eed7cd56f5b49d25eb4535c3ecbf6f6f68a5fc60`
+- 上次完整收尾阶段：T5
+- 当前进行中阶段：T6
+- 当前切入点：T6（双 tab + custom tabBar 已落地；数据页、档案页和共享图表仍在持续调整）
 
 ## 用户当前状态（给新会话的 Claude / Codex 参考）
 
@@ -21,8 +22,71 @@
 ## 核心架构快照
 - 数据模型：Path B，核心是 `users / profiles / relationships` 三表，没有“家庭”中间层
 - 云函数：21 个，详见 [project-status.md](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/docs/project-status.md:1)
-- 前端框架：原生微信小程序 + 手写订阅式 store
+- 前端框架：原生微信小程序 + 手写订阅式 store + 自定义 `custom-tab-bar`
 - 缓存策略：T2.5 SWR；T4.2b 对 `home / profile-members` 增加 30 秒 staleness 强刷
+
+## T6 架构说明
+
+### 路由与 tab 结构
+- 当前主入口是 `pages/data/data` 和 `pages/profile-home/profile-home`
+- `app.json` 已启用 `tabBar.custom: true`
+- 旧 `pages/home/home` 仍保留在 pages 路由表中，但不再是 tabBar 主入口
+
+### 自定义 tabBar
+- `custom-tab-bar/index.js` 当前直接内嵌 base64 SVG 图标，不依赖 PNG 才能显示图标
+- 左右两个 tab 分别切到 `pages/data/data` 和 `pages/profile-home/profile-home`
+- 中间 `+` 按钮不是装饰，它直接承载“录入血压”入口
+- `+` 按钮是否显示取决于：当前是否有 `currentProfileId`，以及当前用户是否对该档案 `canWrite`
+- 如果当前就在数据页，点击 `+` 直接调用当前页的 `handleOpenRecordPanel()`
+- 如果当前不在数据页，tabBar 会先通过 `app.requestOpenRecordPanelOnDataTab()` 设置一个待消费标记，再 `switchTab('/pages/data/data')`
+
+### 全局档案状态
+- 当前档案状态统一放在 `store.state.currentProfileId`
+- `app.js` 登录成功后，会优先尝试读取本地存储的 `currentProfileId`；如果无效，则回退到第一个档案
+- `app.js` 还会持续监听 store，把 `currentProfileId` 写回本地存储
+- 数据页和档案页都直接订阅 store，因此切换档案后两个 tab 会同步刷新
+
+### 数据页（`pages/data/data`）
+- 页面会先等待 `loginReady`，登录未完成前只显示白底 loading
+- 页面再用 `pageReady` 控制真正渲染，避免冷启动、切档或建档后的空态 / 旧数据闪烁
+- 顶部通过 `profile-switcher` 切换当前档案
+- 最近血压卡片、分析卡片、血压图、心率图、图表导出、空态导入入口都集中在这一页
+- 图表数据当前通过 `callSilent('getRecords')` 独立查询，再本地按 `measuredAt desc + createdAt desc` 兜底排序
+- 页面内不再自己放置悬浮录入按钮；录入入口已经迁移到 custom tabBar 中央按钮
+- 数据页仍然挂着共享的 `record-panel` 组件，既用于新建也用于编辑 / 删除记录
+
+### 档案页（`pages/profile-home/profile-home`）
+- 页面同样先等待 `loginReady`，再用 `pageReady` 避免闪烁
+- 当前结构已经不是骨架页，实际包含：
+  - 顶部档案标题 + 设置入口
+  - 档案 hero 卡片（头像首字、姓名、年龄、出生年份、owner 编辑入口）
+  - 健康概览（当前血压、当前心率、可选的用药摘要、可选的紧急联系人）
+  - 成员横向列表
+  - 就诊报告、药物管理两个快捷入口
+  - 异常血压通知 toggle、字体大小入口
+  - owner 可见的删除档案区
+- 页面底部仍保留一个“查看全部档案”入口，用来再次打开 `profile-switcher`
+
+### 共享组件
+- `components/profile-switcher/*`
+  - 当前是遮罩 + 半屏列表浮层
+  - 支持显示档案名称、关系、当前选中态
+  - 组件内部直接跳 `profile-edit?mode=create&returnTab=...`
+- `components/record-panel/*`
+  - 当前是底部半屏录入 / 编辑面板
+  - 面板字段实际只有：测量日期、测量时间、高压、低压、心率
+  - 新建和编辑共用一套 `utils/record-editor.js` 保存逻辑
+  - 编辑模式支持删除，删除确认当前使用 `wx.showModal`
+
+### 共享工具层
+- `utils/report-helpers.js` 负责图表时间轴与数据预处理
+- `utils/report-chart-renderer.js` 负责血压 / 心率 canvas 绘制
+- 当前 `data` 和 `report` 两页共享这一套图表 helper，因此图表行为是联动的
+- `utils/app-login-status.js`、`utils/profile-store.js`、`utils/alert-subscription.js` 已经被 `home / data / profile-home` 复用，不再各页散写同类逻辑
+
+### 当前仍保留的旧结构
+- `pages/home/home` 还在，且仍承载旧的单档案 / 多档案逻辑；它不是 tabBar 入口，但外部链接和部分旧流程仍可能进入
+- `profile-detail`、`profile-settings` 的真实使用状态本次未核对到页面代码，若要接手这两个页面请先再读实际文件；当前在路由表里都还存在
 
 ## 关键工程约定（不要违反的硬规则）
 1. 云函数 `_shared` 用构建复制方案，不能直接依赖父目录，见 [deployment-notes.md](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/docs/deployment-notes.md:1)
@@ -125,8 +189,16 @@
 - [services/member-service.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/services/member-service.js:1)：成员列表、角色调整、移除、转让，外加当前用户关系本地同步
 - [services/user-service.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/services/user-service.js:1)：用户设置与邀请昵称/头像更新
 - [utils/permission-helpers.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/utils/permission-helpers.js:1)：前端统一权限判断，不要在页面里散落 role 判断
-- [pages/home/home.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/pages/home/home.js:1)：核心页面；单档案详情、多档案列表、用药区、高级设置、协作角色渲染都在这里
-- [pages/profile-members/profile-members.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/pages/profile-members/profile-members.js:1)：成员管理页，owner only，含角色调整、移除、转让流程
+- [custom-tab-bar/index.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/custom-tab-bar/index.js:1)：当前自定义 tabBar 真正入口，中间 `+` 按钮逻辑也在这里
+- [pages/data/data.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/pages/data/data.js:1)：当前主数据页；`loginReady/pageReady`、图表、录入面板、导出、空态导入入口都在这里
+- [pages/profile-home/profile-home.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/pages/profile-home/profile-home.js:1)：当前档案 tab；档案概览、成员、快捷入口、通知 toggle、删除档案都在这里
+- [components/profile-switcher/profile-switcher.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/components/profile-switcher/profile-switcher.js:1)：数据页 / 档案页共享的档案切换器
+- [components/record-panel/record-panel.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/components/record-panel/record-panel.js:1)：数据页共享的录入 / 编辑面板
+- [utils/record-editor.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/utils/record-editor.js:1)：`record` 页面和 `record-panel` 共用的保存 / 更新 / 删除逻辑
+- [utils/report-chart-renderer.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/utils/report-chart-renderer.js:1)：数据页和报告页共享的图表绘制逻辑
+- [utils/report-helpers.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/utils/report-helpers.js:1)：数据页和报告页共享的图表数据预处理逻辑
+- [pages/home/home.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/pages/home/home.js:1)：旧主页面仍保留；历史逻辑和部分流程还在这里
+- [pages/profile-members/profile-members.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/pages/profile-members/profile-members.js:1)：成员管理页；当前允许所有已关联角色查看，owner 负责角色调整、移除与转让流程
 - [pages/invite-create/invite-create.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/pages/invite-create/invite-create.js:1)：邀请发起页，昵称/头像输入与分享入口
 - [pages/invite-accept/invite-accept.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/pages/invite-accept/invite-accept.js:1)：邀请接受状态机
 - [pages/user-settings/user-settings.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/pages/user-settings/user-settings.js:1)：字号、关于、我的资料入口
@@ -136,15 +208,10 @@
 - [cloudfunctions/_shared/invitation-utils.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/cloudfunctions/_shared/invitation-utils.js:1)：邀请 token、状态、昵称占位值处理
 - [scripts/verify-*.js](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/scripts/verify-t4.2b.js:1)：阶段化本地回归脚本是现在最重要的防回归资产
 
-## T5 整体规划
-- T5 整体规划已落到 `docs/t5-roadmap.md`
-- 含 T5 拆分（5 个子阶段）、视觉范围、前序契约依赖、文档维护责任
-- 新会话开始时建议依次阅读：
-  1. `project-status.md`（当前状态总览）
-  2. 本交接文档（踩坑 + 微信能力风险 + 文件清单）
-  3. `t5-roadmap.md`（T5 子阶段拆分与契约依赖）
-- 当前用户已经明确：`T5.1` 起点是“就诊报告导出”
+## T5 历史说明
+- `docs/t5-roadmap.md` 仍保留在仓库中，可作为 T5 的历史规划参考
+- 但当前阶段已经不是 T5 起点，新的会话应优先以 `project-status.md`、本交接文档和实际代码为准
 
 ## 当前未完成的事
 - `docs/t1-manual-test-checklist.md` 一直未提交，且无关紧要
-- 其他业务代码和文档都已提交
+- 代码层面仍在继续调整 T6 的数据页、档案页、共享图表和 custom tabBar；不要把 `project-status.md` 里“当前切入点：T6”理解成已收尾

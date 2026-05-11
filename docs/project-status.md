@@ -1,9 +1,9 @@
 # 来自儿女的关心（family-care）项目状态
 
 ## 当前阶段
-- 已完成：T0、T1、T2.1-T2.6、T3.1a、T3.1b、T3.2、T3.3、T4.1、T4.2a、T4.2b、T5.1、T5.3、T5.5
-- 当前切入点：T6（T5 已收尾；T5.2 推迟到 T6 之后，依赖首页图表；T5.4 推迟到企业主体阶段，依赖长期订阅能力）
-- 未开始：T6
+- 已完成：T0、T1、T2.1-T2.6、T3.1a、T3.1b、T3.2、T3.3、T4.1、T4.2a、T4.2b、T5
+- 当前切入点：T6（代码中已落地双 tab + custom tabBar；数据页、档案页和共享图表仍在持续调整）
+- 未开始：T6 后续子阶段待确认
 
 ## 核心模型（Path B）
 - 三表核心：`users`、`profiles`、`relationships`
@@ -47,24 +47,58 @@
 云函数部署与打包约定见 [deployment-notes.md](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/docs/deployment-notes.md:1)。
 
 ## 前端架构
-- 页面：
-  - 已接业务：`home`、`profile-edit`、`profile-threshold-edit`、`record`、`records-list`、`medication-edit`、`invite-create`、`invite-accept`、`profile-members`、`report`、`user-profile-edit`、`user-settings`
-  - 骨架待接：`profile-detail`、`profile-settings`
+- 应用壳层：
+  - `app.json` 当前使用 `custom: true` 的自定义 `tabBar`
+  - 主入口页面是 `pages/data/data`（数据 tab）和 `pages/profile-home/profile-home`（档案 tab）
+  - 旧 `pages/home/home` 仍保留在路由表中，但不再是 tabBar 入口
+- 当前页面结构：
+  - tab 页面：`pages/data/data`、`pages/profile-home/profile-home`
+  - 业务页面：`home`、`profile-edit`、`profile-threshold-edit`、`record`、`records-list`、`import-records`、`medication-edit`、`invite-create`、`invite-accept`、`profile-members`、`report`、`user-profile-edit`、`user-settings`
+  - 待确认 / 骨架页：`profile-detail`、`profile-settings`
+- 自定义 tabBar：
+  - `custom-tab-bar/index.js`、`index.wxml`、`index.wxss`
+  - 当前使用内嵌 base64 SVG 图标，不依赖 `app.json` 里列出的 PNG 才能显示
+  - 中间 `+` 按钮在有当前档案且当前用户对该档案 `canWrite` 时显示
+  - 在数据页点击 `+` 直接打开录入面板；在档案页点击 `+` 会先切回数据页，再通过 `app.globalData.openRecordPanelOnDataTab` 打开录入面板
+- 共享组件：
+  - `components/record-panel/*`：底部半屏录入 / 编辑面板，支持新建、编辑、删除血压记录；删除确认用 `wx.showModal`
+  - `components/profile-switcher/*`：档案切换浮层，供数据页和档案页共用，支持带 `returnTab` 的新建档案跳转
+- 全局状态：
+  - `store/index.js`：手写订阅式 store，核心状态是 `user / profiles / relationships / currentProfileId / cache / lastRefreshAt / session`
+  - `app.js`：登录后按本地持久化或第一个档案初始化 `currentProfileId`，并持续把 `currentProfileId` 写回本地存储
+- 数据页（`pages/data/data`）：
+  - 等待 `loginReady` 后再加载，并用 `pageReady` 避免冷启动 / 切档闪烁
+  - 图表记录通过 `callSilent('getRecords')` 独立查询，不污染 `record-service` 的全局 records cache
+  - 最近血压卡片、分析卡片、血压 / 心率图、图表导出、空态导入入口都在当前页面内
+  - 当前不再在页面内直接渲染悬浮 `+` 按钮，录入入口由 custom tabBar 中央按钮承载
+- 档案页（`pages/profile-home/profile-home`）：
+  - 等待 `loginReady` + `pageReady` 后渲染
+  - 展示档案信息、健康概览、成员横滑列表、就诊报告入口、药物管理入口、异常通知 toggle、字体大小入口、删除档案
+  - 与数据页共用 `currentProfileId` 和 `profile-switcher`
 - 服务层：`services/request.js`、`services/profile-service.js`、`services/record-service.js`、`services/medication-service.js`、`services/invitation-service.js`、`services/member-service.js`、`services/user-service.js`
-- 报告模块：`pages/report/report`、`utils/report-helpers.js`、`utils/report-chart-renderer.js`、`utils/report-exporter.js`
-- T5.5 数据导出导入：`utils/csv-helpers.js`、`utils/records-export-helpers.js`、`pages/import-records/import-records`
-- T5.3 推送基础设施：`cloudfunctions/_shared/push-helpers.js` 统一构建订阅消息 payload；订阅消息模板为“健康上报异常提醒”（模板 ID：`lrhxG9oawoHDyh1AFVSgiv-cQE7-qTAn87-_nzBDxCY`）
-- T5.3 订阅授权时机：录入页在点击“保存”后、真正调用 `saveRecord` 前同步请求 `wx.requestSubscribeMessage`，其 `complete` 回调再继续保存
-- 全局 store：手写轻量订阅式 store，提供 `getState / setState / subscribe`
-- 缓存策略：T2.5 引入 SWR，缓存按 `profileId` 隔离，首页与记录列表先读缓存再后台刷新
-- T5.1 技术债：`report` 页为避免时间范围子集查询污染 `record-service` 的全局 records cache，暂时通过 `callSilent('getRecords')` 直调云函数；后续应给 records cache key 引入时间范围参数后再收敛回服务层
-- T5.3 技术债：订阅消息当前使用 `miniprogramState: 'developer'`，上线前必须改为 `formal`
-- 错误处理：T2.6 引入统一错误文案映射与开发环境请求风暴告警
-- 单档案首页：T3.2 升级为“档案详情页”，含档案信息卡片、阈值调整入口和危险操作区
-- 用户设置：T3.3 新增字号切换和关于页，`fontScale` 支持 `1.0 / 1.15 / 1.3`
-- 协作邀请：T4.1 完成邀请、接受、成员角色、管理员转让的数据层 API；T4.2a 已接通邀请发起、邀请预览、接受和分享路径，并改为 invite-create 页主动填写昵称（+ 可选头像）
-- 协作前端：T4.2b 完成成员管理页、viewer/collaborator 模式 UI、退出档案、转让管理员、成员刷新策略，以及用户修改自己的邀请昵称/头像
-- T5.1 报告导出：完成报告页渲染、7/30/90 天图表、长图导出、保存到相册、权限挽回与隐私脱敏
+- 当前运行中的工具文件（`utils/*.js`）：
+  - 状态 / 登录：`app-login-status.js`、`profile-store.js`
+  - 权限 / 协作：`permission-helpers.js`、`alert-subscription.js`、`invitation.js`
+  - 血压 / 图表：`bp-status.js`、`health-rules.js`、`chart-data.js`、`canvas-charts.js`、`report-chart-renderer.js`、`report-helpers.js`、`report-data.js`、`report-canvas.js`、`report-exporter.js`
+  - 记录 / 导入导出：`record-editor.js`、`record-data-transfer.js`、`csv-helpers.js`、`records-export-helpers.js`、`records-data-canvas.js`
+  - 通用：`date.js`、`font-scale.js`、`error-messages.js`、`medication.js`、`profile-detail.js`
+  - 目录中还存在一批 `*.guide.md` 说明文件；这些是仓库内参考文档，不是运行时代码
+- T5.1 / T6 共享图表基础设施：
+  - `report` 和 `data` 当前共用 `utils/report-helpers.js` 与 `utils/report-chart-renderer.js`
+  - 因此时间轴、点位、阈值着色、辅助线等调整会同时影响报告页和数据页
+- T5.5 数据导出导入：
+  - `pages/import-records/import-records`
+  - `utils/csv-helpers.js`
+  - `utils/records-export-helpers.js`
+  - 导入当前支持并发批量保存；导入链路会透传 `skipPush: true`
+- T5.3 推送基础设施：
+  - `cloudfunctions/_shared/push-helpers.js` 统一构建订阅消息 payload
+  - 模板为“健康上报异常提醒”（模板 ID：`lrhxG9oawoHDyh1AFVSgiv-cQE7-qTAn87-_nzBDxCY`）
+  - 当前前端只在“异常血压通知” toggle 从关闭切到开启时请求订阅授权；录入页和 `record-panel` 当前都不会主动请求订阅授权
+  - 订阅消息当前仍使用 `miniprogramState: 'developer'`，上线前必须改为 `formal`
+- 缓存与错误处理：
+  - 仍沿用 T2.5 SWR；缓存按 `profileId` 隔离
+  - T2.6 的统一错误文案映射仍在用
 
 ## 关键工程约定
 - 云函数 `_shared` 源码保留在 `cloudfunctions/_shared/`，部署前通过构建脚本复制到每个函数目录
@@ -93,6 +127,13 @@
 - T5.3 模板字段坑：订阅消息 `thing` 类型字段上限为 20 字符，超过会直接发送失败；当前 `push-helpers` 已对档案名 + 血压提示文案做多级回退裁剪。
 - T5.5 表格导出坑：Canvas 表格长图若不精确控制行高、列宽和文本对齐，真机预览里会出现表头与数据列错位；当前导出 helper 已固定表头/行高/列宽比例并统一左右对齐规则。
 - T5.5 导出体验坑：图片生成后直接落相册对目标用户不够直观；当前改为先展示全屏预览，再由用户明确点击“保存到相册”。
+- T5.5 导入性能坑：批量 CSV 导入若串行逐条 `saveRecord`，百条级数据会慢到接近 2 分钟；当前导入页已改为固定并发 5 的批量保存。
+- T5.5 历史导入推送坑：历史数据导入如果直接复用正常 `saveRecord`，会把异常记录也当成实时告警推送；当前导入链路通过 `skipPush: true` 显式跳过推送，但仍保留 `alertTriggered` 的记录语义。
+- T6.0 tabBar 分层坑：原生 tabBar 无法让中间录入按钮真正“压在 tabBar 上沿”，最终只能切到 `custom-tab-bar` 才能实现中间悬浮按钮和可控图标布局。
+- T6.0 冷启动闪烁坑：数据页 / 档案页在 `login()` 完成前若直接读 store，会先渲染空态；当前两个 tab 页都必须先等待 `loginReady`，再用 `pageReady` 控制首屏渲染。
+- T6.0 切档 / 建档闪烁坑：建档成功若先 `switchTab` 再更新 `currentProfileId`，数据页会先闪旧档案再切新档案；当前顺序是先更新 store 和本地持久化，再切 tab。
+- T6.1 共享渲染坑：数据页和报告页共用 `report-chart-renderer.js`，任何轴刻度、点位、辅助线、阈值着色调整都会同时影响两个页面，不能只按单页思路修改。
+- T6.1 90 天着色坑：先画整条蓝线再叠红线会出现异常区间里仍露蓝色的视觉误导；当前 90 天模式必须直接按段决定颜色。
 
 ## 产品决策记录
 - Path B vs Path C：选 B，因为没有历史用户，可以按新模型干净重开
