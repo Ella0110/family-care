@@ -441,27 +441,44 @@ function drawSmoothPolyline(ctx, chartData, points, getValue, color, plot, range
         ctx.beginPath();
         ctx.moveTo(segment[0].x, segment[0].y);
 
-        if (segment.length === 2) {
-            ctx.lineTo(segment[1].x, segment[1].y);
-            ctx.stroke();
-            return;
-        }
-
-        for (let index = 1; index < segment.length - 1; index += 1) {
+        for (let index = 0; index < segment.length - 1; index += 1) {
             const current = segment[index];
             const next = segment[index + 1];
-            const middleX = (current.x + next.x) / 2;
-            const middleY = (current.y + next.y) / 2;
-            ctx.quadraticCurveTo(current.x, current.y, middleX, middleY);
+            const previous = index > 0 ? segment[index - 1] : current;
+            const following =
+                index + 2 < segment.length ? segment[index + 2] : next;
+            const controls = getBezierControls(
+                previous,
+                current,
+                next,
+                following,
+            );
+            ctx.bezierCurveTo(
+                controls.control1.x,
+                controls.control1.y,
+                controls.control2.x,
+                controls.control2.y,
+                next.x,
+                next.y,
+            );
         }
-
-        const penultimate = segment[segment.length - 2];
-        const last = segment[segment.length - 1];
-        ctx.quadraticCurveTo(penultimate.x, penultimate.y, last.x, last.y);
         ctx.stroke();
     });
 
     ctx.restore();
+}
+
+function getBezierControls(previous, current, next, following) {
+    return {
+        control1: {
+            x: current.x + (next.x - previous.x) / 6,
+            y: current.y + (next.y - previous.y) / 6,
+        },
+        control2: {
+            x: next.x - (following.x - current.x) / 6,
+            y: next.y - (following.y - current.y) / 6,
+        },
+    };
 }
 
 function drawSmoothPolylineByPair(
@@ -497,25 +514,23 @@ function drawSmoothPolylineByPair(
             const previous = index > 0 ? segment[index - 1] : current;
             const following =
                 index + 2 < segment.length ? segment[index + 2] : next;
-            const control1 = {
-                x: current.x + (next.x - previous.x) / 6,
-                y: current.y + (next.y - previous.y) / 6,
-            };
-            const control2 = {
-                x: next.x - (following.x - current.x) / 6,
-                y: next.y - (following.y - current.y) / 6,
-            };
+            const controls = getBezierControls(
+                previous,
+                current,
+                next,
+                following,
+            );
 
             drawSampledCurveSegment(
                 ctx,
                 current,
                 next,
-                control1,
-                control2,
+                controls.control1,
+                controls.control2,
                 plot,
                 range,
                 getColorForValue,
-                segment.length === 2,
+                false,
             );
         }
     });
@@ -706,6 +721,47 @@ function drawBloodPressureTrendChart(
         return;
     }
 
+    if (chartData.mode >= 30) {
+        drawSmoothPolyline(
+            ctx,
+            chartData,
+            chartData.points,
+            (point) => point.systolic,
+            CHART_COLORS.systolic,
+            plot,
+            range,
+        );
+        drawSmoothPolyline(
+            ctx,
+            chartData,
+            chartData.points,
+            (point) => point.diastolic,
+            CHART_COLORS.diastolic,
+            plot,
+            range,
+        );
+
+        drawSeriesPoints(
+            ctx,
+            chartData,
+            chartData.points,
+            (point) => point.systolic,
+            (point) => point.systolicAlert,
+            plot,
+            range,
+        );
+        drawSeriesPoints(
+            ctx,
+            chartData,
+            chartData.points,
+            (point) => point.diastolic,
+            (point) => point.diastolicAlert,
+            plot,
+            range,
+        );
+        return;
+    }
+
     drawPolyline(
         ctx,
         chartData,
@@ -819,6 +875,28 @@ function drawHeartRateChart(
                 value > HR_THRESHOLD.high || value < HR_THRESHOLD.low
                     ? CHART_COLORS.alert
                     : CHART_COLORS.heartRate,
+            plot,
+            range,
+        );
+        return;
+    }
+
+    if (chartData.mode >= 30) {
+        drawSmoothPolyline(
+            ctx,
+            chartData,
+            heartRatePoints,
+            (point) => point.heartRate,
+            CHART_COLORS.heartRate,
+            plot,
+            range,
+        );
+        drawSeriesPoints(
+            ctx,
+            chartData,
+            heartRatePoints,
+            (point) => point.heartRate,
+            (point) => point.heartRateAlert,
             plot,
             range,
         );

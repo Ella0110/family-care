@@ -279,6 +279,23 @@ assert.ok(
   '30-day chart should keep regular horizontal grid lines',
 );
 
+const thirtyDaySmoothCtx = createFakeCtx();
+drawBloodPressureTrendChart(thirtyDaySmoothCtx, {
+  mode: 30,
+  slots: Array.from({ length: 30 }, (_, index) => ({
+    index,
+    date: new Date(`2026-05-${String(index + 1).padStart(2, '0')}T00:00:00+08:00`),
+    label: `05/${String(index + 1).padStart(2, '0')}`,
+  })),
+  points: [
+    { slotIndex: 10, slotCount: 1, positionInSlot: 0, systolic: 180, diastolic: 100, systolicAlert: true, diastolicAlert: true, hasHeartRate: false },
+    { slotIndex: 11, slotCount: 1, positionInSlot: 0, systolic: 130, diastolic: 85, systolicAlert: false, diastolicAlert: false, hasHeartRate: false },
+    { slotIndex: 12, slotCount: 1, positionInSlot: 0, systolic: 135, diastolic: 88, systolicAlert: false, diastolicAlert: false, hasHeartRate: false },
+    { slotIndex: 13, slotCount: 1, positionInSlot: 0, systolic: 140, diastolic: 90, systolicAlert: true, diastolicAlert: true, hasHeartRate: false },
+  ],
+}, threshold, { width: 300, height: 220 }, 30, { hideTitle: true });
+assert.ok(thirtyDaySmoothCtx.curves.length > 0, '30-day blood-pressure chart should use smoothed curves instead of straight line segments');
+
 const ninetyDayCtx = createFakeCtx();
 const ninetyDayChartData = {
   mode: 90,
@@ -328,6 +345,23 @@ assert.ok(heartRateTexts.includes('50'), 'heart-rate y-axis should include 50');
 assert.ok(heartRateTexts.includes('100'), 'heart-rate y-axis should include 100 when max is 102');
 assert.ok(heartRateTexts.includes('150'), 'heart-rate y-axis should extend to the next 50-step bucket');
 assert.ok(heartRateCtx.arcs.length > 0, '30-day heart-rate chart should still render visible points');
+const heartRateSmoothCtx = createFakeCtx();
+drawHeartRateChart(heartRateSmoothCtx, {
+  mode: 30,
+  slots: [
+    { index: 0, date: new Date('2026-05-11T00:00:00+08:00'), label: '05/11' },
+    { index: 1, date: new Date('2026-05-12T00:00:00+08:00'), label: '05/12' },
+    { index: 2, date: new Date('2026-05-13T00:00:00+08:00'), label: '05/13' },
+    { index: 3, date: new Date('2026-05-14T00:00:00+08:00'), label: '05/14' },
+  ],
+  points: [
+    { slotIndex: 0, slotCount: 1, positionInSlot: 0, heartRate: 76, heartRateAlert: false, hasHeartRate: true },
+    { slotIndex: 1, slotCount: 1, positionInSlot: 0, heartRate: 102, heartRateAlert: true, hasHeartRate: true },
+    { slotIndex: 2, slotCount: 1, positionInSlot: 0, heartRate: 88, heartRateAlert: false, hasHeartRate: true },
+    { slotIndex: 3, slotCount: 1, positionInSlot: 0, heartRate: 92, heartRateAlert: false, hasHeartRate: true },
+  ],
+}, threshold, { width: 300, height: 220 }, 30, { hideTitle: true });
+assert.ok(heartRateSmoothCtx.curves.length > 0, '30-day heart-rate chart should use smoothed curves instead of straight line segments');
 
 const ninetyDayHeartRateCtx = createFakeCtx();
 drawHeartRateChart(ninetyDayHeartRateCtx, ninetyDayChartData, threshold, { width: 300, height: 220 }, 90, { hideTitle: true });
