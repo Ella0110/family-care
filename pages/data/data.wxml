@@ -206,7 +206,7 @@
   <record-panel
     show="{{showRecordPanel}}"
     profile-id="{{currentProfileId}}"
-    record="{{editingRecord}}"
+    edit-record="{{editingRecord}}"
     bind:success="handleRecordPanelSuccess"
     bind:delete="handleRecordPanelDelete"
     bind:close="handleCloseRecordPanel"

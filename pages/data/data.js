@@ -867,6 +867,17 @@ Page({
     });
   },
 
+  setEditingRecord(record) {
+    if (!this.data.canWriteCurrentProfile || !this.data.currentProfileId) {
+      return;
+    }
+
+    this.setData({
+      showRecordPanel: true,
+      editingRecord: record || null,
+    });
+  },
+
   consumePendingRecordPanelOpen() {
     if (!consumePendingRecordPanelOpen()) {
       return;

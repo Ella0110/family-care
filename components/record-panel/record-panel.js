@@ -7,7 +7,6 @@ const {
   getDateTimeParts,
   parseInteger,
   parseMeasuredAt,
-  buildRecordSaveData,
   saveRecordFromForm,
   updateRecordFromForm,
   deleteRecordById,
@@ -19,8 +18,23 @@ const FIELD_LIMITS = {
   heartRate: { min: 30, max: 250 },
 };
 
+const FIELD_ORDER = ['systolic', 'diastolic', 'heartRate'];
 const SHAKE_DURATION_MS = 400;
 const FEEDBACK_TOAST_DURATION_MS = 1500;
+const KEYPAD_KEYS = [
+  { value: '1', label: '1', action: 'digit' },
+  { value: '2', label: '2', action: 'digit' },
+  { value: '3', label: '3', action: 'digit' },
+  { value: '4', label: '4', action: 'digit' },
+  { value: '5', label: '5', action: 'digit' },
+  { value: '6', label: '6', action: 'digit' },
+  { value: '7', label: '7', action: 'digit' },
+  { value: '8', label: '8', action: 'digit' },
+  { value: '9', label: '9', action: 'digit' },
+  { value: 'clear', label: '清除', action: 'clear' },
+  { value: '0', label: '0', action: 'digit' },
+  { value: 'backspace', label: '⌫', action: 'backspace' },
+];
 
 function buildEmptyFieldFlags() {
   return {
@@ -44,17 +58,59 @@ function getProfileThreshold(profileId) {
   };
 }
 
-function isAboveThreshold(payload, profileId) {
+function sanitizeDigits(value) {
+  return String(value || '').replace(/\D/g, '').slice(0, 3);
+}
+
+function formatMeasuredDateLabel(dateValue) {
+  const [year, month, day] = String(dateValue || '').split('-').map(Number);
+  if (!year || !month || !day) {
+    return '--';
+  }
+
+  return `${month}月${day}日`;
+}
+
+function getSourceRecord(properties) {
+  return properties.editRecord || properties.record || null;
+}
+
+function getFirstFocusableField(form) {
+  if (!form || !sanitizeDigits(form.systolic)) {
+    return 'systolic';
+  }
+
+  if (!sanitizeDigits(form.diastolic)) {
+    return 'diastolic';
+  }
+
+  if (!sanitizeDigits(form.heartRate)) {
+    return 'heartRate';
+  }
+
+  return 'systolic';
+}
+
+function getAlertFields(profileId, form) {
   const threshold = getProfileThreshold(profileId);
-  return Number(payload && payload.systolic) > threshold.systolic
-    || Number(payload && payload.diastolic) > threshold.diastolic;
+  const systolic = parseInteger(form && form.systolic);
+  const diastolic = parseInteger(form && form.diastolic);
+
+  return {
+    systolic: Number.isInteger(systolic) && systolic > threshold.systolic,
+    diastolic: Number.isInteger(diastolic) && diastolic > threshold.diastolic,
+    heartRate: false,
+  };
 }
 
 function validatePanelForm(profileId, form) {
   const fieldErrors = buildEmptyFieldFlags();
-  const systolic = parseInteger(form && form.systolic);
-  const diastolic = parseInteger(form && form.diastolic);
-  const heartRate = parseInteger(form && form.heartRate);
+  const systolicRaw = sanitizeDigits(form && form.systolic);
+  const diastolicRaw = sanitizeDigits(form && form.diastolic);
+  const heartRateRaw = sanitizeDigits(form && form.heartRate);
+  const systolic = parseInteger(systolicRaw);
+  const diastolic = parseInteger(diastolicRaw);
+  const heartRate = parseInteger(heartRateRaw);
   const measuredAt = parseMeasuredAt(
     form && form.measuredDate,
     form && form.measuredTime,
@@ -68,18 +124,42 @@ function validatePanelForm(profileId, form) {
     };
   }
 
-  if (!Number.isInteger(systolic) || systolic < FIELD_LIMITS.systolic.min || systolic > FIELD_LIMITS.systolic.max) {
+  if (!systolicRaw) {
     fieldErrors.systolic = true;
     return {
-      message: '高压需为 60-300 之间的整数',
+      message: '请输入收缩压',
       fieldErrors,
     };
   }
 
-  if (!Number.isInteger(diastolic) || diastolic < FIELD_LIMITS.diastolic.min || diastolic > FIELD_LIMITS.diastolic.max) {
+  if (!diastolicRaw) {
     fieldErrors.diastolic = true;
     return {
-      message: '低压需为 30-200 之间的整数',
+      message: '请输入舒张压',
+      fieldErrors,
+    };
+  }
+
+  if (
+    !Number.isInteger(systolic)
+    || systolic < FIELD_LIMITS.systolic.min
+    || systolic > FIELD_LIMITS.systolic.max
+  ) {
+    fieldErrors.systolic = true;
+    return {
+      message: '血压数值超出合理范围',
+      fieldErrors,
+    };
+  }
+
+  if (
+    !Number.isInteger(diastolic)
+    || diastolic < FIELD_LIMITS.diastolic.min
+    || diastolic > FIELD_LIMITS.diastolic.max
+  ) {
+    fieldErrors.diastolic = true;
+    return {
+      message: '血压数值超出合理范围',
       fieldErrors,
     };
   }
@@ -88,16 +168,13 @@ function validatePanelForm(profileId, form) {
     fieldErrors.systolic = true;
     fieldErrors.diastolic = true;
     return {
-      message: '高压必须大于低压',
+      message: '收缩压必须大于舒张压',
       fieldErrors,
     };
   }
 
   if (
-    form
-    && form.heartRate !== ''
-    && form.heartRate !== null
-    && form.heartRate !== undefined
+    heartRateRaw
     && (
       !Number.isInteger(heartRate)
       || heartRate < FIELD_LIMITS.heartRate.min
@@ -106,7 +183,7 @@ function validatePanelForm(profileId, form) {
   ) {
     fieldErrors.heartRate = true;
     return {
-      message: '心率需为 30-250 之间的整数',
+      message: '心率数值超出合理范围',
       fieldErrors,
     };
   }
@@ -155,12 +232,24 @@ Component({
       type: Object,
       value: null,
     },
+    editRecord: {
+      type: Object,
+      value: null,
+    },
   },
 
   data: {
+    keypadKeys: KEYPAD_KEYS,
+    activeField: 'systolic',
+    alertFields: {
+      systolic: false,
+      diastolic: false,
+      heartRate: false,
+    },
     isEditMode: false,
     recordId: '',
     panelTitle: '记录血压',
+    saveButtonText: '确认保存',
     isSaving: false,
     isDeleting: false,
     hasValidationIssue: false,
@@ -174,13 +263,13 @@ Component({
     feedbackToastIconText: '✓',
     minMeasuredDate: '2000-01-01',
     maxMeasuredDate: '',
+    measuredDateLabel: '--',
     form: {
       systolic: '',
       diastolic: '',
       heartRate: '',
       measuredDate: '',
       measuredTime: '',
-      note: '',
     },
   },
 
@@ -195,13 +284,23 @@ Component({
         return;
       }
 
-      this.hydrateForm(this.properties.record || null);
+      this.hydrateForm(getSourceRecord(this.properties));
     },
 
-    record(record) {
+    'editRecord, record'() {
       if (this.data.show) {
-        this.hydrateForm(record || null);
+        this.hydrateForm(getSourceRecord(this.properties));
       }
+    },
+
+    profileId(profileId) {
+      if (!this.data.show) {
+        return;
+      }
+
+      this.setData({
+        alertFields: getAlertFields(profileId, this.data.form),
+      });
     },
   },
 
@@ -246,12 +345,22 @@ Component({
       const isEditMode = Boolean(record && record._id);
       const dateTime = isEditMode ? getDateTimeParts(record.measuredAt) : nowParts;
       const payload = (record && record.payload) || {};
+      const form = {
+        systolic: sanitizeDigits(payload.systolic),
+        diastolic: sanitizeDigits(payload.diastolic),
+        heartRate: sanitizeDigits(payload.heartRate),
+        measuredDate: dateTime.date,
+        measuredTime: dateTime.time,
+      };
 
       this.clearTransientTimers();
       this.setData({
+        activeField: getFirstFocusableField(form),
+        alertFields: getAlertFields(this.data.profileId, form),
         isEditMode,
         recordId: isEditMode ? record._id : '',
         panelTitle: isEditMode ? '编辑记录' : '记录血压',
+        saveButtonText: isEditMode ? '保存修改' : '确认保存',
         isSaving: false,
         isDeleting: false,
         hasValidationIssue: false,
@@ -265,51 +374,162 @@ Component({
         feedbackToastIconText: '✓',
         minMeasuredDate: nowParts.minDate,
         maxMeasuredDate: nowParts.maxDate,
-        form: {
-          systolic: payload.systolic || '',
-          diastolic: payload.diastolic || '',
-          heartRate: payload.heartRate || '',
-          measuredDate: dateTime.date,
-          measuredTime: dateTime.time,
-          note: '',
-        },
+        measuredDateLabel: formatMeasuredDateLabel(form.measuredDate),
+        form,
       });
+    },
+
+    canDismissPanel() {
+      return !(
+        this.data.isSaving
+        || this.data.isDeleting
+        || this.data.feedbackToastVisible
+        || this.data.showDeleteConfirm
+      );
     },
 
     closePanel() {
       this.triggerEvent('close');
     },
 
-    setFormValue(key, value) {
+    setActiveField(field) {
+      if (!FIELD_ORDER.includes(field)) {
+        return;
+      }
+
       this.setData({
-        [`form.${key}`]: value,
+        activeField: field,
+      });
+    },
+
+    handleFieldTap(event) {
+      this.setActiveField(event.currentTarget.dataset.field);
+    },
+
+    getValidationResult() {
+      return validatePanelForm(this.data.profileId, this.data.form);
+    },
+
+    syncAfterFormChange(form) {
+      this.setData({
+        form,
+        measuredDateLabel: formatMeasuredDateLabel(form.measuredDate),
+        alertFields: getAlertFields(this.data.profileId, form),
       }, () => {
         this.revalidateAfterInput();
       });
     },
 
-    onSystolicInput(event) {
-      this.setFormValue('systolic', event.detail.value);
+    updateFieldValue(field, value, options = {}) {
+      const nextForm = Object.assign({}, this.data.form, {
+        [field]: sanitizeDigits(value),
+      });
+      const nextData = {};
+
+      if (options.activeField) {
+        nextData.activeField = options.activeField;
+      }
+
+      this.setData(nextData, () => {
+        this.syncAfterFormChange(nextForm);
+      });
     },
 
-    onDiastolicInput(event) {
-      this.setFormValue('diastolic', event.detail.value);
+    getNextAutoField(field, form) {
+      const currentIndex = FIELD_ORDER.indexOf(field);
+      if (currentIndex === -1) {
+        return field;
+      }
+
+      for (let index = currentIndex + 1; index < FIELD_ORDER.length; index += 1) {
+        if (!sanitizeDigits(form[FIELD_ORDER[index]])) {
+          return FIELD_ORDER[index];
+        }
+      }
+
+      return field;
     },
 
-    onHeartRateInput(event) {
-      this.setFormValue('heartRate', event.detail.value);
+    handleDigitTap(value) {
+      const field = this.data.activeField;
+      if (!FIELD_ORDER.includes(field)) {
+        return;
+      }
+
+      const currentValue = sanitizeDigits(this.data.form[field]);
+      if (currentValue.length >= 3) {
+        return;
+      }
+
+      const nextValue = sanitizeDigits(`${currentValue}${value}`);
+      const nextForm = Object.assign({}, this.data.form, {
+        [field]: nextValue,
+      });
+      const nextField = nextValue.length === 3 ? this.getNextAutoField(field, nextForm) : field;
+
+      this.setData({
+        activeField: nextField,
+      }, () => {
+        this.syncAfterFormChange(nextForm);
+      });
+    },
+
+    handleBackspaceTap() {
+      const field = this.data.activeField;
+      if (!FIELD_ORDER.includes(field)) {
+        return;
+      }
+
+      const currentValue = sanitizeDigits(this.data.form[field]);
+      if (!currentValue) {
+        return;
+      }
+
+      this.updateFieldValue(field, currentValue.slice(0, -1));
+    },
+
+    handleClearTap() {
+      const field = this.data.activeField;
+      if (!FIELD_ORDER.includes(field)) {
+        return;
+      }
+
+      this.updateFieldValue(field, '');
+    },
+
+    handleKeyTap(event) {
+      const { action, value } = event.currentTarget.dataset;
+      if (this.data.isSaving || this.data.isDeleting || this.data.feedbackToastVisible) {
+        return;
+      }
+
+      if (action === 'digit') {
+        this.handleDigitTap(value);
+        return;
+      }
+
+      if (action === 'backspace') {
+        this.handleBackspaceTap();
+        return;
+      }
+
+      if (action === 'clear') {
+        this.handleClearTap();
+      }
     },
 
     onMeasuredDateChange(event) {
-      this.setFormValue('measuredDate', event.detail.value);
+      const nextForm = Object.assign({}, this.data.form, {
+        measuredDate: event.detail.value,
+      });
+      this.syncAfterFormChange(nextForm);
     },
 
     onMeasuredTimeChange(event) {
-      this.setFormValue('measuredTime', event.detail.value);
-    },
-
-    getValidationResult() {
-      return validatePanelForm(this.data.profileId, this.data.form);
+      const nextForm = Object.assign({}, this.data.form, {
+        measuredTime: event.detail.value,
+      });
+      this.syncAfterFormChange(nextForm);
     },
 
     revalidateAfterInput() {
@@ -376,12 +596,7 @@ Component({
     },
 
     handleMaskTap() {
-      if (
-        this.data.isSaving
-        || this.data.isDeleting
-        || this.data.feedbackToastVisible
-        || this.data.showDeleteConfirm
-      ) {
+      if (!this.canDismissPanel()) {
         return;
       }
 
@@ -389,12 +604,7 @@ Component({
     },
 
     handleClose() {
-      if (
-        this.data.isSaving
-        || this.data.isDeleting
-        || this.data.feedbackToastVisible
-        || this.data.showDeleteConfirm
-      ) {
+      if (!this.canDismissPanel()) {
         return;
       }
 
@@ -419,7 +629,7 @@ Component({
         feedbackToastVisible: true,
         feedbackToastTitle: options.title || '记录已保存',
         feedbackToastTone: tone,
-        feedbackToastIconText: tone === 'danger' ? '×' : '✓',
+        feedbackToastIconText: options.iconText || (tone === 'danger' ? '🗑' : '✓'),
       });
 
       this.feedbackTimer = setTimeout(() => {
@@ -441,6 +651,7 @@ Component({
         this.showFeedbackToast({
           title: '记录已保存',
           tone: 'success',
+          iconText: '✓',
           eventName: 'success',
           eventDetail: {
             mode: 'create',
@@ -457,16 +668,11 @@ Component({
 
     async handleUpdateSave() {
       try {
-        const nextData = buildRecordSaveData(this.data.form);
-        const previousAttention = this.properties.record
-          ? isAboveThreshold(this.properties.record.payload || {}, this.data.profileId)
-          : false;
         const { result } = await updateRecordFromForm(this.data.recordId, this.data.form);
-        const nextAttention = isAboveThreshold(result.record.payload || nextData.payload, this.data.profileId);
-
         this.showFeedbackToast({
-          title: previousAttention !== nextAttention ? '记录已更新' : '记录已更新',
+          title: '修改已保存',
           tone: 'success',
+          iconText: '✓',
           eventName: 'success',
           eventDetail: {
             mode: 'edit',
@@ -518,13 +724,13 @@ Component({
         || this.data.isDeleting
         || !this.data.recordId
         || this.data.feedbackToastVisible
+        || this.data.isSaving
       ) {
         return;
       }
 
       this.setData({
         showDeleteConfirm: true,
-        errorText: '',
       });
     },
 
@@ -549,13 +755,12 @@ Component({
     },
 
     async handleDeleteConfirm() {
-      if (!this.data.recordId || this.data.isDeleting) {
+      if (this.data.isDeleting || !this.data.recordId) {
         return;
       }
 
       this.setData({
         isDeleting: true,
-        errorText: '',
       });
 
       try {
@@ -563,6 +768,7 @@ Component({
         this.showFeedbackToast({
           title: '记录已删除',
           tone: 'danger',
+          iconText: '🗑',
           eventName: 'delete',
           eventDetail: {
             recordId: this.data.recordId,
@@ -572,6 +778,7 @@ Component({
         this.setData({
           isDeleting: false,
           errorText: getErrorMessage(error),
+          showDeleteConfirm: false,
         });
       }
     },

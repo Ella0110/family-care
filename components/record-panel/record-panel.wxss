@@ -7,7 +7,7 @@
 .record-panel__mask {
   position: absolute;
   inset: 0;
-  background: rgba(15, 23, 42, 0.4);
+  background: rgba(15, 23, 42, 0.5);
 }
 
 .record-panel__sheet {
@@ -15,120 +15,147 @@
   left: 0;
   right: 0;
   bottom: 0;
-  min-height: 60vh;
-  padding: 24rpx 32rpx calc(32rpx + env(safe-area-inset-bottom));
-  border-radius: 32rpx 32rpx 0 0;
-  background: #ffffff;
+  min-height: 76vh;
+  max-height: 82vh;
+  padding: 24rpx 40rpx calc(env(safe-area-inset-bottom) + 20rpx);
+  border-radius: 40rpx 40rpx 0 0;
+  background: rgba(255, 255, 255, 0.95);
   box-sizing: border-box;
-  box-shadow: 0 -16rpx 48rpx rgba(17, 24, 39, 0.16);
+  box-shadow: 0 -10rpx 40rpx rgba(0, 0, 0, 0.05);
+  animation: record-panel-sheet-enter 0.4s ease-out;
 }
 
 .record-panel__grabber {
-  width: 88rpx;
+  width: 80rpx;
   height: 8rpx;
   margin: 0 auto 24rpx;
   border-radius: 999rpx;
-  background: #d1d5db;
+  background: #e2e8f0;
 }
 
 .record-panel__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24rpx;
+  margin-bottom: 40rpx;
 }
 
 .record-panel__title {
-  font-size: var(--font-lg);
+  font-size: 40rpx;
   font-weight: 700;
-  color: var(--color-text);
+  color: #1e293b;
 }
 
 .record-panel__close {
-  width: 56rpx;
-  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64rpx;
+  height: 64rpx;
   border-radius: 50%;
-  background: #f3f4f6;
-  color: var(--color-text-secondary);
-  text-align: center;
-  line-height: 56rpx;
-  font-size: var(--font-xl);
+  background: #f1f5f9;
+  color: #94a3b8;
+  font-size: 40rpx;
+  line-height: 1;
 }
 
-.record-panel__field {
-  margin-top: 24rpx;
+.record-panel__metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20rpx;
 }
 
-.record-panel__label {
-  margin-bottom: 14rpx;
-  font-size: var(--font-sm);
-  color: var(--color-text-secondary);
+.record-panel__metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.3s ease;
 }
 
-.record-panel__label.is-error,
+.record-panel__metric--inactive {
+  opacity: 0.4;
+}
+
+.record-panel__metric-label {
+  font-size: 20rpx;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #94a3b8;
+}
+
+.record-panel__metric-label.is-active {
+  color: #3182f7;
+}
+
 .record-panel__metric-label.is-error {
   color: #ef4444;
 }
 
-.record-panel__datetime {
+.record-panel__metric-value {
+  margin-top: 16rpx;
+  min-height: 92rpx;
+  font-size: 72rpx;
+  line-height: 1.1;
+  font-weight: 900;
+  color: #1e293b;
+}
+
+.record-panel__metric-value.is-placeholder {
+  color: #cbd5e1;
+}
+
+.record-panel__metric-value.is-alert,
+.record-panel__metric-value.is-error {
+  color: #ef4444;
+}
+
+.record-panel__metric-line {
+  width: 60rpx;
+  height: 6rpx;
+  margin-top: 12rpx;
+  border-radius: 3rpx;
+  background: #3182f7;
+}
+
+.record-panel__time-row {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 32rpx;
+  padding: 24rpx 28rpx;
+  border-radius: 20rpx;
+  background: #f8fafc;
+}
+
+.record-panel__time-row.is-error {
+  background: #fef2f2;
+}
+
+.record-panel__time-label {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.record-panel__time-actions {
+  display: flex;
+  align-items: center;
   gap: 16rpx;
 }
 
-.record-panel__datetime-item,
-.record-panel__input {
-  box-sizing: border-box;
-  border-radius: 20rpx;
-  border: 2rpx solid #e5e7eb;
-  background: #f9fafb;
-  color: var(--color-text);
-}
-
-.record-panel__datetime-item {
-  min-width: 220rpx;
-  padding: 22rpx 24rpx;
-  font-size: var(--font-base);
-}
-
-.record-panel__datetime-item.is-error,
-.record-panel__input.is-error {
-  border-color: #ef4444;
-  background: #fff5f5;
-}
-
-.record-panel__measurements {
-  display: flex;
-  align-items: flex-end;
-  gap: 12rpx;
-}
-
-.record-panel__metric {
-  flex: 1;
-}
-
-.record-panel__metric--heart-rate {
-  max-width: 180rpx;
-}
-
-.record-panel__metric-label {
-  margin-bottom: 10rpx;
-  font-size: 24rpx;
-  color: var(--color-text-secondary);
-}
-
-.record-panel__input {
-  width: 100%;
-  min-height: 96rpx;
-  padding: 0 24rpx;
-  font-size: var(--font-lg);
-  text-align: center;
-}
-
-.record-panel__slash {
-  padding-bottom: 24rpx;
-  color: var(--color-text-secondary);
-  font-size: var(--font-xl);
+.record-panel__time-value {
+  font-size: 28rpx;
   font-weight: 600;
+  color: #1e293b;
+}
+
+.record-panel__time-value.is-error {
+  color: #ef4444;
+}
+
+.record-panel__time-arrow {
+  color: #cbd5e1;
+  font-size: 28rpx;
 }
 
 .record-panel__error-banner {
@@ -136,62 +163,110 @@
   align-items: center;
   gap: 12rpx;
   margin-top: 24rpx;
-  padding: 20rpx;
+  padding: 20rpx 24rpx;
   border-radius: 16rpx;
   background: #fef2f2;
-  color: #ef4444;
 }
 
 .record-panel__error-icon {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   width: 36rpx;
   height: 36rpx;
   border-radius: 50%;
   background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
   font-size: 24rpx;
   font-weight: 700;
 }
 
 .record-panel__error-text {
   flex: 1;
-  font-size: var(--font-sm);
-  line-height: 1.6;
+  font-size: 24rpx;
+  line-height: 1.5;
+  color: #ef4444;
 }
 
-.record-panel__save {
+.record-panel__keypad {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16rpx;
   margin-top: 28rpx;
 }
 
-.record-panel__delete {
-  margin-top: 18rpx;
-  padding: 12rpx 0;
-  border: none;
-  background: transparent;
-  color: #ef4444;
-  font-size: var(--font-base);
-  line-height: 1.6;
-}
-
-.record-panel__feedback-layer,
-.record-panel__dialog-layer {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-}
-
-.record-panel__feedback-backdrop,
-.record-panel__dialog-mask {
-  position: absolute;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.45);
-}
-
-.record-panel__feedback-layer {
+.record-panel__key {
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 100rpx;
+  border-radius: 24rpx;
+  background: #ffffff;
+  box-shadow: 0 2rpx 0 rgba(0, 0, 0, 0.05);
+  color: #1e293b;
+  font-size: 40rpx;
+  font-weight: 700;
+  transition: transform 0.1s ease;
+}
+
+.record-panel__key:active {
+  transform: scale(0.96);
+}
+
+.record-panel__key--action {
+  background: #f1f5f9;
+  box-shadow: none;
+  color: #94a3b8;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.record-panel__actions {
+  margin-top: 24rpx;
+}
+
+.record-panel__save {
+  width: 100%;
+  padding: 32rpx;
+  border: none;
+  border-radius: 24rpx;
+  background: #3182f7;
+  color: #ffffff;
+  font-size: 32rpx;
+  font-weight: 700;
+  line-height: 1.2;
+  box-shadow: 0 8rpx 24rpx rgba(49, 130, 247, 0.2);
+}
+
+.record-panel__save::after {
+  border: none;
+}
+
+.record-panel__save:active {
+  transform: scale(0.98);
+}
+
+.record-panel__delete {
+  margin-top: 24rpx;
+  text-align: center;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #ef4444;
+}
+
+.record-panel__overlay-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.record-panel__overlay-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
 }
 
 .record-panel__feedback-card {
@@ -233,17 +308,15 @@
 }
 
 .record-panel__dialog {
-  position: absolute;
-  left: 48rpx;
-  right: 48rpx;
-  top: 50%;
-  transform: translateY(-50%);
+  position: relative;
+  z-index: 1;
+  width: calc(100% - 96rpx);
   padding: 48rpx;
   border-radius: 32rpx;
   background: #ffffff;
-  box-shadow: 0 20rpx 60rpx rgba(15, 23, 42, 0.16);
   box-sizing: border-box;
   text-align: center;
+  box-shadow: 0 20rpx 60rpx rgba(15, 23, 42, 0.16);
   animation: record-panel-dialog-enter 220ms ease-out;
 }
 
@@ -282,6 +355,10 @@
   font-size: 30rpx;
   font-weight: 600;
   line-height: 1.2;
+}
+
+.record-panel__dialog-confirm::after {
+  border: none;
 }
 
 .record-panel__dialog-cancel {
@@ -326,11 +403,21 @@
 @keyframes record-panel-dialog-enter {
   from {
     opacity: 0;
-    transform: translateY(-50%) scale(0.9);
+    transform: scale(0.9);
   }
 
   to {
     opacity: 1;
-    transform: translateY(-50%) scale(1);
+    transform: scale(1);
+  }
+}
+
+@keyframes record-panel-sheet-enter {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
   }
 }
