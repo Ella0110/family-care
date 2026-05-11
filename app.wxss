@@ -12,7 +12,7 @@ page {
   --color-primary: #2563eb;
   --color-danger: #dc2626;
   --color-text: #111827;
-  --color-text-secondary: #4b5563;
+  --color-text-secondary: #8E8E93;
   --color-bg: #eef4fe;
   --color-card: #ffffff;
 

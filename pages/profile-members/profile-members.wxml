@@ -37,7 +37,7 @@
         <view wx:else class="member-row__avatar">{{item.avatarFallback}}</view>
         <view class="member-row__body">
           <view class="member-row__top">
-            <view class="member-row__name">{{item.user.nickname || '未命名成员'}}</view>
+            <view class="member-row__name">{{item.user.nickname || '未命名'}}</view>
             <view class="member-row__badge">{{item.roleLabel}}</view>
           </view>
         </view>
@@ -74,7 +74,7 @@
         <view class="member-row__body">
           <view class="member-row__top">
             <view class="member-row__name">
-              {{item.user.nickname || '未命名成员'}}<text wx:if="{{item.isSelf}}">（你）</text>
+              {{item.user.nickname || '未命名'}}<text wx:if="{{item.isSelf}}">（你）</text>
             </view>
             <view class="member-row__badge">{{item.roleLabel}}</view>
           </view>

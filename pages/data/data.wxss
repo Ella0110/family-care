@@ -6,7 +6,7 @@ page {
 .data-page {
     min-height: 100vh;
     padding: 0 28rpx;
-    padding-bottom: calc(148rpx + env(safe-area-inset-bottom));
+    padding-bottom: calc(188rpx + env(safe-area-inset-bottom));
     background: #eef4fe;
 }
 

@@ -62,11 +62,12 @@
           </view>
         </view>
       </view>
-
-      <view class="card profile-home__members">
-        <view class="profile-home__section-head">
+      
+      <view class="profile-home__section-head">
           <view class="profile-home__section-title">成员管理（{{memberCount}}/10）</view>
         </view>
+      <view class="card profile-home__members">
+        
         <scroll-view scroll-x class="profile-home__members-scroll">
           <view class="profile-home__members-list">
             <view
@@ -149,7 +150,7 @@
         </view>
       </view>
 
-      <view class="profile-home__footer-link" bindtap="handleOpenProfileSwitcher">查看全部档案</view>
+      <!-- <view class="profile-home__footer-link" bindtap="handleOpenProfileSwitcher">查看全部档案</view> -->
     </view>
   </view>
 
