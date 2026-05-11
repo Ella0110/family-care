@@ -2,7 +2,7 @@
   <view class="record-panel__mask" bindtap="handleMaskTap"></view>
 
   <view wx:if="{{feedbackToastVisible}}" class="record-panel__overlay-layer">
-    <view class="record-panel__overlay-mask"></view>
+    <view class="record-panel__feedback-mask"></view>
     <view class="record-panel__feedback-card">
       <view class="record-panel__feedback-icon {{feedbackToastTone === 'danger' ? 'is-danger' : ''}}">
         {{feedbackToastIconText}}
@@ -12,7 +12,7 @@
   </view>
 
   <view wx:if="{{showDeleteConfirm}}" class="record-panel__overlay-layer">
-    <view class="record-panel__overlay-mask" bindtap="handleDeleteDialogMaskTap"></view>
+    <view class="record-panel__dialog-mask" bindtap="handleDeleteDialogMaskTap"></view>
     <view class="record-panel__dialog" catchtap="noop">
       <view class="record-panel__dialog-icon">🗑</view>
       <view class="record-panel__dialog-title">确定删除此记录？</view>
@@ -111,7 +111,7 @@
       <view
         wx:for="{{keypadKeys}}"
         wx:key="value"
-        class="record-panel__key {{item.action !== 'digit' ? 'record-panel__key--action' : ''}}"
+        class="record-panel__key {{item.action !== 'digit' ? 'record-panel__key--action' : ''}} {{item.action === 'backspace' ? 'record-panel__key--backspace' : ''}}"
         data-action="{{item.action}}"
         data-value="{{item.value}}"
         bindtap="handleKeyTap"

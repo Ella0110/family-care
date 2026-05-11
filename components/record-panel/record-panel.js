@@ -103,6 +103,38 @@ function getAlertFields(profileId, form) {
   };
 }
 
+function shouldAutoAdvance(fieldName, currentValue) {
+  if (fieldName === 'heartRate') {
+    return currentValue.length >= 3;
+  }
+
+  const len = currentValue.length;
+  const num = parseInteger(currentValue);
+
+  if (len < 2) {
+    return false;
+  }
+
+  if (len >= 3) {
+    return true;
+  }
+
+  if (len === 2 && Number.isInteger(num) && num >= 30) {
+    return true;
+  }
+
+  return false;
+}
+
+function buildValidationFailure(message, fieldErrors, focusField, fieldsToClear = []) {
+  return {
+    message,
+    fieldErrors,
+    focusField: focusField || '',
+    fieldsToClear,
+  };
+}
+
 function validatePanelForm(profileId, form) {
   const fieldErrors = buildEmptyFieldFlags();
   const systolicRaw = sanitizeDigits(form && form.systolic);
@@ -118,26 +150,17 @@ function validatePanelForm(profileId, form) {
   const maxMeasuredAt = Date.now() + MAX_FUTURE_SKEW_MS;
 
   if (!profileId) {
-    return {
-      message: '档案不存在',
-      fieldErrors,
-    };
+    return buildValidationFailure('档案不存在', fieldErrors);
   }
 
   if (!systolicRaw) {
     fieldErrors.systolic = true;
-    return {
-      message: '请输入收缩压',
-      fieldErrors,
-    };
+    return buildValidationFailure('请输入收缩压', fieldErrors, 'systolic');
   }
 
   if (!diastolicRaw) {
     fieldErrors.diastolic = true;
-    return {
-      message: '请输入舒张压',
-      fieldErrors,
-    };
+    return buildValidationFailure('请输入舒张压', fieldErrors, 'diastolic');
   }
 
   if (
@@ -146,10 +169,7 @@ function validatePanelForm(profileId, form) {
     || systolic > FIELD_LIMITS.systolic.max
   ) {
     fieldErrors.systolic = true;
-    return {
-      message: '血压数值超出合理范围',
-      fieldErrors,
-    };
+    return buildValidationFailure('收缩压数值超出合理范围（60-300）', fieldErrors, 'systolic', ['systolic']);
   }
 
   if (
@@ -158,19 +178,13 @@ function validatePanelForm(profileId, form) {
     || diastolic > FIELD_LIMITS.diastolic.max
   ) {
     fieldErrors.diastolic = true;
-    return {
-      message: '血压数值超出合理范围',
-      fieldErrors,
-    };
+    return buildValidationFailure('舒张压数值超出合理范围（30-200）', fieldErrors, 'diastolic', ['diastolic']);
   }
 
   if (systolic <= diastolic) {
     fieldErrors.systolic = true;
     fieldErrors.diastolic = true;
-    return {
-      message: '收缩压必须大于舒张压',
-      fieldErrors,
-    };
+    return buildValidationFailure('收缩压必须大于舒张压', fieldErrors, 'systolic', ['systolic']);
   }
 
   if (
@@ -182,40 +196,25 @@ function validatePanelForm(profileId, form) {
     )
   ) {
     fieldErrors.heartRate = true;
-    return {
-      message: '心率数值超出合理范围',
-      fieldErrors,
-    };
+    return buildValidationFailure('心率数值超出合理范围（30-250）', fieldErrors, 'heartRate', ['heartRate']);
   }
 
   if (Number.isNaN(measuredAt.getTime())) {
     fieldErrors.measuredAt = true;
-    return {
-      message: '请选择有效的测量时间',
-      fieldErrors,
-    };
+    return buildValidationFailure('请选择有效的测量时间', fieldErrors);
   }
 
   if (measuredAt.getTime() < MIN_MEASURED_AT_MS) {
     fieldErrors.measuredAt = true;
-    return {
-      message: '测量时间不能早于 2000 年',
-      fieldErrors,
-    };
+    return buildValidationFailure('测量时间不能早于 2000 年', fieldErrors);
   }
 
   if (measuredAt.getTime() > maxMeasuredAt) {
     fieldErrors.measuredAt = true;
-    return {
-      message: '测量时间不能是未来时间',
-      fieldErrors,
-    };
+    return buildValidationFailure('测量时间不能是未来时间', fieldErrors);
   }
 
-  return {
-    message: '',
-    fieldErrors,
-  };
+  return buildValidationFailure('', fieldErrors);
 }
 
 Component({
@@ -411,13 +410,19 @@ Component({
     },
 
     syncAfterFormChange(form) {
-      this.setData({
+      const nextData = {
         form,
         measuredDateLabel: formatMeasuredDateLabel(form.measuredDate),
         alertFields: getAlertFields(this.data.profileId, form),
-      }, () => {
-        this.revalidateAfterInput();
-      });
+      };
+
+      if (this.data.hasValidationIssue || Object.values(this.data.fieldErrors || {}).some(Boolean)) {
+        nextData.hasValidationIssue = false;
+        nextData.errorText = '';
+        nextData.fieldErrors = buildEmptyFieldFlags();
+      }
+
+      this.setData(nextData);
     },
 
     updateFieldValue(field, value, options = {}) {
@@ -465,7 +470,7 @@ Component({
       const nextForm = Object.assign({}, this.data.form, {
         [field]: nextValue,
       });
-      const nextField = nextValue.length === 3 ? this.getNextAutoField(field, nextForm) : field;
+      const nextField = shouldAutoAdvance(field, nextValue) ? this.getNextAutoField(field, nextForm) : field;
 
       this.setData({
         activeField: nextField,
@@ -532,33 +537,6 @@ Component({
       this.syncAfterFormChange(nextForm);
     },
 
-    revalidateAfterInput() {
-      const shouldRevalidate = this.data.hasValidationIssue
-        || Object.values(this.data.fieldErrors || {}).some(Boolean);
-      if (!shouldRevalidate) {
-        if (this.data.errorText) {
-          this.setData({ errorText: '' });
-        }
-        return;
-      }
-
-      const validation = this.getValidationResult();
-      if (!validation.message) {
-        this.setData({
-          hasValidationIssue: false,
-          errorText: '',
-          fieldErrors: buildEmptyFieldFlags(),
-        });
-        return;
-      }
-
-      this.setData({
-        hasValidationIssue: true,
-        errorText: validation.message,
-        fieldErrors: validation.fieldErrors,
-      });
-    },
-
     triggerShake(fieldErrors) {
       const nextShakingFields = buildEmptyFieldFlags();
       Object.keys(nextShakingFields).forEach((key) => {
@@ -587,7 +565,18 @@ Component({
     },
 
     applyValidationFailure(validation) {
+      const nextForm = Object.assign({}, this.data.form);
+      (validation.fieldsToClear || []).forEach((field) => {
+        if (Object.prototype.hasOwnProperty.call(nextForm, field)) {
+          nextForm[field] = '';
+        }
+      });
+
       this.setData({
+        form: nextForm,
+        measuredDateLabel: formatMeasuredDateLabel(nextForm.measuredDate),
+        alertFields: getAlertFields(this.data.profileId, nextForm),
+        activeField: validation.focusField || this.data.activeField,
         hasValidationIssue: true,
         errorText: validation.message,
         fieldErrors: validation.fieldErrors,
