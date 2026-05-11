@@ -119,8 +119,9 @@
         </view>
       </view>
 
+      <view class="profile-home__section-title">快捷设置</view>
       <view class="card profile-home__settings-card">
-        <view class="profile-home__section-title">设置</view>
+        
 
         <view class="profile-home__setting-row">
           <view class="profile-home__setting-main">
