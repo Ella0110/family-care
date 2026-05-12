@@ -1,90 +1,117 @@
-<view class="page page-root" style="--font-scale: {{fontScale}};">
-  <!-- <view class="records-header">
-    <view class="records-header__back" bindtap="handleBack">返回</view>
-    <view class="records-header__text">
-      <view class="records-header__title">{{profileName}} 的记录</view>
-      <view class="records-header__subtitle">按测量时间倒序展示</view>
-    </view>
-  </view> -->
-
+<view class="page page-root records-page" style="--font-scale: {{fontScale}};">
   <view wx:if="{{isViewerMode}}" class="records-viewer-tip">
-    你以查看者身份访问，不可修改记录
+    当前以查看者身份访问，仅可查看和导出记录
   </view>
 
-  <view class="card records-actions">
-    <button
-      class="btn-secondary records-actions__button"
-      bindtap="handleExportImage"
-      loading="{{isExportingImage}}"
-      disabled="{{isLoading || !!errorText || isExportingImage || isExportingCsv}}"
+  <view class="records-toolbar">
+    <picker
+      mode="multiSelector"
+      range="{{monthPickerRanges}}"
+      value="{{monthPickerValue}}"
+      bindchange="handleMonthPickerChange"
     >
-      导出图片
-    </button>
-    <button
-      class="btn-secondary records-actions__button"
-      bindtap="handleExportData"
-      loading="{{isExportingCsv}}"
-      disabled="{{isLoading || !!errorText || isExportingImage || isExportingCsv}}"
-    >
-      导出数据
-    </button>
-    <button
-      wx:if="{{canWriteCurrentProfile}}"
-      class="btn-primary records-actions__button"
-      bindtap="handleImportRecords"
-      disabled="{{isExportingImage || isExportingCsv}}"
-    >
-      导入
-    </button>
+      <view class="records-toolbar__month">
+        <view class="records-toolbar__month-bar"></view>
+        <text class="records-toolbar__month-text">{{monthLabel}}</text>
+        <text class="records-toolbar__month-arrow">▼</text>
+      </view>
+    </picker>
+
+    <view class="records-toolbar__actions">
+      <button
+        class="records-toolbar__export"
+        bindtap="handleOpenExportSheet"
+        disabled="{{isLoading || !!errorText || isExportingImage || isExportingCsv}}"
+      >
+        下载 ↓
+      </button>
+      <button
+        wx:if="{{canWriteCurrentProfile}}"
+        class="records-toolbar__import"
+        bindtap="handleImportRecords"
+        disabled="{{isExportingImage || isExportingCsv}}"
+      >
+        导入 ↑
+      </button>
+    </view>
   </view>
 
-  <view wx:if="{{isLoading}}" class="card records-state">
-    <view class="records-state__title">正在加载记录</view>
-    <view class="records-state__text">请稍候...</view>
+  <view wx:if="{{isLoading}}" class="records-state-card">
+    <view class="records-state-card__title">正在加载记录</view>
+    <view class="records-state-card__text">请稍候...</view>
   </view>
 
-  <view wx:elif="{{errorText}}" class="card records-state">
-    <view class="records-state__title">暂时无法加载</view>
-    <view class="records-state__text">{{errorText}}</view>
-    <button class="btn-secondary records-state__button" bindtap="loadRecords">重试</button>
+  <view wx:elif="{{errorText}}" class="records-state-card">
+    <view class="records-state-card__title">暂时无法加载</view>
+    <view class="records-state-card__text">{{errorText}}</view>
+    <button class="records-state-card__button" bindtap="loadCurrentMonthRecords">重试</button>
   </view>
 
-  <view wx:elif="{{!hasRecords}}" class="card records-state">
-    <view class="records-state__title">还没有记录，去录入第一条</view>
-    <button wx:if="{{canWriteCurrentProfile}}" class="btn-primary records-state__button" bindtap="handleAddRecord">录入血压</button>
+  <view wx:elif="{{!hasRecords}}" class="records-state-card">
+    <view class="records-state-card__title">{{monthLabel}} 暂无记录</view>
+    <view class="records-state-card__text">可以切换月份查看历史记录，或导入历史数据。</view>
+    <view class="records-state-card__actions">
+      <button wx:if="{{canWriteCurrentProfile}}" class="records-state-card__button records-state-card__button--ghost" bindtap="handleImportRecords">导入记录</button>
+    </view>
   </view>
 
   <view wx:else class="records-groups">
-    <view wx:for="{{groups}}" wx:key="date" class="records-group">
+    <view wx:for="{{groups}}" wx:key="date" class="records-group" id="{{item.anchorId}}">
       <view class="records-group__title">{{item.label}}</view>
-      <view class="card records-group__card">
+
+      <view class="records-group__card">
         <view
           wx:for="{{item.records}}"
           wx:for-item="record"
           wx:key="_id"
-          class="record-row"
-          data-record-id="{{record._id}}"
-          bindtap="handleRecordTap"
+          class="records-row-swipe"
         >
-          <view class="record-row__time">{{record.timeText}}</view>
-          <view class="record-row__main">
-            <view class="record-row__value">{{record.valueText}}</view>
-            <view wx:if="{{record.heartRateText}}" class="record-row__heart">{{record.heartRateText}}</view>
+          <view
+            wx:if="{{canWriteCurrentProfile}}"
+            class="records-row-swipe__delete"
+            data-record-id="{{record._id}}"
+            bindtap="handleDeleteActionTap"
+          >
+            删除
           </view>
-          <bp-status-tag
-            systolic="{{record.payload.systolic}}"
-            diastolic="{{record.payload.diastolic}}"
-            reference-lines="{{referenceLines}}"
-          />
-          <view wx:if="{{!isViewerMode}}" class="record-row__arrow">›</view>
+
+          <view
+            class="records-row"
+            style="{{record.swipeOffsetText}}"
+            data-record-id="{{record._id}}"
+            bindtap="handleRecordTap"
+            bindtouchstart="handleRowTouchStart"
+            bindtouchmove="handleRowTouchMove"
+            bindtouchend="handleRowTouchEnd"
+            bindtouchcancel="handleRowTouchEnd"
+          >
+            <view class="records-row__time">{{record.timeText}}</view>
+            <view class="records-row__main">
+              <view class="records-row__value">{{record.valueText}}</view>
+              <view wx:if="{{record.heartRateText}}" class="records-row__heart">{{record.heartRateText}}</view>
+            </view>
+            <view class="records-row__status {{record.statusClassName}}">{{record.statusText}}</view>
+            <view wx:if="{{!isViewerMode}}" class="records-row__arrow">›</view>
+          </view>
         </view>
       </view>
     </view>
 
-    <view wx:if="{{hasMore}}" class="records-more">
-      还有更多记录未加载
+    <view class="records-footer">
+      <text wx:if="{{hasMore}}">— 该月仅显示前 200 条记录 —</text>
+      <text wx:else>— 已加载全部记录 —</text>
     </view>
   </view>
+
+  <record-panel
+    show="{{showRecordPanel}}"
+    profile-id="{{profileId}}"
+    edit-record="{{editingRecord}}"
+    bind:success="handleRecordPanelSuccess"
+    bind:delete="handleRecordPanelDelete"
+    bind:close="handleCloseRecordPanel"
+    bind:visibilitychange="handleRecordPanelVisibilityChange"
+  />
 
   <canvas
     id="recordsExportCanvas"
@@ -92,6 +119,49 @@
     class="records-export-canvas"
     style="height: {{exportCanvasHeight}}px;"
   ></canvas>
+
+  <view wx:if="{{showExportSheet}}" class="records-export-sheet">
+    <view class="records-export-sheet__mask" bindtap="handleCloseExportSheet"></view>
+    <view class="records-export-sheet__panel">
+      <view class="records-export-sheet__handle"></view>
+      <view class="records-export-sheet__title">导出数据</view>
+      <view class="records-export-sheet__subtitle">选择需要导出的时间范围</view>
+
+      <view class="records-export-sheet__ranges">
+        <view
+          wx:for="{{[7, 30, 90]}}"
+          wx:key="*this"
+          class="records-export-sheet__range {{selectedExportDays === item ? 'is-active' : ''}}"
+          data-days="{{item}}"
+          bindtap="handleSelectExportDays"
+        >
+          <view class="records-export-sheet__range-number">{{item}}</view>
+          <view class="records-export-sheet__range-label">天</view>
+        </view>
+      </view>
+
+      <view class="records-export-sheet__actions">
+        <button
+          class="records-export-sheet__action records-export-sheet__action--primary"
+          bindtap="handleExportImage"
+          loading="{{isExportingImage}}"
+          disabled="{{isExportingImage || isExportingCsv}}"
+        >
+          导出图片
+        </button>
+        <button
+          class="records-export-sheet__action records-export-sheet__action--secondary"
+          bindtap="handleExportData"
+          loading="{{isExportingCsv}}"
+          disabled="{{isExportingImage || isExportingCsv}}"
+        >
+          导出数据
+        </button>
+      </view>
+
+      <view class="records-export-sheet__cancel" bindtap="handleCloseExportSheet">取消</view>
+    </view>
+  </view>
 
   <view wx:if="{{showExportPreview}}" class="records-export-preview">
     <view class="records-export-preview__header">导出预览</view>
@@ -104,14 +174,14 @@
     </scroll-view>
     <view class="records-export-preview__actions">
       <button
-        class="btn-secondary records-export-preview__button"
+        class="records-export-preview__button records-export-preview__button--secondary"
         bindtap="onCancelPreview"
         disabled="{{isExportingImage}}"
       >
         取消
       </button>
       <button
-        class="btn-primary records-export-preview__button"
+        class="records-export-preview__button records-export-preview__button--primary"
         bindtap="onConfirmSave"
         loading="{{isExportingImage}}"
         disabled="{{isExportingImage}}"
@@ -123,19 +193,47 @@
 
   <view wx:if="{{showPermissionModal}}" class="records-permission-modal">
     <view class="records-permission-modal__mask"></view>
-    <view class="records-permission-modal__panel card">
+    <view class="records-permission-modal__panel">
       <view class="records-permission-modal__title">无法保存图片</view>
       <view class="records-permission-modal__subtitle">需要开启“相册写入”权限</view>
       <view class="records-permission-modal__step">步骤 1：点击下方“去设置”按钮</view>
       <view class="records-permission-modal__step">步骤 2：将“添加到相册”设为允许</view>
       <view class="records-permission-modal__actions">
-        <button class="btn-primary records-permission-modal__button" bindtap="handleOpenPermissionSetting">
+        <button class="records-permission-modal__button records-permission-modal__button--primary" bindtap="handleOpenPermissionSetting">
           去设置
         </button>
-        <button class="btn-secondary records-permission-modal__button" bindtap="handleClosePermissionModal">
+        <button class="records-permission-modal__button records-permission-modal__button--secondary" bindtap="handleClosePermissionModal">
           暂不下载
         </button>
       </view>
+    </view>
+  </view>
+
+  <view wx:if="{{showDeleteDialog}}" class="records-dialog-layer">
+    <view class="records-dialog-layer__mask" bindtap="handleDeleteDialogMaskTap"></view>
+    <view class="records-dialog-layer__card">
+      <view class="records-dialog-layer__icon">🗑</view>
+      <view class="records-dialog-layer__title">确定删除此记录？</view>
+      <view class="records-dialog-layer__text">
+        将删除 {{pendingDeleteRecordText}} 这条记录，删除后数据无法恢复。
+      </view>
+      <button
+        class="records-dialog-layer__confirm"
+        bindtap="handleDeleteDialogConfirm"
+        loading="{{isDeletingRecord}}"
+        disabled="{{isDeletingRecord}}"
+      >
+        确定删除
+      </button>
+      <view class="records-dialog-layer__cancel" bindtap="handleDeleteDialogCancel">取消</view>
+    </view>
+  </view>
+
+  <view wx:if="{{feedbackVisible}}" class="records-feedback-layer">
+    <view class="records-feedback-layer__mask"></view>
+    <view class="records-feedback-layer__card">
+      <view class="records-feedback-layer__icon">🗑</view>
+      <view class="records-feedback-layer__title">{{feedbackTitle}}</view>
     </view>
   </view>
 </view>

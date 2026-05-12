@@ -1,17 +1,23 @@
 const { store } = require('../../store/index');
-const recordService = require('../../services/record-service');
 const { callSilent } = require('../../services/request');
 const { getErrorMessage } = require('../../utils/error-messages');
 const { getBPStatusDisplay, getReferenceLines } = require('../../utils/bp-status');
 const { DEFAULT_FONT_SCALE, normalizeFontScale } = require('../../utils/font-scale');
 const { canWrite, isViewer } = require('../../utils/permission-helpers');
 const { recordsToCSV, normalizeDate } = require('../../utils/csv-helpers');
+const { deleteRecordById } = require('../../utils/record-editor');
 const {
   EXPORT_IMAGE_CANVAS_WIDTH,
   buildRecentRange,
   measureRecordsImageHeight,
   drawRecordsImageTable,
 } = require('../../utils/records-export-helpers');
+
+const DELETE_ACTION_WIDTH_RPX = 160;
+const DELETE_ACTION_THRESHOLD_RPX = 60;
+const FEEDBACK_TOAST_MS = 1500;
+const EXPORT_DAY_OPTIONS = [7, 30, 90];
+const MONTH_PICKER_START_YEAR = 2000;
 
 function pad(value) {
   return String(value).padStart(2, '0');
@@ -131,6 +137,24 @@ function formatTime(date) {
   return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
+function formatMonthLabel(year, month) {
+  return `${year}年${month}月`;
+}
+
+function buildMonthPickerRanges(currentYear = new Date().getFullYear()) {
+  const years = [];
+  for (let year = MONTH_PICKER_START_YEAR; year <= currentYear; year += 1) {
+    years.push(`${year}年`);
+  }
+
+  const months = [];
+  for (let month = 1; month <= 12; month += 1) {
+    months.push(`${month}月`);
+  }
+
+  return [years, months];
+}
+
 function findProfile(profileId) {
   const state = store.getState();
   return (state.profiles || []).find((profile) => profile && profile._id === profileId) || null;
@@ -149,11 +173,11 @@ async function fetchIndependentRecords(profileId, options = {}) {
   };
 
   if (options.since) {
-    data.since = options.since;
+    data.since = toTimestamp(options.since);
   }
 
   if (options.until) {
-    data.until = options.until;
+    data.until = toTimestamp(options.until);
   }
 
   const result = await callSilent('getRecords', data);
@@ -163,12 +187,75 @@ async function fetchIndependentRecords(profileId, options = {}) {
   };
 }
 
+function buildStatusMeta(status) {
+  if (!status) {
+    return {
+      text: '正常',
+      className: 'records-status--normal',
+    };
+  }
+
+  if (status.level === 'normal') {
+    return {
+      text: '正常',
+      className: 'records-status--normal',
+    };
+  }
+
+  if (status.level === 'low') {
+    return {
+      text: '偏低',
+      className: 'records-status--warning',
+    };
+  }
+
+  const detail = status.detail || '';
+  const text = detail ? `${status.label}${detail}` : status.label;
+
+  if (detail === '1级') {
+    return {
+      text,
+      className: 'records-status--warning',
+    };
+  }
+
+  if (detail === '3级') {
+    return {
+      text,
+      className: 'records-status--danger records-status--strong',
+    };
+  }
+
+  return {
+    text,
+    className: 'records-status--danger',
+  };
+}
+
+function getSwipeOffset(recordId, swipeState) {
+  if (swipeState.activeRecordId === recordId) {
+    return swipeState.activeOffset;
+  }
+
+  if (swipeState.openRecordId === recordId) {
+    return -DELETE_ACTION_WIDTH_RPX;
+  }
+
+  return 0;
+}
+
 Page({
   data: {
     fontScale: DEFAULT_FONT_SCALE,
     profileId: '',
     profileName: '当前档案',
     referenceLines: getReferenceLines(),
+    selectedYear: new Date().getFullYear(),
+    selectedMonth: new Date().getMonth() + 1,
+    monthPickerRanges: buildMonthPickerRanges(),
+    monthPickerValue: [new Date().getFullYear() - MONTH_PICKER_START_YEAR, new Date().getMonth()],
+    monthLabel: formatMonthLabel(new Date().getFullYear(), new Date().getMonth() + 1),
+    scrollTargetId: '',
     groups: [],
     hasRecords: false,
     hasMore: false,
@@ -178,27 +265,52 @@ Page({
     isViewerMode: false,
     isExportingImage: false,
     isExportingCsv: false,
+    showExportSheet: false,
+    selectedExportDays: 7,
     exportCanvasHeight: 1,
     exportTempFilePath: '',
     showExportPreview: false,
     showPermissionModal: false,
+    openDeleteRecordId: '',
+    activeSwipeRecordId: '',
+    swipeOffsetRpx: 0,
+    showDeleteDialog: false,
+    pendingDeleteRecordId: '',
+    pendingDeleteRecordText: '',
+    isDeletingRecord: false,
+    feedbackVisible: false,
+    feedbackTitle: '',
+    showRecordPanel: false,
+    editingRecord: null,
   },
 
   onLoad(options = {}) {
     this.syncFontScale();
     const profileId = options.profileId || '';
     const profile = profileId ? findProfile(profileId) : null;
+    const state = store.getState();
+    const now = new Date();
 
     this.recordsById = {};
     this.loadedRecords = [];
+    this.monthAnchors = {};
+    this.feedbackTimer = null;
+    this.rowTouchState = null;
+    this.lastSwipeGesture = null;
+    this.isClosingRecordPanel = false;
+    this.pendingPanelRefresh = false;
 
-    const state = store.getState();
     this.setData({
       profileId,
       profileName: profile ? profile.name : '当前档案',
       referenceLines: getReferenceLines(profile && profile.settings && profile.settings.bp && profile.settings.bp.referenceLines),
       canWriteCurrentProfile: profileId ? canWrite(state, profileId) : false,
       isViewerMode: profileId ? isViewer(state, profileId) : false,
+      selectedYear: now.getFullYear(),
+      selectedMonth: now.getMonth() + 1,
+      monthPickerRanges: buildMonthPickerRanges(now.getFullYear()),
+      monthPickerValue: [now.getFullYear() - MONTH_PICKER_START_YEAR, now.getMonth()],
+      monthLabel: formatMonthLabel(now.getFullYear(), now.getMonth() + 1),
     });
 
     if (!profileId) {
@@ -210,7 +322,15 @@ Page({
 
   onShow() {
     this.syncFontScale();
-    this.loadRecords();
+    this.refreshProfileContext();
+    this.loadAllRecords();
+  },
+
+  onUnload() {
+    if (this.feedbackTimer) {
+      clearTimeout(this.feedbackTimer);
+      this.feedbackTimer = null;
+    }
   },
 
   syncFontScale() {
@@ -219,10 +339,28 @@ Page({
     });
   },
 
-  groupRecords(records) {
-    const referenceLines = getReferenceLines(this && this.data ? this.data.referenceLines : null);
+  refreshProfileContext() {
+    const profile = findProfile(this.data.profileId);
+    const state = store.getState();
+
+    this.setData({
+      profileName: profile ? profile.name : '当前档案',
+      referenceLines: getReferenceLines(profile && profile.settings && profile.settings.bp && profile.settings.bp.referenceLines),
+      canWriteCurrentProfile: this.data.profileId ? canWrite(state, this.data.profileId) : false,
+      isViewerMode: this.data.profileId ? isViewer(state, this.data.profileId) : false,
+    });
+  },
+
+  buildGroups(records) {
+    const referenceLines = getReferenceLines(this.data.referenceLines);
     const groups = [];
     const groupMap = {};
+    const seenMonthKeys = new Set();
+    const swipeState = {
+      openRecordId: this.data.openDeleteRecordId,
+      activeRecordId: this.data.activeSwipeRecordId,
+      activeOffset: this.data.swipeOffsetRpx,
+    };
 
     (records || []).forEach((record) => {
       const measuredAt = toDate(record.measuredAt);
@@ -232,9 +370,14 @@ Page({
 
       const key = dateKey(measuredAt);
       if (!groupMap[key]) {
+        const monthKey = `${measuredAt.getFullYear()}-${pad(measuredAt.getMonth() + 1)}`;
+        const anchorId = !seenMonthKeys.has(monthKey) ? `month-${monthKey}` : '';
+        seenMonthKeys.add(monthKey);
         groupMap[key] = {
           date: key,
           label: formatDateLabel(measuredAt),
+          monthKey,
+          anchorId,
           records: [],
         };
         groups.push(groupMap[key]);
@@ -242,131 +385,166 @@ Page({
 
       const payload = record.payload || {};
       const status = getBPStatusDisplay(payload.systolic, payload.diastolic, referenceLines);
-      groupMap[key].records.push(
-        Object.assign({}, record, {
-          timeText: formatTime(measuredAt),
-          valueText: `${payload.systolic} / ${payload.diastolic}`,
-          heartRateText: payload.heartRate ? `心率 ${payload.heartRate} bpm` : '',
-          status,
-        }),
-      );
+      const statusMeta = buildStatusMeta(status);
+      const swipeOffset = getSwipeOffset(record._id, swipeState);
+      groupMap[key].records.push(Object.assign({}, record, {
+        timeText: formatTime(measuredAt),
+        valueText: `${payload.systolic} / ${payload.diastolic}`,
+        heartRateText: payload.heartRate ? `心率 ${payload.heartRate} bpm` : '',
+        statusText: statusMeta.text,
+        statusClassName: statusMeta.className,
+        swipeOffsetText: `transform: translateX(${swipeOffset}rpx);`,
+      }));
     });
 
     return groups;
   },
 
-  async loadRecords() {
+  syncGroups() {
+    const groups = this.buildGroups(this.loadedRecords);
+    this.monthAnchors = {};
+    groups.forEach((group) => {
+      if (group.anchorId) {
+        this.monthAnchors[group.monthKey] = group.anchorId;
+      }
+    });
+
+    this.setData({
+      groups,
+      hasRecords: this.loadedRecords.length > 0,
+    });
+  },
+
+  async loadAllRecords() {
     if (!this.data.profileId) {
       return;
     }
 
     const profileId = this.data.profileId;
-    const hasCache = store.hasCachedRecords(profileId);
+    const requestKey = `${profileId}:all`;
+
+    this.closeSwipeRow();
     this.setData({
-      isLoading: !hasCache,
+      isLoading: true,
       errorText: '',
     });
 
-    await recordService.loadRecords(profileId, { limit: 200 }, {
-      onCacheHit: (result) => {
-        if (this.data.profileId !== profileId) {
-          return;
-        }
+    try {
+      const result = await fetchIndependentRecords(profileId, { limit: 200 });
 
-        this.applyRecords(result.records, result.hasMore);
-      },
-      onFresh: (result) => {
-        if (this.data.profileId !== profileId) {
-          return;
-        }
+      if (requestKey !== `${this.data.profileId}:all`) {
+        return;
+      }
 
-        this.applyRecords(result.records, result.hasMore);
-      },
-      onError: (error) => {
-        if (this.data.profileId !== profileId) {
-          return;
-        }
+      this.loadedRecords = result.records;
+      this.recordsById = {};
+      result.records.forEach((record) => {
+        this.recordsById[record._id] = record;
+      });
 
-        if (!hasCache) {
-          this.setData({
-            errorText: getErrorMessage(error),
-            isLoading: false,
-          });
-        }
-      },
-    });
+      this.setData({
+        hasMore: result.hasMore,
+        isLoading: false,
+        errorText: '',
+      });
+      this.syncGroups();
+    } catch (error) {
+      if (requestKey !== `${this.data.profileId}:all`) {
+        return;
+      }
+
+      this.loadedRecords = [];
+      this.recordsById = {};
+      this.setData({
+        groups: [],
+        hasRecords: false,
+        hasMore: false,
+        isLoading: false,
+        errorText: getErrorMessage(error),
+      });
+    }
   },
 
-  applyRecords(records, hasMore) {
-    const nextRecords = Array.isArray(records) ? records : [];
-    const groups = this.groupRecords(nextRecords);
-    this.recordsById = {};
-    this.loadedRecords = nextRecords;
-
-    nextRecords.forEach((record) => {
-      this.recordsById[record._id] = record;
-    });
+  handleMonthPickerChange(event) {
+    const value = Array.isArray(event.detail && event.detail.value) ? event.detail.value : [0, 0];
+    const yearIndex = Number(value[0]) || 0;
+    const monthIndex = Number(value[1]) || 0;
+    const year = MONTH_PICKER_START_YEAR + yearIndex;
+    const month = monthIndex + 1;
 
     this.setData({
-      groups,
-      hasRecords: nextRecords.length > 0,
-      hasMore: hasMore === true,
-      isLoading: false,
-      errorText: '',
+      selectedYear: year,
+      selectedMonth: month,
+      monthPickerValue: [yearIndex, monthIndex],
+      monthLabel: formatMonthLabel(year, month),
+    }, () => {
+      this.scrollToMonth(year, month);
     });
   },
 
-  handleBack() {
-    wx.navigateBack({ delta: 1 });
-  },
+  scrollToMonth(year, month) {
+    const monthKey = `${year}-${pad(month)}`;
+    const anchorId = this.monthAnchors[monthKey];
 
-  handleAddRecord() {
-    if (!this.data.profileId) {
+    if (!anchorId) {
       wx.showToast({
-        title: '请先返回首页',
+        title: '该月份暂无记录',
         icon: 'none',
       });
       return;
     }
 
-    if (!this.data.canWriteCurrentProfile) {
-      wx.showToast({
-        title: '你没有权限录入血压',
-        icon: 'none',
-      });
-      return;
-    }
+    this.setData({
+      scrollTargetId: anchorId,
+    });
 
-    wx.navigateTo({
-      url: `/pages/record/record?mode=create&profileId=${this.data.profileId}`,
+    wx.nextTick(() => {
+      wx.pageScrollTo({
+        selector: `#${anchorId}`,
+        duration: 220,
+      });
     });
   },
 
-  handleExportImage() {
+  handleOpenExportSheet() {
+    if (this.data.isLoading || !!this.data.errorText) {
+      return;
+    }
+
+    this.closeSwipeRow();
+    this.setData({
+      showExportSheet: true,
+      selectedExportDays: this.data.selectedExportDays || 7,
+    });
+  },
+
+  handleCloseExportSheet() {
+    this.setData({
+      showExportSheet: false,
+    });
+  },
+
+  handleSelectExportDays(event) {
+    const days = Number(event.currentTarget.dataset.days);
+    if (!EXPORT_DAY_OPTIONS.includes(days)) {
+      return;
+    }
+
+    this.setData({
+      selectedExportDays: days,
+    });
+  },
+
+  async handleExportImage() {
     if (!this.data.profileId || this.data.isExportingImage || this.data.isLoading) {
       return;
     }
 
-    const dayOptions = [7, 14, 30];
-    wx.showActionSheet({
-      itemList: dayOptions.map((days) => `近 ${days} 天`),
-      success: (res) => {
-        const days = dayOptions[res.tapIndex];
-        if (!days) {
-          return;
-        }
-
-        this.exportImageForDays(days);
-      },
-      fail: (error) => {
-        if (!/cancel/i.test(getErrorReason(error))) {
-          console.warn('[records-list] showActionSheet failed', error);
-        }
-      },
+    this.setData({
+      showExportSheet: false,
     });
-  },
 
-  async exportImageForDays(days) {
+    const days = this.data.selectedExportDays || 7;
     const range = buildRecentRange(days);
 
     this.setData({
@@ -455,11 +633,16 @@ Page({
     }
 
     this.setData({
+      showExportSheet: false,
       isExportingCsv: true,
     });
 
     try {
+      const days = this.data.selectedExportDays || 7;
+      const range = buildRecentRange(days);
       const result = await fetchIndependentRecords(this.data.profileId, {
+        since: range.since,
+        until: range.until,
         limit: 200,
       });
       const csvText = recordsToCSV(result.records, {
@@ -630,25 +813,279 @@ Page({
     });
   },
 
-  handleRecordTap(event) {
-    if (this.data.isViewerMode) {
+  closeSwipeRow() {
+    if (!this.data.openDeleteRecordId && !this.data.activeSwipeRecordId) {
+      return;
+    }
+
+    this.setData({
+      openDeleteRecordId: '',
+      activeSwipeRecordId: '',
+      swipeOffsetRpx: 0,
+    }, () => {
+      this.syncGroups();
+    });
+  },
+
+  handleRowTouchStart(event) {
+    if (!this.data.canWriteCurrentProfile || this.data.showDeleteDialog || this.data.showRecordPanel) {
       return;
     }
 
     const recordId = event.currentTarget.dataset.recordId;
-    const record = this.recordsById && this.recordsById[recordId];
-
-    if (!record) {
-      wx.showToast({
-        title: '记录不存在，请刷新',
-        icon: 'none',
-      });
+    const touch = event.touches && event.touches[0];
+    if (!recordId || !touch) {
       return;
     }
 
-    recordService.setCachedRecord(record);
-    wx.navigateTo({
-      url: `/pages/record/record?mode=edit&profileId=${this.data.profileId}&recordId=${recordId}`,
+    if (this.data.openDeleteRecordId && this.data.openDeleteRecordId !== recordId) {
+      this.setData({
+        openDeleteRecordId: '',
+      }, () => {
+        this.syncGroups();
+      });
+    }
+
+    this.rowTouchState = {
+      recordId,
+      startX: touch.clientX,
+      startY: touch.clientY,
+      baseOffset: this.data.openDeleteRecordId === recordId ? -DELETE_ACTION_WIDTH_RPX : 0,
+      direction: '',
+      moved: false,
+    };
+  },
+
+  handleRowTouchMove(event) {
+    const state = this.rowTouchState;
+    const recordId = event.currentTarget.dataset.recordId;
+    const touch = event.touches && event.touches[0];
+
+    if (!state || state.recordId !== recordId || !touch) {
+      return;
+    }
+
+    const deltaX = touch.clientX - state.startX;
+    const deltaY = touch.clientY - state.startY;
+
+    if (!state.direction) {
+      if (Math.abs(deltaX) < 8 && Math.abs(deltaY) < 8) {
+        return;
+      }
+
+      state.direction = Math.abs(deltaX) > Math.abs(deltaY) ? 'horizontal' : 'vertical';
+    }
+
+    if (state.direction !== 'horizontal') {
+      return;
+    }
+
+    let nextOffset = state.baseOffset + deltaX;
+    nextOffset = Math.min(0, nextOffset);
+    nextOffset = Math.max(-DELETE_ACTION_WIDTH_RPX, nextOffset);
+
+    state.moved = true;
+
+    this.setData({
+      activeSwipeRecordId: recordId,
+      swipeOffsetRpx: nextOffset,
+    }, () => {
+      this.syncGroups();
     });
+  },
+
+  handleRowTouchEnd() {
+    const state = this.rowTouchState;
+    if (!state) {
+      return;
+    }
+
+    if (state.direction !== 'horizontal' || !state.moved) {
+      this.rowTouchState = null;
+      return;
+    }
+
+    const finalOffset = this.data.activeSwipeRecordId === state.recordId
+      ? this.data.swipeOffsetRpx
+      : state.baseOffset;
+    const shouldOpen = Math.abs(finalOffset) > DELETE_ACTION_THRESHOLD_RPX;
+
+    this.lastSwipeGesture = {
+      recordId: state.recordId,
+      at: Date.now(),
+    };
+
+    this.setData({
+      openDeleteRecordId: shouldOpen ? state.recordId : '',
+      activeSwipeRecordId: '',
+      swipeOffsetRpx: 0,
+    }, () => {
+      this.syncGroups();
+    });
+
+    this.rowTouchState = null;
+  },
+
+  handleDeleteActionTap(event) {
+    const recordId = event.currentTarget.dataset.recordId;
+    const record = this.recordsById[recordId];
+
+    if (!record || !this.data.canWriteCurrentProfile) {
+      return;
+    }
+
+    this.setData({
+      showDeleteDialog: true,
+      pendingDeleteRecordId: recordId,
+      pendingDeleteRecordText: `${record.payload.systolic} / ${record.payload.diastolic}`,
+    });
+  },
+
+  handleDeleteDialogMaskTap() {
+    if (this.data.isDeletingRecord) {
+      return;
+    }
+
+    this.setData({
+      showDeleteDialog: false,
+      pendingDeleteRecordId: '',
+      pendingDeleteRecordText: '',
+    });
+  },
+
+  handleDeleteDialogCancel() {
+    if (this.data.isDeletingRecord) {
+      return;
+    }
+
+    this.setData({
+      showDeleteDialog: false,
+      pendingDeleteRecordId: '',
+      pendingDeleteRecordText: '',
+    });
+  },
+
+  async handleDeleteDialogConfirm() {
+    const recordId = this.data.pendingDeleteRecordId;
+    if (!recordId || this.data.isDeletingRecord) {
+      return;
+    }
+
+    this.setData({
+      isDeletingRecord: true,
+    });
+
+    try {
+      await deleteRecordById(recordId, this.data.profileId);
+      this.setData({
+        showDeleteDialog: false,
+        pendingDeleteRecordId: '',
+        pendingDeleteRecordText: '',
+        isDeletingRecord: false,
+      });
+      this.closeSwipeRow();
+      this.showFeedbackToast('记录已删除');
+      this.loadAllRecords();
+    } catch (error) {
+      this.setData({
+        isDeletingRecord: false,
+      });
+      wx.showToast({
+        title: getErrorMessage(error),
+        icon: 'none',
+      });
+    }
+  },
+
+  showFeedbackToast(title) {
+    if (this.feedbackTimer) {
+      clearTimeout(this.feedbackTimer);
+      this.feedbackTimer = null;
+    }
+
+    this.setData({
+      feedbackVisible: true,
+      feedbackTitle: title,
+    });
+
+    this.feedbackTimer = setTimeout(() => {
+      this.feedbackTimer = null;
+      this.setData({
+        feedbackVisible: false,
+        feedbackTitle: '',
+      });
+    }, FEEDBACK_TOAST_MS);
+  },
+
+  handleRecordTap(event) {
+    const recordId = event.currentTarget.dataset.recordId;
+    const record = this.recordsById[recordId];
+
+    if (!record || this.data.isViewerMode) {
+      return;
+    }
+
+    if (
+      this.lastSwipeGesture
+      && this.lastSwipeGesture.recordId === recordId
+      && Date.now() - this.lastSwipeGesture.at < 250
+    ) {
+      return;
+    }
+
+    if (this.data.openDeleteRecordId === recordId) {
+      this.closeSwipeRow();
+      return;
+    }
+
+    this.setData({
+      editingRecord: record,
+      showRecordPanel: true,
+    });
+  },
+
+  closeRecordPanelAndRefreshIfNeeded() {
+    if (this.isClosingRecordPanel) {
+      return;
+    }
+
+    const shouldRefresh = this.pendingPanelRefresh === true;
+    this.pendingPanelRefresh = false;
+    this.isClosingRecordPanel = true;
+
+    this.setData({
+      showRecordPanel: false,
+      editingRecord: null,
+    }, () => {
+      this.isClosingRecordPanel = false;
+      if (shouldRefresh) {
+        this.loadAllRecords();
+      }
+    });
+  },
+
+  handleRecordPanelVisibilityChange(event) {
+    const visible = !!(event.detail && event.detail.visible);
+    if (visible) {
+      return;
+    }
+
+    if (!this.data.showRecordPanel && !this.data.editingRecord && !this.pendingPanelRefresh) {
+      return;
+    }
+
+    this.closeRecordPanelAndRefreshIfNeeded();
+  },
+
+  handleRecordPanelSuccess() {
+    this.pendingPanelRefresh = true;
+  },
+
+  handleRecordPanelDelete() {
+    this.pendingPanelRefresh = true;
+  },
+
+  handleCloseRecordPanel() {
+    this.closeRecordPanelAndRefreshIfNeeded();
   },
 });
