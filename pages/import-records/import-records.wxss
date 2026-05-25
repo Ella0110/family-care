@@ -1,16 +1,24 @@
 .import-page {
+  min-height: 100vh;
   padding-bottom: 220rpx;
+  background: #f0f4fa;
 }
 
 .import-card + .import-card {
-  margin-top: 20rpx;
+  margin-top: 24rpx;
+}
+
+.import-card {
+  border-radius: 32rpx;
+  background: #ffffff;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.03);
 }
 
 .import-card__title,
 .import-preview__summary,
 .import-result__title {
-  color: #111827;
-  font-size: var(--font-lg);
+  color: #1e293b;
+  font-size: calc(32rpx * var(--font-scale));
   font-weight: 800;
   line-height: 1.4;
 }
@@ -20,20 +28,20 @@
 .import-footer__text,
 .import-preview__sub {
   margin-top: 12rpx;
-  color: #6b7280;
-  font-size: var(--font-base);
+  color: #94a3b8;
+  font-size: calc(24rpx * var(--font-scale));
   line-height: 1.7;
 }
 
 .import-textarea {
   width: 100%;
   min-height: 420rpx;
-  padding: 24rpx;
+  padding: 28rpx;
   border-radius: 20rpx;
   background: #f8fafc;
   box-sizing: border-box;
-  color: #111827;
-  font-size: var(--font-base);
+  color: #64748b;
+  font-size: calc(26rpx * var(--font-scale));
   line-height: 1.7;
 }
 
@@ -47,6 +55,29 @@
 .import-result__button,
 .import-footer__button {
   flex: 1;
+  min-height: 88rpx;
+  border-radius: 20rpx;
+  font-size: calc(28rpx * var(--font-scale));
+  font-weight: 600;
+}
+
+.import-card__button::after,
+.import-result__button::after,
+.import-footer__button::after {
+  border-width: 0;
+}
+
+.import-card__button.btn-primary,
+.import-result__button.btn-primary,
+.import-footer__button.btn-primary {
+  background: #3182f7;
+  color: #ffffff;
+}
+
+.import-card__button.btn-secondary {
+  background: #ffffff;
+  border: 2rpx solid #3182f7;
+  color: #3182f7;
 }
 
 .import-preview__section {
@@ -54,7 +85,7 @@
 }
 
 .import-preview__section-title {
-  font-size: var(--font-md);
+  font-size: calc(28rpx * var(--font-scale));
   font-weight: 700;
 }
 
@@ -85,8 +116,8 @@
 }
 
 .import-preview__main {
-  color: #111827;
-  font-size: var(--font-base);
+  color: #1e293b;
+  font-size: calc(26rpx * var(--font-scale));
   font-weight: 700;
   line-height: 1.6;
 }
@@ -97,7 +128,12 @@
   bottom: 32rpx;
   left: 32rpx;
   padding: 24rpx;
-  border-radius: 24rpx;
+  border-radius: 32rpx;
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 12rpx 32rpx rgba(17, 24, 39, 0.12);
+}
+
+.import-footer__button[disabled] {
+  background: #e2e8f0;
+  color: #94a3b8;
 }

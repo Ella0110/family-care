@@ -212,10 +212,12 @@
   <view wx:if="{{showDeleteDialog}}" class="records-dialog-layer">
     <view class="records-dialog-layer__mask" bindtap="handleDeleteDialogMaskTap"></view>
     <view class="records-dialog-layer__card">
-      <view class="records-dialog-layer__icon">🗑</view>
+      <view class="records-dialog-layer__icon-wrap">
+        <view class="records-dialog-layer__icon">🗑</view>
+      </view>
       <view class="records-dialog-layer__title">确定删除此记录？</view>
       <view class="records-dialog-layer__text">
-        将删除 {{pendingDeleteRecordText}} 这条记录，删除后数据无法恢复。
+        删除后数据将无法恢复，并会影响您的健康趋势分析。
       </view>
       <button
         class="records-dialog-layer__confirm"
@@ -232,7 +234,9 @@
   <view wx:if="{{feedbackVisible}}" class="records-feedback-layer">
     <view class="records-feedback-layer__mask"></view>
     <view class="records-feedback-layer__card">
-      <view class="records-feedback-layer__icon">🗑</view>
+      <view class="records-feedback-layer__icon-wrap">
+        <view class="records-feedback-layer__icon">🗑</view>
+      </view>
       <view class="records-feedback-layer__title">{{feedbackTitle}}</view>
     </view>
   </view>

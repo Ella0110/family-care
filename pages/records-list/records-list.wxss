@@ -138,7 +138,7 @@ page {
 
 .records-group__title {
     margin: 0 0 16rpx;
-    color: #1e293b;
+    color: #3182f7;
     font-size: calc(28rpx * var(--font-scale));
     font-weight: 700;
 }
@@ -220,7 +220,7 @@ page {
     justify-content: center;
     min-height: 40rpx;
     padding: 4rpx 16rpx;
-    border-radius: 56rpx;
+    border-radius: 12rpx;
     font-size: calc(22rpx * var(--font-scale));
     font-weight: 700;
     white-space: nowrap;
@@ -293,7 +293,7 @@ page {
     right: 0;
     bottom: 0;
     left: 0;
-    padding: 20rpx 32rpx calc(32rpx + env(safe-area-inset-bottom));
+    padding: 24rpx 40rpx calc(env(safe-area-inset-bottom) + 40rpx);
     border-radius: 40rpx 40rpx 0 0;
     background: #ffffff;
 }
@@ -301,12 +301,13 @@ page {
 .records-export-sheet__handle {
     width: 80rpx;
     height: 8rpx;
-    margin: 0 auto 28rpx;
+    margin: 0 auto;
     border-radius: 999rpx;
     background: #e2e8f0;
 }
 
 .records-export-sheet__title {
+    margin-top: 32rpx;
     color: #1e293b;
     font-size: calc(36rpx * var(--font-scale));
     font-weight: 800;
@@ -314,21 +315,25 @@ page {
 }
 
 .records-export-sheet__subtitle {
-    margin-top: 10rpx;
+    margin-top: 12rpx;
     color: #94a3b8;
     font-size: calc(24rpx * var(--font-scale));
     text-align: center;
 }
 
 .records-export-sheet__ranges {
-    display: flex;
-    gap: 16rpx;
-    margin-top: 28rpx;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20rpx;
+    margin-top: 40rpx;
 }
 
 .records-export-sheet__range {
-    flex: 1;
-    padding: 28rpx 16rpx;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 28rpx 0;
     border: 2rpx solid #e2e8f0;
     border-radius: 24rpx;
     text-align: center;
@@ -340,7 +345,7 @@ page {
 
 .records-export-sheet__range-number {
     color: #1e293b;
-    font-size: calc(48rpx * var(--font-scale));
+    font-size: calc(52rpx * var(--font-scale));
     font-weight: 900;
     line-height: 1;
 }
@@ -350,24 +355,30 @@ page {
 }
 
 .records-export-sheet__range-label {
-    margin-top: 10rpx;
+    margin-top: 4rpx;
     color: #94a3b8;
     font-size: calc(22rpx * var(--font-scale));
 }
 
 .records-export-sheet__actions {
-    display: flex;
-    gap: 16rpx;
-    margin-top: 28rpx;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20rpx;
+    margin-top: 32rpx;
 }
 
 .records-export-sheet__action {
-    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     min-height: 88rpx;
     margin: 0;
     border-radius: 20rpx;
+    padding: 28rpx;
     font-size: calc(28rpx * var(--font-scale));
-    font-weight: 700;
+    font-weight: 600;
+    text-align: center;
+    box-sizing: border-box;
 }
 
 .records-export-sheet__action::after {
@@ -385,7 +396,7 @@ page {
 }
 
 .records-export-sheet__cancel {
-    margin-top: 24rpx;
+    margin-top: 28rpx;
     color: #94a3b8;
     font-size: calc(28rpx * var(--font-scale));
     text-align: center;
@@ -456,9 +467,7 @@ page {
     z-index: 40;
 }
 
-.records-permission-modal__panel,
-.records-dialog-layer__card,
-.records-feedback-layer__card {
+.records-permission-modal__panel {
     position: absolute;
     left: 32rpx;
     right: 32rpx;
@@ -527,39 +536,60 @@ page {
 }
 
 .records-dialog-layer {
-    z-index: 45;
+    z-index: 9999;
+}
+
+.records-dialog-layer__card,
+.records-feedback-layer__card {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 1;
+    background: #ffffff;
+    box-sizing: border-box;
+    text-align: center;
 }
 
 .records-dialog-layer__card {
-    top: 50%;
-    transform: translateY(-50%);
+    width: calc(100% - 96rpx);
+    transform: translate(-50%, -50%);
     padding: 48rpx;
     border-radius: 32rpx;
-    text-align: center;
-    box-shadow: 0 16rpx 40rpx rgba(15, 23, 42, 0.16);
+    box-shadow: 0 20rpx 60rpx rgba(15, 23, 42, 0.16);
+    animation: records-dialog-enter 220ms ease-out;
+}
+
+.records-dialog-layer__icon-wrap,
+.records-feedback-layer__icon-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 80rpx;
+    height: 80rpx;
+    margin-bottom: 24rpx;
+    border-radius: 24rpx;
+    background: #fef2f2;
 }
 
 .records-dialog-layer__icon,
 .records-feedback-layer__icon {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 88rpx;
-    height: 88rpx;
-    margin: 0 auto 20rpx;
-    border-radius: 28rpx;
-    background: #fef2f2;
+    color: #ef4444;
     font-size: 40rpx;
 }
 
 .records-dialog-layer__confirm {
+    width: 100%;
     min-height: 88rpx;
-    margin: 28rpx 0 0;
+    margin: 40rpx 0 0;
+    padding: 28rpx;
     border-radius: 24rpx;
     background: #ef4444;
     color: #ffffff;
     font-size: calc(30rpx * var(--font-scale));
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .records-dialog-layer__confirm::after {
@@ -567,20 +597,54 @@ page {
 }
 
 .records-dialog-layer__cancel {
-    margin-top: 20rpx;
+    margin-top: 24rpx;
     color: #94a3b8;
-    font-size: calc(26rpx * var(--font-scale));
+    font-size: calc(28rpx * var(--font-scale));
 }
 
 .records-feedback-layer {
-    z-index: 50;
+    z-index: 9999;
 }
 
 .records-feedback-layer__card {
-    top: 50%;
-    transform: translateY(-50%);
-    padding: 48rpx 40rpx;
+    width: 400rpx;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24rpx;
+    padding: 48rpx;
     border-radius: 32rpx;
-    text-align: center;
-    box-shadow: 0 16rpx 40rpx rgba(15, 23, 42, 0.16);
+    box-shadow: 0 20rpx 60rpx rgba(15, 23, 42, 0.16);
+    animation: records-feedback-enter 220ms
+        cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.records-feedback-layer__title {
+    margin-top: 0;
+    font-size: calc(32rpx * var(--font-scale));
+}
+
+@keyframes records-dialog-enter {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+@keyframes records-feedback-enter {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
 }
