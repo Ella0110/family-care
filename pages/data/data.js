@@ -59,6 +59,22 @@ function findProfile(profileId) {
   return (store.getState().profiles || []).find((profile) => profile && profile._id === profileId) || null;
 }
 
+function buildProfilesSignature(profiles) {
+  return (Array.isArray(profiles) ? profiles : [])
+    .map((profile) => {
+      if (!profile) {
+        return '';
+      }
+
+      return [
+        profile._id || '',
+        profile.name || '',
+        profile.relation || '',
+      ].join(':');
+    })
+    .join('|');
+}
+
 function getThreshold(profile) {
   return (
     profile
@@ -416,6 +432,7 @@ Page({
     this.exportChartMeta = null;
     this.lastSeenProfileId = store.getState().currentProfileId || '';
     this.lastLoginReady = getLoginStatus().isLoginReady;
+    this.lastProfileMetaSignature = '';
 
     this.syncFontScale();
     this.initSystemInfo();
@@ -509,8 +526,7 @@ Page({
     const profile = currentProfileId ? findProfile(currentProfileId) : null;
     const relationship = currentProfileId ? getCurrentRelationship(state, currentProfileId) : null;
     const profileName = profile && profile.name ? profile.name : '';
-
-    this.setData({
+    const nextMeta = {
       profiles,
       currentProfileId,
       hasProfile: Boolean(profile),
@@ -519,7 +535,25 @@ Page({
       canWriteCurrentProfile: profile ? canWrite(state, currentProfileId) : false,
       isViewerMode: profile ? isViewer(state, currentProfileId) : false,
       relationshipRole: relationship ? relationship.role : '',
-    });
+    };
+    const nextSignature = [
+      nextMeta.currentProfileId,
+      nextMeta.hasProfile ? '1' : '0',
+      nextMeta.profileName,
+      nextMeta.profileTitle,
+      nextMeta.canWriteCurrentProfile ? '1' : '0',
+      nextMeta.isViewerMode ? '1' : '0',
+      nextMeta.relationshipRole,
+      buildProfilesSignature(profiles),
+    ].join('|');
+
+    if (nextSignature === this.lastProfileMetaSignature) {
+      return;
+    }
+
+    this.lastProfileMetaSignature = nextSignature;
+
+    this.setData(nextMeta);
   },
 
   setTabBarVisible(visible) {

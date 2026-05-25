@@ -40,6 +40,8 @@ Component({
 
   lifetimes: {
     attached() {
+      this.lastSelectedPath = "";
+      this.lastCanOpenRecord = null;
       this.syncFromStore();
       this.syncSelectedByCurrentPage();
       this.unsubscribe = store.subscribe(() => {
@@ -75,6 +77,11 @@ Component({
       const canOpenRecord = Boolean(
         currentProfileId && canWrite(state, currentProfileId),
       );
+      if (canOpenRecord === this.lastCanOpenRecord) {
+        return;
+      }
+
+      this.lastCanOpenRecord = canOpenRecord;
       this.setData({ canOpenRecord });
     },
 
@@ -84,6 +91,11 @@ Component({
       const selectedPath = currentPage && currentPage.route
         ? currentPage.route
         : "pages/data/data";
+      if (selectedPath === this.lastSelectedPath) {
+        return;
+      }
+
+      this.lastSelectedPath = selectedPath;
       this.setData({ selectedPath });
     },
 

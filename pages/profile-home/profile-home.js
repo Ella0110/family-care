@@ -92,6 +92,23 @@ function formatMeasuredAt(value) {
     return `${date.getMonth() + 1}月${date.getDate()}日 ${time}`;
 }
 
+function buildProfilesSignature(profiles) {
+    return (Array.isArray(profiles) ? profiles : [])
+        .map((profile) => {
+            if (!profile) {
+                return "";
+            }
+
+            return [
+                profile._id || "",
+                profile.name || "",
+                profile.relation || "",
+                profile.birthDate || "",
+            ].join(":");
+        })
+        .join("|");
+}
+
 function buildLatestRecordDisplay(record, profile) {
     if (!record) {
         return null;
@@ -244,10 +261,12 @@ Page({
 
     onLoad() {
         this.currentUserId = store.getState().user && store.getState().user._id;
+        this.requestId = 0;
         this.lastRefreshAt = 0;
         this.lastLoadedProfileId = "";
         this.lastSeenProfileId = store.getState().currentProfileId || "";
         this.lastLoginReady = getAppLoginStatus().isLoginReady;
+        this.lastProfileMetaSignature = "";
         this.memberCache = {};
         this.latestRecord = null;
         this.activeMedications = [];
@@ -345,8 +364,7 @@ Page({
             profile && profile.birthDate
                 ? `${String(profile.birthDate).slice(0, 4)} 年出生`
                 : "";
-
-        this.setData({
+        const nextMeta = {
             profiles,
             currentProfileId,
             hasProfile: Boolean(profile),
@@ -376,7 +394,31 @@ Page({
             activeRelationshipSubscribeAlerts: Boolean(
                 relationship ? relationship.subscribeAlerts : true,
             ),
-        });
+        };
+        const nextSignature = [
+            nextMeta.currentProfileId,
+            nextMeta.hasProfile ? "1" : "0",
+            nextMeta.profileTitle,
+            nextMeta.profileName,
+            nextMeta.profileInitial,
+            nextMeta.profileAgeText,
+            nextMeta.profileBirthYearText,
+            nextMeta.canWriteCurrentProfile ? "1" : "0",
+            nextMeta.canInviteCurrentProfile ? "1" : "0",
+            nextMeta.canManageCurrentProfile ? "1" : "0",
+            nextMeta.canEditCurrentProfile ? "1" : "0",
+            nextMeta.relationshipRole,
+            nextMeta.activeRelationshipId,
+            nextMeta.activeRelationshipSubscribeAlerts ? "1" : "0",
+            buildProfilesSignature(profiles),
+        ].join("|");
+
+        if (nextSignature === this.lastProfileMetaSignature) {
+            return;
+        }
+
+        this.lastProfileMetaSignature = nextSignature;
+        this.setData(nextMeta);
     },
 
     setTabBarVisible(visible) {
@@ -472,6 +514,9 @@ Page({
             return;
         }
 
+        this.requestId += 1;
+        const requestId = this.requestId;
+
         try {
             const [latestResult, medicationResult, members] = await Promise.all(
                 [
@@ -480,6 +525,10 @@ Page({
                     this.loadMembers(profileId),
                 ],
             );
+
+            if (requestId !== this.requestId) {
+                return;
+            }
 
             this.lastLoadedProfileId = profileId;
             this.lastRefreshAt = Date.now();
@@ -497,6 +546,10 @@ Page({
 
             this.applyViewModel(profile, medicationResult, members);
         } catch (error) {
+            if (requestId !== this.requestId) {
+                return;
+            }
+
             this.setData({
                 pageReady: true,
                 _lastProfileId: profileId,

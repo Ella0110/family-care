@@ -198,6 +198,13 @@ Page({
     this.refreshCompletionProgress();
   },
 
+  onUnload() {
+    if (this.navigateAfterSaveTimer) {
+      clearTimeout(this.navigateAfterSaveTimer);
+      this.navigateAfterSaveTimer = null;
+    }
+  },
+
   loadProfileForEdit(profileId) {
     const profile = findProfile(profileId);
 
@@ -523,7 +530,11 @@ Page({
           icon: 'success',
           duration: 800,
         });
-        setTimeout(() => {
+        if (this.navigateAfterSaveTimer) {
+          clearTimeout(this.navigateAfterSaveTimer);
+        }
+        this.navigateAfterSaveTimer = setTimeout(() => {
+          this.navigateAfterSaveTimer = null;
           goBackOrHome();
         }, 800);
         return;

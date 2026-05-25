@@ -225,9 +225,18 @@ App({
       return;
     }
 
+    this.lastPersistedCurrentProfileId = readCurrentProfileIdFromStorage();
+
     this.currentProfileUnsubscribe = store.subscribe((nextState) => {
-      if (nextState.currentProfileId) {
-        persistCurrentProfileIdToStorage(nextState.currentProfileId);
+      const nextProfileId = nextState.currentProfileId || null;
+      if (nextProfileId === this.lastPersistedCurrentProfileId) {
+        return;
+      }
+
+      this.lastPersistedCurrentProfileId = nextProfileId;
+
+      if (nextProfileId) {
+        persistCurrentProfileIdToStorage(nextProfileId);
         return;
       }
 

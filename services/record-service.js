@@ -133,6 +133,7 @@ async function getRecords(profileId, options = {}) {
  * @returns {Promise<{ records: Object[], hasMore: boolean }>}
  */
 async function fetchRecords(profileId, options = {}) {
+  const useProfileCache = !options.since && !options.until;
   const data = {
     profileId,
     type: 'bp',
@@ -150,9 +151,9 @@ async function fetchRecords(profileId, options = {}) {
   const records = sortRecordsDesc(Array.isArray(result.records) ? result.records : []);
 
   records.forEach((record) => setCachedRecord(record));
-  if ((options.limit || 200) === 1 && !options.since && !options.until) {
+  if ((options.limit || 200) === 1 && useProfileCache) {
     store.setCachedLatestRecord(profileId, records[0] || null);
-  } else {
+  } else if (useProfileCache) {
     store.setCachedRecords(profileId, records);
   }
 
@@ -184,8 +185,9 @@ async function fetchLatestRecord(profileId) {
  * @returns {Promise<{ records: Object[], hasMore: boolean }|null>}
  */
 async function loadRecords(profileId, options = {}, callbacks = {}) {
-  const cachedRecords = store.getCachedRecords(profileId);
-  const hasCache = store.hasCachedRecords(profileId);
+  const useProfileCache = !options.since && !options.until;
+  const cachedRecords = useProfileCache ? store.getCachedRecords(profileId) : null;
+  const hasCache = useProfileCache ? store.hasCachedRecords(profileId) : false;
   const cachedSignature = hasCache ? recordsSignature(cachedRecords) : '';
 
   if (hasCache && callbacks.onCacheHit) {

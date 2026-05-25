@@ -61,6 +61,7 @@ Page({
 
   onLoad(options = {}) {
     this.syncFontScale();
+    this.lastLoginStateSignature = '';
     this.syncLoginState();
     this.unsubscribeStore = store.subscribe(() => {
       this.syncLoginState();
@@ -103,11 +104,23 @@ Page({
     const isLoginFailed = Boolean(globalData.loginError);
     const isJoinReady = isLoginReady && !isLoginFailed && Boolean(state.user);
 
-    this.setData({
+    const nextState = {
       isLoginReady,
       isLoginFailed,
       isJoinReady,
-    });
+    };
+    const nextSignature = [
+      nextState.isLoginReady ? '1' : '0',
+      nextState.isLoginFailed ? '1' : '0',
+      nextState.isJoinReady ? '1' : '0',
+    ].join('|');
+
+    if (nextSignature === this.lastLoginStateSignature) {
+      return;
+    }
+
+    this.lastLoginStateSignature = nextSignature;
+    this.setData(nextState);
   },
 
   async loadInvitation(token) {
