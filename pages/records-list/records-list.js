@@ -155,6 +155,55 @@ function buildMonthPickerRanges(currentYear = new Date().getFullYear()) {
   return [years, months];
 }
 
+function buildMonthPickerState(records, selectedYear, selectedMonth) {
+  const fallbackDate = new Date();
+  const fallbackYear = fallbackDate.getFullYear();
+  const fallbackMonth = fallbackDate.getMonth() + 1;
+  const monthMap = new Map();
+
+  (records || []).forEach((record) => {
+    const measuredAt = toDate(record && record.measuredAt);
+    if (Number.isNaN(measuredAt.getTime())) {
+      return;
+    }
+
+    const year = measuredAt.getFullYear();
+    const month = measuredAt.getMonth() + 1;
+    if (!monthMap.has(year)) {
+      monthMap.set(year, new Set());
+    }
+    monthMap.get(year).add(month);
+  });
+
+  if (!monthMap.size) {
+    return {
+      ranges: buildMonthPickerRanges(fallbackYear),
+      value: [fallbackYear - MONTH_PICKER_START_YEAR, fallbackMonth - 1],
+      year: fallbackYear,
+      month: fallbackMonth,
+      label: formatMonthLabel(fallbackYear, fallbackMonth),
+    };
+  }
+
+  const years = Array.from(monthMap.keys()).sort((left, right) => left - right);
+  const normalizedYear = years.includes(selectedYear) ? selectedYear : years[years.length - 1];
+  const monthsInYear = Array.from(monthMap.get(normalizedYear) || []).sort((left, right) => left - right);
+  const normalizedMonth = monthsInYear.includes(selectedMonth)
+    ? selectedMonth
+    : monthsInYear[monthsInYear.length - 1];
+
+  return {
+    ranges: [
+      years.map((year) => `${year}年`),
+      Array.from({ length: 12 }, (_, index) => `${index + 1}月`),
+    ],
+    value: [years.indexOf(normalizedYear), normalizedMonth - 1],
+    year: normalizedYear,
+    month: normalizedMonth,
+    label: formatMonthLabel(normalizedYear, normalizedMonth),
+  };
+}
+
 function findProfile(profileId) {
   const state = store.getState();
   return (state.profiles || []).find((profile) => profile && profile._id === profileId) || null;
@@ -297,8 +346,10 @@ Page({
     this.feedbackTimer = null;
     this.rowTouchState = null;
     this.lastSwipeGesture = null;
+    this.lastSwipeMoveAt = 0;
     this.isClosingRecordPanel = false;
     this.pendingPanelRefresh = false;
+    this.rowPathMap = {};
 
     this.setData({
       profileId,
@@ -331,6 +382,10 @@ Page({
       clearTimeout(this.feedbackTimer);
       this.feedbackTimer = null;
     }
+
+    this.rowTouchState = null;
+    this.lastSwipeGesture = null;
+    this.lastSwipeMoveAt = 0;
   },
 
   syncFontScale() {
@@ -402,17 +457,57 @@ Page({
 
   syncGroups() {
     const groups = this.buildGroups(this.loadedRecords);
+    const monthPickerState = buildMonthPickerState(
+      this.loadedRecords,
+      this.data.selectedYear,
+      this.data.selectedMonth,
+    );
+
     this.monthAnchors = {};
-    groups.forEach((group) => {
+    this.rowPathMap = {};
+    groups.forEach((group, groupIndex) => {
       if (group.anchorId) {
         this.monthAnchors[group.monthKey] = group.anchorId;
       }
+
+      (group.records || []).forEach((record, recordIndex) => {
+        this.rowPathMap[record._id] = `groups[${groupIndex}].records[${recordIndex}].swipeOffsetText`;
+      });
     });
 
     this.setData({
       groups,
       hasRecords: this.loadedRecords.length > 0,
+      monthPickerRanges: monthPickerState.ranges,
+      monthPickerValue: monthPickerState.value,
+      selectedYear: monthPickerState.year,
+      selectedMonth: monthPickerState.month,
+      monthLabel: monthPickerState.label,
     });
+  },
+
+  applySwipePatch(entries, statePatch = {}, callback) {
+    const patch = Object.assign({}, statePatch);
+    let hasEntryPatch = false;
+
+    (entries || []).forEach(([recordId, offset]) => {
+      const path = this.rowPathMap[recordId];
+      if (!path) {
+        return;
+      }
+
+      patch[path] = `transform: translateX(${offset}rpx);`;
+      hasEntryPatch = true;
+    });
+
+    if (!hasEntryPatch && !Object.keys(statePatch).length) {
+      if (typeof callback === 'function') {
+        callback();
+      }
+      return;
+    }
+
+    this.setData(patch, callback);
   },
 
   async loadAllRecords() {
@@ -469,7 +564,9 @@ Page({
     const value = Array.isArray(event.detail && event.detail.value) ? event.detail.value : [0, 0];
     const yearIndex = Number(value[0]) || 0;
     const monthIndex = Number(value[1]) || 0;
-    const year = MONTH_PICKER_START_YEAR + yearIndex;
+    const yearOptions = Array.isArray(this.data.monthPickerRanges) ? this.data.monthPickerRanges[0] || [] : [];
+    const yearText = yearOptions[yearIndex] || '';
+    const year = parseInt(yearText, 10) || (MONTH_PICKER_START_YEAR + yearIndex);
     const month = monthIndex + 1;
 
     this.setData({
@@ -818,12 +915,21 @@ Page({
       return;
     }
 
-    this.setData({
+    const entries = [];
+    if (this.data.openDeleteRecordId) {
+      entries.push([this.data.openDeleteRecordId, 0]);
+    }
+    if (
+      this.data.activeSwipeRecordId
+      && this.data.activeSwipeRecordId !== this.data.openDeleteRecordId
+    ) {
+      entries.push([this.data.activeSwipeRecordId, 0]);
+    }
+
+    this.applySwipePatch(entries, {
       openDeleteRecordId: '',
       activeSwipeRecordId: '',
       swipeOffsetRpx: 0,
-    }, () => {
-      this.syncGroups();
     });
   },
 
@@ -839,10 +945,8 @@ Page({
     }
 
     if (this.data.openDeleteRecordId && this.data.openDeleteRecordId !== recordId) {
-      this.setData({
+      this.applySwipePatch([[this.data.openDeleteRecordId, 0]], {
         openDeleteRecordId: '',
-      }, () => {
-        this.syncGroups();
       });
     }
 
@@ -880,17 +984,21 @@ Page({
       return;
     }
 
+    const moveAt = Date.now();
+    if (moveAt - this.lastSwipeMoveAt < 16) {
+      return;
+    }
+    this.lastSwipeMoveAt = moveAt;
+
     let nextOffset = state.baseOffset + deltaX;
     nextOffset = Math.min(0, nextOffset);
     nextOffset = Math.max(-DELETE_ACTION_WIDTH_RPX, nextOffset);
 
     state.moved = true;
 
-    this.setData({
+    this.applySwipePatch([[recordId, nextOffset]], {
       activeSwipeRecordId: recordId,
       swipeOffsetRpx: nextOffset,
-    }, () => {
-      this.syncGroups();
     });
   },
 
@@ -919,9 +1027,9 @@ Page({
       openDeleteRecordId: shouldOpen ? state.recordId : '',
       activeSwipeRecordId: '',
       swipeOffsetRpx: 0,
-    }, () => {
-      this.syncGroups();
     });
+
+    this.applySwipePatch([[state.recordId, shouldOpen ? -DELETE_ACTION_WIDTH_RPX : 0]]);
 
     this.rowTouchState = null;
   },

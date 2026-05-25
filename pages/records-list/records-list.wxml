@@ -44,7 +44,7 @@
   <view wx:elif="{{errorText}}" class="records-state-card">
     <view class="records-state-card__title">暂时无法加载</view>
     <view class="records-state-card__text">{{errorText}}</view>
-    <button class="records-state-card__button" bindtap="loadCurrentMonthRecords">重试</button>
+    <button class="records-state-card__button" bindtap="loadAllRecords">重试</button>
   </view>
 
   <view wx:elif="{{!hasRecords}}" class="records-state-card">
