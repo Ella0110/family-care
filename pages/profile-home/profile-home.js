@@ -188,11 +188,14 @@ function buildMemberItems(members, currentUserId) {
             return {
                 relationshipId: relationship._id || "",
                 userId: user._id || "",
+                user,
+                relationship,
                 avatarUrl: user.avatarUrl || "",
                 avatarFallback: buildInvitationNicknameInitial(
                     user.nickname,
                     isSelf ? "我" : "家",
                 ),
+                nickname: user.nickname || "",
                 displayName,
                 roleLabel: MEMBER_ROLE_LABELS[role] || role,
                 role,
@@ -259,6 +262,8 @@ Page({
         emergencyText: "",
         memberItems: [],
         memberCount: 0,
+        showMemberPanel: false,
+        selectedMember: null,
         fontScaleLabel: getFontScaleLabel(DEFAULT_FONT_SCALE),
         selectedFontScale: DEFAULT_FONT_SCALE,
         fontScaleOptions: FONT_SCALE_OPTIONS.map((value) => ({
@@ -463,8 +468,14 @@ Page({
         )
             ? overrides.showProfileSwitcher
             : this.data.showProfileSwitcher;
+        const showMemberPanel = Object.prototype.hasOwnProperty.call(
+            overrides,
+            "showMemberPanel",
+        )
+            ? overrides.showMemberPanel
+            : this.data.showMemberPanel;
 
-        this.setTabBarVisible(!showProfileSwitcher);
+        this.setTabBarVisible(!(showProfileSwitcher || showMemberPanel));
     },
 
     enterPageLoading() {
@@ -517,6 +528,8 @@ Page({
                 emergencyText: "",
                 memberItems: [],
                 memberCount: 0,
+                showMemberPanel: false,
+                selectedMember: null,
             });
             return;
         }
@@ -590,6 +603,8 @@ Page({
                 emergencyText: "",
                 memberItems: [],
                 memberCount: 0,
+                showMemberPanel: false,
+                selectedMember: null,
             });
         }
     },
@@ -708,13 +723,88 @@ Page({
         });
     },
 
-    handleOpenMembers() {
+    handleMemberTap(event) {
         if (!this.data.currentProfileId) {
             return;
         }
 
-        wx.navigateTo({
-            url: `/pages/profile-members/profile-members?profileId=${this.data.currentProfileId}`,
+        const relationshipId =
+            event &&
+            event.currentTarget &&
+            event.currentTarget.dataset &&
+            event.currentTarget.dataset.relationshipId;
+        const member = (this.data.memberItems || []).find(
+            (item) => item.relationshipId === relationshipId,
+        );
+
+        if (!member) {
+            return;
+        }
+
+        this.setData({
+            selectedMember: member,
+            showMemberPanel: true,
+        });
+    },
+
+    handleMemberPanelClose() {
+        if (!this.data.showMemberPanel && !this.data.selectedMember) {
+            return;
+        }
+
+        this.setData({
+            showMemberPanel: false,
+            selectedMember: null,
+        });
+    },
+
+    handleMemberPanelVisibilityChange(event) {
+        this.syncTabBarVisibility({
+            showMemberPanel: Boolean(
+                event && event.detail && event.detail.visible,
+            ),
+        });
+    },
+
+    handleMemberChanged(event) {
+        const detail = (event && event.detail) || {};
+        const currentProfileId = this.data.currentProfileId;
+        const state = store.getState();
+        const selfMembershipChanged = Boolean(
+            detail &&
+                detail.affectedUserId &&
+                this.currentUserId &&
+                detail.affectedUserId === this.currentUserId,
+        );
+
+        if (detail.member) {
+            this.setData({
+                selectedMember: detail.member,
+            });
+        }
+
+        if (selfMembershipChanged) {
+            const remainingProfiles = Array.isArray(state.profiles)
+                ? state.profiles.filter(Boolean)
+                : [];
+            const nextProfileId = remainingProfiles.length
+                ? remainingProfiles[0]._id
+                : null;
+            store.setState({
+                currentProfileId: nextProfileId,
+            });
+        }
+
+        if (currentProfileId) {
+            delete this.memberCache[currentProfileId];
+        }
+
+        this.lastRefreshAt = 0;
+        this.lastLoadedProfileId = "";
+        this.syncProfileMeta();
+        this.loadPageData({
+            force: true,
+            resetReady: false,
         });
     },
 

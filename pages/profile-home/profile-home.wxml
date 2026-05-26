@@ -74,7 +74,8 @@
               wx:for="{{memberItems}}"
               wx:key="relationshipId"
               class="profile-home__member"
-              bindtap="handleOpenMembers"
+              data-relationship-id="{{item.relationshipId}}"
+              bindtap="handleMemberTap"
             >
               <view wx:if="{{item.avatarUrl}}" class="profile-home__member-avatar profile-home__member-avatar--image">
                 <image class="profile-home__member-avatar-image" src="{{item.avatarUrl}}" mode="aspectFill" />
@@ -177,5 +178,15 @@
     bind:select="handleSelectProfile"
     bind:close="handleCloseProfileSwitcher"
     bind:visibilitychange="handleProfileSwitcherVisibilityChange"
+  />
+
+  <member-panel
+    show="{{showMemberPanel}}"
+    member="{{selectedMember}}"
+    current-user-role="{{relationshipRole}}"
+    profile-id="{{currentProfileId}}"
+    bind:close="handleMemberPanelClose"
+    bind:visibilitychange="handleMemberPanelVisibilityChange"
+    bind:memberChanged="handleMemberChanged"
   />
 </view>
