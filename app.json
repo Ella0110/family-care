@@ -2,7 +2,6 @@
   "pages": [
     "pages/data/data",
     "pages/profile-home/profile-home",
-    "pages/record/record",
     "pages/records-list/records-list",
     "pages/import-records/import-records",
     "pages/profile-edit/profile-edit",

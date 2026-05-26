@@ -73,12 +73,12 @@ assert.match(read('pages/data/data.wxml'), /数据分析/, 'data page should ren
 assert.match(read('pages/data/data.wxml'), /wx:if="\{\{pageReady\}\}"/, 'data page should gate content behind pageReady');
 assert.match(read('pages/data/data.wxml'), /wx:else/, 'data page should render a loading placeholder when pageReady is false');
 
-assert.match(read('components/profile-switcher/profile-switcher.js'), /triggerEvent\('select'/, 'profile-switcher should emit select event');
-assert.match(read('components/profile-switcher/profile-switcher.js'), /triggerEvent\('close'/, 'profile-switcher should emit close event');
-assert.match(read('components/profile-switcher/profile-switcher.js'), /triggerEvent\('visibilitychange'/, 'profile-switcher should emit visibility change event');
-assert.match(read('components/record-panel/record-panel.js'), /eventName:\s*'success'/, 'record-panel should emit success event after feedback toast');
-assert.match(read('components/record-panel/record-panel.js'), /eventName:\s*'delete'/, 'record-panel should emit delete event after feedback toast');
-assert.match(read('components/record-panel/record-panel.js'), /triggerEvent\('visibilitychange'/, 'record-panel should emit visibility change event');
+assert.match(read('components/profile-switcher/profile-switcher.js'), /triggerEvent\(["']select["']/, 'profile-switcher should emit select event');
+assert.match(read('components/profile-switcher/profile-switcher.js'), /triggerEvent\(["']close["']/, 'profile-switcher should emit close event');
+assert.match(read('components/profile-switcher/profile-switcher.js'), /triggerEvent\(["']visibilitychange["']/, 'profile-switcher should emit visibility change event');
+assert.match(read('components/record-panel/record-panel.js'), /eventName:\s*["']success["']/, 'record-panel should emit success event after feedback toast');
+assert.match(read('components/record-panel/record-panel.js'), /eventName:\s*["']delete["']/, 'record-panel should emit delete event after feedback toast');
+assert.match(read('components/record-panel/record-panel.js'), /triggerEvent\(["']visibilitychange["']/, 'record-panel should emit visibility change event');
 assert.doesNotMatch(read('components/record-panel/record-panel.js'), /wx\.showModal/, 'record-panel delete flow should no longer use wx.showModal');
 assert.match(read('components/record-panel/record-panel.wxml'), /record-panel__feedback-card/, 'record-panel should render custom success toast');
 assert.match(read('components/record-panel/record-panel.wxml'), /record-panel__dialog/, 'record-panel should render custom delete dialog');
@@ -94,9 +94,7 @@ assert.match(read('app.js'), /CURRENT_PROFILE_STORAGE_KEY/, 'app.js should defin
 assert.match(read('app.js'), /setStorageSync\(CURRENT_PROFILE_STORAGE_KEY/, 'app.js should persist currentProfileId');
 assert.match(read('app.js'), /getStorageSync\(CURRENT_PROFILE_STORAGE_KEY/, 'app.js should restore currentProfileId');
 
-assert.match(read('pages/record/record.js'), /require\('\.\.\/\.\.\/utils\/record-editor'\)/, 'record page should reuse shared record-editor helper');
 assert.doesNotMatch(read('utils/record-editor.js'), /requestSubscribeMessage/, 'record-editor should not request subscribe during save');
-assert.doesNotMatch(read('pages/record/record.js'), /requestAlertSubscription/, 'record page should not request subscribe during save');
 assert.match(read('pages/profile-edit/profile-edit.js'), /wx\.switchTab\(\s*\{\s*url: '\/pages\/profile-home\/profile-home'/, 'profile save should switch to profile-home when no back stack exists');
 assert.match(read('pages/profile-edit/profile-edit.js'), /wx\.setStorageSync\('currentProfileId', [^)]+\)/, 'profile create should persist currentProfileId before switching tabs');
 assert.match(
