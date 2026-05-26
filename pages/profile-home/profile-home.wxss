@@ -395,7 +395,7 @@
   padding-top: 6rpx;
 }
 
-.profile-home__setting-row--link {
+.profile-home__setting-row--font {
   padding-top: 22rpx;
   border-top: 1rpx solid #e5e7eb;
 }
@@ -420,6 +420,37 @@
 .profile-home__setting-link {
   color: var(--color-text-secondary);
   font-size: var(--font-sm);
+}
+
+.profile-home__font-scale-control {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  padding: 4rpx;
+  background: #f1f5f9;
+  border-radius: 16rpx;
+  flex-shrink: 0;
+}
+
+.profile-home__font-scale-pill {
+  min-width: 84rpx;
+  min-height: 60rpx;
+  padding: 10rpx 24rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  background: transparent;
+  font-size: 24rpx;
+  font-weight: 600;
+  box-sizing: border-box;
+}
+
+.profile-home__font-scale-pill--active {
+  background: #3182f7;
+  color: #ffffff;
+  box-shadow: 0 2rpx 8rpx rgba(49, 130, 247, 0.2);
 }
 
 .profile-home__danger {

@@ -1,54 +1,275 @@
-<view class="page page-root" style="--font-scale: {{fontScale}};">
-  <view class="settings-header">
-    <view class="settings-header__back" bindtap="handleBack">返回</view>
-    <view class="settings-header__title">设置</view>
-  </view>
-
-  <view class="card settings-section">
-    <view class="settings-section__title">我的资料</view>
-    <view class="settings-profile">
-      <view wx:if="{{profileSummary.avatarUrl}}" class="settings-profile__avatar settings-profile__avatar--image">
-        <image class="settings-profile__avatar-image" src="{{profileSummary.avatarUrl}}" mode="aspectFill" />
-      </view>
-      <view wx:else class="settings-profile__avatar">{{profileSummary.avatarFallback}}</view>
-      <view class="settings-profile__body">
-        <view class="settings-profile__row">
-          <view class="settings-profile__label">昵称：{{profileSummary.nickname}}</view>
-          <view class="settings-profile__link" bindtap="handleOpenUserProfileEdit">修改</view>
+<view class="page page-root" style="{{fontScaleStyle}}">
+  <view class="settings-group settings-group--first">
+    <view class="settings-group__title">我的资料</view>
+    <view class="settings-card">
+      <view class="settings-profile">
+        <view wx:if="{{profileSummary.avatarUrl}}" class="settings-profile__avatar settings-profile__avatar--image">
+          <image class="settings-profile__avatar-image" src="{{profileSummary.avatarUrl}}" mode="aspectFill" />
         </view>
-        <view class="settings-profile__hint">邀请家人时会显示这个昵称</view>
+        <view wx:else class="settings-profile__avatar">{{profileSummary.avatarFallback}}</view>
+
+        <view class="settings-profile__body">
+          <view class="settings-profile__row">
+            <view class="settings-profile__headline">昵称：{{profileSummary.nickname}}</view>
+            <view class="settings-profile__link" bindtap="handleOpenUserProfileEdit">修改</view>
+          </view>
+          <view class="settings-profile__hint">邀请家人时会显示这个昵称</view>
+        </view>
       </view>
     </view>
   </view>
 
-  <view class="card settings-section">
-    <view class="settings-section__title">显示偏好</view>
-    <view class="settings-field__label">字号大小</view>
-    <view class="font-scale-control">
+  <view class="settings-group">
+    <view class="settings-group__title">提醒与通知</view>
+    <view class="settings-card">
+      <view class="settings-notify-row">
+        <view class="settings-notify-row__body">
+          <view class="settings-notify-row__title">异常血压通知</view>
+          <view class="settings-notify-row__desc">超过阈值时通知已选择成员</view>
+          <view class="settings-notify-row__meta">配置已保存，微信通知功能即将上线</view>
+        </view>
+        <switch
+          color="#3182F7"
+          checked="{{currentSubscribeAlerts}}"
+          disabled="{{!currentRelationshipId}}"
+          bindchange="handleToggleCurrentAlert"
+        />
+      </view>
+
+      <view wx:if="{{isOwnerProfile}}" class="settings-card__divider"></view>
+
       <view
-        wx:for="{{fontScaleOptions}}"
-        wx:key="value"
-        class="font-scale-control__item {{selectedFontScale === item.value ? 'font-scale-control__item--active' : ''}}"
-        data-scale="{{item.value}}"
-        bindtap="handleSelectScale"
+        wx:if="{{isOwnerProfile}}"
+        class="settings-link-row"
+        bindtap="handleOpenMemberSheet"
       >
-        {{item.label}}
+        <view class="settings-link-row__body">
+          <view class="settings-link-row__title">通知对象</view>
+          <view class="settings-link-row__desc">血压异常时通知谁</view>
+        </view>
+        <view class="settings-link-row__side">
+          <view class="settings-link-row__value">{{notifySubscriberCount}}人</view>
+          <view class="settings-link-row__arrow">></view>
+        </view>
       </view>
-    </view>
-    <view class="settings-field__hint">当前选中：{{selectedLabel}}</view>
 
-    <view class="settings-preview">
-      <view class="settings-preview__label">预览：</view>
-      <view class="settings-preview__card">
-        <view class="settings-preview__value">示例血压：158 / 88</view>
-        <view class="settings-preview__meta">今天 15:30 · 偏高</view>
+      <view wx:if="{{hasProfile}}" class="settings-card__divider"></view>
+
+      <view wx:if="{{hasProfile}}" class="settings-stepper-block settings-stepper-block--split">
+        <view class="settings-stepper-block__title">高压超过多少提醒</view>
+        <view class="settings-stepper-block__row">
+          <view class="settings-stepper-block__label">收缩压（mmHg）</view>
+          <view class="settings-stepper">
+            <view
+              class="settings-stepper__button {{thresholdSystolic <= thresholdSystolicMin ? 'settings-stepper__button--disabled' : ''}}"
+              data-field="systolic"
+              data-delta="-5"
+              bindtap="handleAdjustThreshold"
+            >−</view>
+            <view class="settings-stepper__value">{{thresholdSystolic}}</view>
+            <view
+              class="settings-stepper__button {{thresholdSystolic >= thresholdSystolicMax ? 'settings-stepper__button--disabled' : ''}}"
+              data-field="systolic"
+              data-delta="5"
+              bindtap="handleAdjustThreshold"
+            >+</view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{hasProfile}}" class="settings-card__divider"></view>
+
+      <view wx:if="{{hasProfile}}" class="settings-stepper-block settings-stepper-block--split">
+        <view class="settings-stepper-block__title">低压超过多少提醒</view>
+        <view class="settings-stepper-block__row">
+          <view class="settings-stepper-block__label">舒张压（mmHg）</view>
+          <view class="settings-stepper">
+            <view
+              class="settings-stepper__button {{thresholdDiastolic <= thresholdDiastolicMin ? 'settings-stepper__button--disabled' : ''}}"
+              data-field="diastolic"
+              data-delta="-5"
+              bindtap="handleAdjustThreshold"
+            >−</view>
+            <view class="settings-stepper__value">{{thresholdDiastolic}}</view>
+            <view
+              class="settings-stepper__button {{thresholdDiastolic >= thresholdDiastolicMax ? 'settings-stepper__button--disabled' : ''}}"
+              data-field="diastolic"
+              data-delta="5"
+              bindtap="handleAdjustThreshold"
+            >+</view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{!hasProfile}}" class="settings-empty-hint">当前暂无档案，创建档案后可配置提醒与通知。</view>
+    </view>
+  </view>
+
+  <view class="settings-group">
+    <view class="settings-group__title">血压参考线（mmHg）</view>
+    <view class="settings-card">
+      <view wx:if="{{hasProfile}}" class="settings-reference-grid">
+        <view class="settings-reference-grid__column">
+          <view class="settings-reference-grid__label">高压</view>
+          <view class="settings-stepper settings-stepper--stacked">
+            <view
+              class="settings-stepper__button {{referenceSystolicElevated <= referenceSystolicMin ? 'settings-stepper__button--disabled' : ''}}"
+              data-field="systolicElevated"
+              data-delta="-5"
+              bindtap="handleAdjustBloodPressureReference"
+            >−</view>
+            <view class="settings-stepper__value">{{referenceSystolicElevated}}</view>
+            <view
+              class="settings-stepper__button {{referenceSystolicElevated >= referenceSystolicMax ? 'settings-stepper__button--disabled' : ''}}"
+              data-field="systolicElevated"
+              data-delta="5"
+              bindtap="handleAdjustBloodPressureReference"
+            >+</view>
+          </view>
+        </view>
+
+        <view class="settings-reference-grid__column">
+          <view class="settings-reference-grid__label">低压</view>
+          <view class="settings-stepper settings-stepper--stacked">
+            <view
+              class="settings-stepper__button {{referenceDiastolicElevated <= referenceDiastolicMin ? 'settings-stepper__button--disabled' : ''}}"
+              data-field="diastolicElevated"
+              data-delta="-5"
+              bindtap="handleAdjustBloodPressureReference"
+            >−</view>
+            <view class="settings-stepper__value">{{referenceDiastolicElevated}}</view>
+            <view
+              class="settings-stepper__button {{referenceDiastolicElevated >= referenceDiastolicMax ? 'settings-stepper__button--disabled' : ''}}"
+              data-field="diastolicElevated"
+              data-delta="5"
+              bindtap="handleAdjustBloodPressureReference"
+            >+</view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{!hasProfile}}" class="settings-empty-hint">当前暂无档案，创建档案后可配置血压参考线。</view>
+    </view>
+  </view>
+
+  <view class="settings-group">
+    <view class="settings-group__title">心率参考线（次/分）</view>
+    <view class="settings-card">
+      <view wx:if="{{hasProfile}}" class="settings-reference-grid">
+        <view class="settings-reference-grid__column">
+          <view class="settings-reference-grid__label">下限</view>
+          <view class="settings-stepper settings-stepper--stacked">
+            <view
+              class="settings-stepper__button {{hrReferenceLow <= hrLowMin ? 'settings-stepper__button--disabled' : ''}}"
+              data-field="low"
+              data-delta="-5"
+              bindtap="handleAdjustHeartRateReference"
+            >−</view>
+            <view class="settings-stepper__value">{{hrReferenceLow}}</view>
+            <view
+              class="settings-stepper__button {{hrReferenceLow >= hrLowMax ? 'settings-stepper__button--disabled' : ''}}"
+              data-field="low"
+              data-delta="5"
+              bindtap="handleAdjustHeartRateReference"
+            >+</view>
+          </view>
+        </view>
+
+        <view class="settings-reference-grid__column">
+          <view class="settings-reference-grid__label">上限</view>
+          <view class="settings-stepper settings-stepper--stacked">
+            <view
+              class="settings-stepper__button {{hrReferenceHigh <= hrHighMin ? 'settings-stepper__button--disabled' : ''}}"
+              data-field="high"
+              data-delta="-5"
+              bindtap="handleAdjustHeartRateReference"
+            >−</view>
+            <view class="settings-stepper__value">{{hrReferenceHigh}}</view>
+            <view
+              class="settings-stepper__button {{hrReferenceHigh >= hrHighMax ? 'settings-stepper__button--disabled' : ''}}"
+              data-field="high"
+              data-delta="5"
+              bindtap="handleAdjustHeartRateReference"
+            >+</view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{!hasProfile}}" class="settings-empty-hint">当前暂无档案，创建档案后可配置心率参考线。</view>
+    </view>
+  </view>
+
+  <view class="settings-group">
+    <view class="settings-group__title">显示偏好</view>
+    <view class="settings-card">
+      <view class="settings-font-row">
+        <view class="settings-font-row__title">字体大小</view>
+        <view class="font-scale-control">
+          <view
+            wx:for="{{fontScaleOptions}}"
+            wx:key="value"
+            class="font-scale-control__item {{selectedFontScale === item.value ? 'font-scale-control__item--active' : ''}}"
+            data-scale="{{item.value}}"
+            bindtap="handleSelectScale"
+          >
+            {{item.label}}
+          </view>
+        </view>
       </view>
     </view>
   </view>
 
-  <view class="card settings-section">
-    <view class="settings-section__title">关于</view>
-    <view class="settings-about__name">来自儿女的关心</view>
-    <view class="settings-about__version">Version 1.0.0 (Build 2026.0418)</view>
+  <view class="settings-group settings-group--last">
+    <view class="settings-group__title">关于</view>
+    <view class="settings-card">
+      <view class="settings-about__name">来自儿女的关心</view>
+      <view class="settings-about__version">Version 1.0.0 (Build 2026.0418)</view>
+    </view>
+  </view>
+
+  <view
+    wx:if="{{isMemberSheetVisible}}"
+    class="settings-sheet-mask"
+    bindtap="handleCloseMemberSheet"
+  ></view>
+  <view wx:if="{{isMemberSheetVisible}}" class="settings-sheet">
+    <view class="settings-sheet__handle"></view>
+    <view class="settings-sheet__header">
+      <view class="settings-sheet__title">通知对象</view>
+      <view class="settings-sheet__close" bindtap="handleCloseMemberSheet">关闭</view>
+    </view>
+
+    <view wx:if="{{isMemberSheetLoading}}" class="settings-sheet__state">加载中...</view>
+    <view wx:elif="{{memberSheetErrorText}}" class="settings-sheet__state settings-sheet__state--error">
+      <view>{{memberSheetErrorText}}</view>
+      <view class="settings-sheet__retry" bindtap="handleRetryLoadMembers">重试</view>
+    </view>
+    <view wx:else class="settings-sheet__list">
+      <view
+        wx:for="{{memberSheetItems}}"
+        wx:key="relationshipId"
+        class="settings-sheet__item"
+      >
+        <view class="settings-sheet__member">
+          <view wx:if="{{item.avatarUrl}}" class="settings-sheet__avatar settings-sheet__avatar--image">
+            <image class="settings-sheet__avatar-image" src="{{item.avatarUrl}}" mode="aspectFill" />
+          </view>
+          <view wx:else class="settings-sheet__avatar">{{item.avatarFallback}}</view>
+
+          <view class="settings-sheet__member-body">
+            <view class="settings-sheet__member-name">{{item.isSelf ? '我' : item.nickname}}</view>
+            <view class="settings-sheet__member-role">{{item.role === 'owner' ? '管理员' : item.role === 'collaborator' ? '共同记录' : '仅查看'}}</view>
+          </view>
+        </view>
+
+        <switch
+          color="#3182F7"
+          checked="{{item.subscribeAlerts}}"
+          disabled="{{item.updating}}"
+          data-relationship-id="{{item.relationshipId}}"
+          bindchange="handleToggleMemberAlert"
+        />
+      </view>
+    </view>
   </view>
 </view>

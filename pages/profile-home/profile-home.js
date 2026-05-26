@@ -1,4 +1,5 @@
 const { store } = require("../../store/index");
+const userService = require("../../services/user-service");
 const recordService = require("../../services/record-service");
 const medicationService = require("../../services/medication-service");
 const memberService = require("../../services/member-service");
@@ -10,6 +11,9 @@ const {
 } = require("../../utils/bp-status");
 const {
     DEFAULT_FONT_SCALE,
+    FONT_SCALE_OPTIONS,
+    FONT_SCALE_LABELS,
+    isValidFontScale,
     normalizeFontScale,
     getFontScaleLabel,
 } = require("../../utils/font-scale");
@@ -256,12 +260,18 @@ Page({
         memberItems: [],
         memberCount: 0,
         fontScaleLabel: getFontScaleLabel(DEFAULT_FONT_SCALE),
+        selectedFontScale: DEFAULT_FONT_SCALE,
+        fontScaleOptions: FONT_SCALE_OPTIONS.map((value) => ({
+            value,
+            label: FONT_SCALE_LABELS[value],
+        })),
         isDeletingProfile: false,
     },
 
     onLoad() {
         this.currentUserId = store.getState().user && store.getState().user._id;
         this.requestId = 0;
+        this.fontScaleRequestId = 0;
         this.lastRefreshAt = 0;
         this.lastLoadedProfileId = "";
         this.lastSeenProfileId = store.getState().currentProfileId || "";
@@ -338,6 +348,23 @@ Page({
         this.setData({
             fontScale,
             fontScaleLabel: getFontScaleLabel(fontScale),
+            selectedFontScale: fontScale,
+        });
+    },
+
+    applyScaleLocally(fontScale) {
+        const app = getApp();
+        const nextScale = normalizeFontScale(fontScale);
+
+        app.applyFontScale(nextScale, {
+            persist: true,
+            syncStoreUser: true,
+        });
+
+        this.setData({
+            fontScale: nextScale,
+            fontScaleLabel: getFontScaleLabel(nextScale),
+            selectedFontScale: nextScale,
         });
     },
 
@@ -742,10 +769,44 @@ Page({
         wx.navigateTo({ url });
     },
 
-    handleOpenFontSettings() {
-        wx.navigateTo({
-            url: "/pages/user-settings/user-settings",
-        });
+    async handleSelectFontScale(event) {
+        const fontScale = Number(event.currentTarget.dataset.scale);
+        if (!isValidFontScale(fontScale)) {
+            return;
+        }
+
+        if (normalizeFontScale(this.data.selectedFontScale) === fontScale) {
+            return;
+        }
+
+        this.fontScaleRequestId += 1;
+        const requestId = this.fontScaleRequestId;
+        this.applyScaleLocally(fontScale);
+
+        try {
+            const result = await userService.updateSettings({ fontScale });
+            if (requestId !== this.fontScaleRequestId) {
+                return;
+            }
+
+            store.setState({
+                user: result.user,
+            });
+            this.applyScaleLocally(
+                result.user &&
+                    result.user.settings &&
+                    result.user.settings.fontScale,
+            );
+        } catch (error) {
+            if (requestId !== this.fontScaleRequestId) {
+                return;
+            }
+
+            wx.showToast({
+                title: getErrorMessage(error),
+                icon: "none",
+            });
+        }
     },
 
     async handleToggleSubscribeAlerts(event) {

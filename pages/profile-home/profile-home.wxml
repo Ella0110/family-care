@@ -135,11 +135,21 @@
           />
         </view>
 
-        <view class="profile-home__setting-row profile-home__setting-row--link" bindtap="handleOpenFontSettings">
+        <view class="profile-home__setting-row profile-home__setting-row--font">
           <view class="profile-home__setting-main">
             <view class="profile-home__setting-title">字体大小</view>
           </view>
-          <view class="profile-home__setting-link">{{fontScaleLabel}} ></view>
+          <view class="profile-home__font-scale-control">
+            <view
+              wx:for="{{fontScaleOptions}}"
+              wx:key="value"
+              class="profile-home__font-scale-pill {{selectedFontScale === item.value ? 'profile-home__font-scale-pill--active' : ''}}"
+              data-scale="{{item.value}}"
+              bindtap="handleSelectFontScale"
+            >
+              {{item.label}}
+            </view>
+          </view>
         </view>
       </view>
 
