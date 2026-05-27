@@ -1,5 +1,20 @@
 const { store } = require('../store/index');
 
+const CURRENT_PROFILE_STORAGE_KEY = 'currentProfileId';
+
+function persistCurrentProfileId(profileId) {
+  if (typeof wx === 'undefined') {
+    return;
+  }
+
+  if (profileId) {
+    wx.setStorageSync(CURRENT_PROFILE_STORAGE_KEY, profileId);
+    return;
+  }
+
+  wx.removeStorageSync(CURRENT_PROFILE_STORAGE_KEY);
+}
+
 function findProfileById(profileId) {
   return (store.getState().profiles || []).find((profile) => profile && profile._id === profileId) || null;
 }
@@ -16,11 +31,15 @@ function removeProfileFromStore(profileId) {
   );
   const nextCurrentProfileId = nextProfiles.length ? nextProfiles[0]._id : null;
 
-  return store.setState({
+  const nextState = store.setState({
     profiles: nextProfiles,
     relationships: nextRelationships,
     currentProfileId: nextCurrentProfileId,
   });
+
+  persistCurrentProfileId(nextCurrentProfileId);
+
+  return nextState;
 }
 
 module.exports = {

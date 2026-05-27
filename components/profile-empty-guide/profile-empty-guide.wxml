@@ -1,0 +1,13 @@
+<view class="profile-empty-guide">
+  <view class="profile-empty-guide__card">
+    <view class="profile-empty-guide__title">还没有健康档案</view>
+    <view class="profile-empty-guide__subtitle">为家人创建一个健康档案，开始记录血压</view>
+    <button
+      class="profile-empty-guide__button"
+      hover-class="profile-empty-guide__button--hover"
+      bindtap="handleCreate"
+    >
+      创建档案
+    </button>
+  </view>
+</view>

@@ -40,13 +40,13 @@ Component({
 
   lifetimes: {
     attached() {
-      this.lastSelectedPath = "";
       this.lastCanOpenRecord = null;
+      this._switching = false;
+      this._switchResetTimer = null;
+      this._pendingSelectedPath = "";
       this.syncFromStore();
-      this.syncSelectedByCurrentPage();
       this.unsubscribe = store.subscribe(() => {
         this.syncFromStore();
-        this.syncSelectedByCurrentPage();
       });
     },
     detached() {
@@ -54,17 +54,58 @@ Component({
         this.unsubscribe();
         this.unsubscribe = null;
       }
+      if (this._switchResetTimer) {
+        clearTimeout(this._switchResetTimer);
+        this._switchResetTimer = null;
+      }
+      this._switching = false;
+      this._pendingSelectedPath = "";
     },
   },
 
   pageLifetimes: {
     show() {
       this.syncFromStore();
-      this.syncSelectedByCurrentPage();
+    },
+  },
+
+  observers: {
+    selectedPath(nextSelectedPath) {
+      if (
+        this._pendingSelectedPath
+        && this._pendingSelectedPath === nextSelectedPath
+      ) {
+        this.releaseSwitchLock();
+      }
     },
   },
 
   methods: {
+    acquireSwitchLock(selectedPath = "") {
+      if (this._switching) {
+        return false;
+      }
+
+      this._switching = true;
+      this._pendingSelectedPath = selectedPath || "";
+      if (this._switchResetTimer) {
+        clearTimeout(this._switchResetTimer);
+      }
+      this._switchResetTimer = setTimeout(() => {
+        this.releaseSwitchLock();
+      }, 600);
+      return true;
+    },
+
+    releaseSwitchLock() {
+      this._switching = false;
+      this._pendingSelectedPath = "";
+      if (this._switchResetTimer) {
+        clearTimeout(this._switchResetTimer);
+        this._switchResetTimer = null;
+      }
+    },
+
     setVisible(visible) {
       this.setData({
         show: visible !== false,
@@ -85,30 +126,34 @@ Component({
       this.setData({ canOpenRecord });
     },
 
-    syncSelectedByCurrentPage() {
+    getCurrentRoute() {
       const pages = getCurrentPages();
       const currentPage = pages[pages.length - 1];
-      const selectedPath = currentPage && currentPage.route
+      return currentPage && currentPage.route
         ? currentPage.route
-        : "pages/data/data";
-      if (selectedPath === this.lastSelectedPath) {
-        return;
-      }
-
-      this.lastSelectedPath = selectedPath;
-      this.setData({ selectedPath });
+        : "";
     },
 
     handleSwitchTab(event) {
-      const pagePath = event.currentTarget.dataset.path;
-      if (!pagePath || pagePath === this.data.selectedPath) {
+      if (this._switching) {
         return;
       }
-      wx.switchTab({ url: `/${pagePath}` });
+
+      const pagePath = event.currentTarget.dataset.path;
+      const currentRoute = this.getCurrentRoute();
+      if (!pagePath || pagePath === currentRoute || !this.acquireSwitchLock(pagePath)) {
+        return;
+      }
+      wx.switchTab({
+        url: `/${pagePath}`,
+        fail: () => {
+          this.releaseSwitchLock();
+        },
+      });
     },
 
     handleOpenRecordPanel() {
-      if (!this.data.canOpenRecord) {
+      if (!this.data.canOpenRecord || this._switching) {
         return;
       }
 
@@ -131,7 +176,16 @@ Component({
         app.globalData.openRecordPanelOnDataTab = true;
       }
 
-      wx.switchTab({ url: "/pages/data/data" });
+      if (!this.acquireSwitchLock("pages/data/data")) {
+        return;
+      }
+
+      wx.switchTab({
+        url: "/pages/data/data",
+        fail: () => {
+          this.releaseSwitchLock();
+        },
+      });
     },
   },
 });

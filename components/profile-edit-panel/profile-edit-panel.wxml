@@ -1,0 +1,85 @@
+<view wx:if="{{show}}" class="profile-edit-panel">
+  <view class="profile-edit-panel__mask" bindtap="handleMaskTap"></view>
+
+  <view class="profile-edit-panel__sheet" catchtap="noop">
+    <view class="profile-edit-panel__grabber"></view>
+
+    <view class="profile-edit-panel__header">
+      <view class="profile-edit-panel__title">编辑档案</view>
+      <view class="profile-edit-panel__close" bindtap="handleCloseTap">×</view>
+    </view>
+
+    <view class="profile-edit-panel__content">
+      <view class="profile-edit-panel__field">
+        <view class="profile-edit-panel__label">姓名</view>
+        <input
+          class="profile-edit-panel__input"
+          maxlength="20"
+          placeholder="请输入姓名"
+          value="{{form.name}}"
+          bindinput="onNameInput"
+        />
+      </view>
+
+      <view class="profile-edit-panel__field">
+        <view class="profile-edit-panel__label">性别</view>
+        <view class="profile-edit-panel__gender-row">
+          <view
+            wx:for="{{genderOptions}}"
+            wx:key="value"
+            class="profile-edit-panel__gender-option {{form.gender === item.value ? 'is-active' : ''}}"
+            data-value="{{item.value}}"
+            bindtap="onGenderTap"
+          >
+            {{item.label}}
+          </view>
+        </view>
+      </view>
+
+      <view class="profile-edit-panel__field">
+        <view class="profile-edit-panel__label">出生日期</view>
+        <picker mode="date" value="{{form.birthDate}}" start="1900-01-01" end="2099-12-31" bindchange="onBirthDateChange">
+          <view class="profile-edit-panel__picker {{form.birthDate ? 'is-filled' : ''}}">
+            {{form.birthDate || '请选择出生日期'}}
+          </view>
+        </picker>
+      </view>
+
+      <view class="profile-edit-panel__field">
+        <view class="profile-edit-panel__label">紧急联系人姓名</view>
+        <input
+          class="profile-edit-panel__input"
+          maxlength="20"
+          placeholder="请输入联系人姓名"
+          value="{{form.emergencyContactName}}"
+          bindinput="onEmergencyContactNameInput"
+        />
+      </view>
+
+      <view class="profile-edit-panel__field">
+        <view class="profile-edit-panel__label">紧急联系人电话</view>
+        <input
+          class="profile-edit-panel__input"
+          type="number"
+          maxlength="11"
+          placeholder="请输入手机号"
+          value="{{form.emergencyContactPhone}}"
+          bindinput="onEmergencyContactPhoneInput"
+        />
+      </view>
+
+      <view wx:if="{{errorText}}" class="profile-edit-panel__error">{{errorText}}</view>
+
+      <view class="profile-edit-panel__footer">
+      <button
+        class="profile-edit-panel__save"
+        bindtap="handleSave"
+        loading="{{isSaving}}"
+        disabled="{{isSaving}}"
+      >
+        保存
+      </button>
+      </view>
+    </view>
+  </view>
+</view>

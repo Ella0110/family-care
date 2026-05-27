@@ -39,6 +39,8 @@ const { buildInvitationNicknameInitial } = require("../../utils/invitation");
 
 const REFRESH_TTL_MS = 5 * 1000;
 const MEMBER_STALE_THRESHOLD = 30 * 1000;
+const STALE_REFRESH_TTL_MS = 30 * 1000;
+const PULL_DOWN_REFRESH_THROTTLE_MS = 2 * 1000;
 
 const MEMBER_ROLE_LABELS = {
     owner: "管理员",
@@ -264,6 +266,7 @@ Page({
         memberCount: 0,
         showMemberPanel: false,
         selectedMember: null,
+        showEditPanel: false,
         fontScaleLabel: getFontScaleLabel(DEFAULT_FONT_SCALE),
         selectedFontScale: DEFAULT_FONT_SCALE,
         fontScaleOptions: FONT_SCALE_OPTIONS.map((value) => ({
@@ -278,6 +281,7 @@ Page({
         this.requestId = 0;
         this.fontScaleRequestId = 0;
         this.lastRefreshAt = 0;
+        this.lastManualRefreshAt = 0;
         this.lastLoadedProfileId = "";
         this.lastSeenProfileId = store.getState().currentProfileId || "";
         this.lastLoginReady = getAppLoginStatus().isLoginReady;
@@ -286,6 +290,8 @@ Page({
         this.latestRecord = null;
         this.activeMedications = [];
         this.historicalMedications = [];
+        this.activeLoadPromise = null;
+        this.activeRefreshPromise = null;
 
         this.syncFontScale();
         this.syncProfileMeta();
@@ -319,6 +325,14 @@ Page({
     },
 
     onShow() {
+        const tabBar =
+            typeof this.getTabBar === "function" ? this.getTabBar() : null;
+        if (tabBar) {
+            tabBar.setData({
+                selectedPath: "pages/profile-home/profile-home",
+            });
+        }
+
         this.syncTabBarVisibility();
         this.syncFontScale();
         const loginStatus = getAppLoginStatus();
@@ -330,14 +344,45 @@ Page({
         }
 
         this.syncProfileMeta();
+        if (this.activeLoadPromise || this.activeRefreshPromise) {
+            return;
+        }
+
         const profileId = store.getState().currentProfileId || "";
         const shouldResetReady =
             !this.data.pageReady || profileId !== this.data._lastProfileId;
+        if (!shouldResetReady && this.shouldRefreshOnShow()) {
+            this.refreshPageData({ silent: true }).catch((error) => {
+                console.error("[profile-home] onShow silent refresh failed", error);
+            });
+            return;
+        }
 
         this.loadPageData({
             force: false,
             resetReady: shouldResetReady,
         });
+    },
+
+    async onPullDownRefresh() {
+        const now = Date.now();
+        if (
+            this.lastManualRefreshAt &&
+            now - this.lastManualRefreshAt < PULL_DOWN_REFRESH_THROTTLE_MS
+        ) {
+            wx.stopPullDownRefresh();
+            return;
+        }
+
+        this.lastManualRefreshAt = now;
+
+        try {
+            await this.refreshPageData({ silent: true });
+        } catch (error) {
+            console.error("[profile-home] pull-down refresh failed", error);
+        } finally {
+            wx.stopPullDownRefresh();
+        }
     },
 
     onUnload() {
@@ -474,17 +519,77 @@ Page({
         )
             ? overrides.showMemberPanel
             : this.data.showMemberPanel;
+        const showEditPanel = Object.prototype.hasOwnProperty.call(
+            overrides,
+            "showEditPanel",
+        )
+            ? overrides.showEditPanel
+            : this.data.showEditPanel;
 
-        this.setTabBarVisible(!(showProfileSwitcher || showMemberPanel));
+        this.setTabBarVisible(
+            !(showProfileSwitcher || showMemberPanel || showEditPanel),
+        );
     },
 
     enterPageLoading() {
         this.setData({ pageReady: false });
     },
 
-    async loadMembers(profileId) {
+    shouldRefreshOnShow() {
+        if (store.isStale("profiles", null, STALE_REFRESH_TTL_MS)) {
+            return true;
+        }
+
+        if (!this.lastRefreshAt) {
+            return true;
+        }
+
+        return Date.now() - this.lastRefreshAt > STALE_REFRESH_TTL_MS;
+    },
+
+    async refreshPageData(options = {}) {
+        if (this.activeRefreshPromise) {
+            return this.activeRefreshPromise;
+        }
+
+        const run = (async () => {
+            const silent = options.silent === true;
+            const app = getApp();
+            const previousProfileId = store.getState().currentProfileId || "";
+
+            if (app && typeof app.login === "function") {
+                await app.login({ preserveCurrentProfileId: true });
+            }
+
+            this.syncProfileMeta();
+
+            const nextProfileId = store.getState().currentProfileId || "";
+            if (nextProfileId !== previousProfileId && this.activeLoadPromise) {
+                await this.activeLoadPromise;
+                return;
+            }
+
+            await this.loadPageData({
+                force: true,
+                resetReady: options.resetReady === true && !silent,
+            });
+        })();
+
+        this.activeRefreshPromise = run;
+
+        try {
+            return await run;
+        } finally {
+            if (this.activeRefreshPromise === run) {
+                this.activeRefreshPromise = null;
+            }
+        }
+    },
+
+    async loadMembers(profileId, options = {}) {
         const cachedMembers = this.memberCache[profileId];
         if (
+            options.force !== true &&
             cachedMembers &&
             !store.isStale("members", profileId, MEMBER_STALE_THRESHOLD)
         ) {
@@ -500,112 +605,125 @@ Page({
     },
 
     async loadPageData(options = {}) {
-        const force = options.force === true;
-        const resetReady = options.resetReady === true;
-        const profileId = store.getState().currentProfileId || "";
+        const run = (async () => {
+            const force = options.force === true;
+            const resetReady = options.resetReady === true;
+            const profileId = store.getState().currentProfileId || "";
+            const forceMembers = options.forceMembers === true || force;
 
-        if (resetReady) {
-            this.enterPageLoading();
-        }
+            if (resetReady) {
+                this.enterPageLoading();
+            }
 
-        if (!profileId) {
-            this.lastLoadedProfileId = "";
-            this.lastRefreshAt = 0;
-            this.latestRecord = null;
-            this.activeMedications = [];
-            this.historicalMedications = [];
-            this.setData({
-                pageReady: true,
-                _lastProfileId: "",
-                hasProfile: false,
-                errorText: "",
-                latestRecordDisplay: null,
-                hasLatestRecord: false,
-                hasMedicationSummary: false,
-                medicationText: "",
-                medicationCount: 0,
-                medicationShortcutText: "添加长期用药记录",
-                emergencyText: "",
-                memberItems: [],
-                memberCount: 0,
-                showMemberPanel: false,
-                selectedMember: null,
-            });
-            return;
-        }
+            if (!profileId) {
+                this.lastLoadedProfileId = "";
+                this.lastRefreshAt = 0;
+                this.latestRecord = null;
+                this.activeMedications = [];
+                this.historicalMedications = [];
+                this.setData({
+                    pageReady: true,
+                    _lastProfileId: "",
+                    hasProfile: false,
+                    errorText: "",
+                    latestRecordDisplay: null,
+                    hasLatestRecord: false,
+                    hasMedicationSummary: false,
+                    medicationText: "",
+                    medicationCount: 0,
+                    medicationShortcutText: "添加长期用药记录",
+                    emergencyText: "",
+                    memberItems: [],
+                    memberCount: 0,
+                    showMemberPanel: false,
+                    selectedMember: null,
+                });
+                return;
+            }
 
-        const shouldSkip =
-            !force &&
-            this.lastLoadedProfileId === profileId &&
-            Date.now() - this.lastRefreshAt < REFRESH_TTL_MS;
+            const shouldSkip =
+                !force &&
+                this.lastLoadedProfileId === profileId &&
+                Date.now() - this.lastRefreshAt < REFRESH_TTL_MS;
 
-        if (shouldSkip) {
-            return;
-        }
+            if (shouldSkip) {
+                return;
+            }
 
-        const profile = findProfileById(profileId);
-        if (!profile) {
-            this.setData({
-                pageReady: true,
-                _lastProfileId: "",
-                hasProfile: false,
-                errorText: "档案不存在或已被移除",
-            });
-            return;
-        }
+            const profile = findProfileById(profileId);
+            if (!profile) {
+                this.setData({
+                    pageReady: true,
+                    _lastProfileId: "",
+                    hasProfile: false,
+                    errorText: "档案不存在或已被移除",
+                });
+                return;
+            }
 
-        this.requestId += 1;
-        const requestId = this.requestId;
+            this.requestId += 1;
+            const requestId = this.requestId;
+
+            try {
+                const [latestResult, medicationResult, members] = await Promise.all(
+                    [
+                        recordService.fetchLatestRecord(profileId),
+                        medicationService.fetchMedications(profileId),
+                        this.loadMembers(profileId, { force: forceMembers }),
+                    ],
+                );
+
+                if (requestId !== this.requestId) {
+                    return;
+                }
+
+                this.lastLoadedProfileId = profileId;
+                this.lastRefreshAt = Date.now();
+                this.latestRecord = latestResult.record || null;
+                this.activeMedications = Array.isArray(
+                    medicationResult.activeMedications,
+                )
+                    ? medicationResult.activeMedications.slice()
+                    : [];
+                this.historicalMedications = Array.isArray(
+                    medicationResult.historicalMedications,
+                )
+                    ? medicationResult.historicalMedications.slice()
+                    : [];
+
+                this.applyViewModel(profile, medicationResult, members);
+            } catch (error) {
+                if (requestId !== this.requestId) {
+                    return;
+                }
+
+                this.setData({
+                    pageReady: true,
+                    _lastProfileId: profileId,
+                    errorText: getErrorMessage(error),
+                    latestRecordDisplay: null,
+                    hasLatestRecord: false,
+                    hasMedicationSummary: false,
+                    medicationText: "",
+                    medicationCount: 0,
+                    medicationShortcutText: "添加长期用药记录",
+                    emergencyText: "",
+                    memberItems: [],
+                    memberCount: 0,
+                    showMemberPanel: false,
+                    selectedMember: null,
+                });
+            }
+        })();
+
+        this.activeLoadPromise = run;
 
         try {
-            const [latestResult, medicationResult, members] = await Promise.all(
-                [
-                    recordService.fetchLatestRecord(profileId),
-                    medicationService.fetchMedications(profileId),
-                    this.loadMembers(profileId),
-                ],
-            );
-
-            if (requestId !== this.requestId) {
-                return;
+            return await run;
+        } finally {
+            if (this.activeLoadPromise === run) {
+                this.activeLoadPromise = null;
             }
-
-            this.lastLoadedProfileId = profileId;
-            this.lastRefreshAt = Date.now();
-            this.latestRecord = latestResult.record || null;
-            this.activeMedications = Array.isArray(
-                medicationResult.activeMedications,
-            )
-                ? medicationResult.activeMedications.slice()
-                : [];
-            this.historicalMedications = Array.isArray(
-                medicationResult.historicalMedications,
-            )
-                ? medicationResult.historicalMedications.slice()
-                : [];
-
-            this.applyViewModel(profile, medicationResult, members);
-        } catch (error) {
-            if (requestId !== this.requestId) {
-                return;
-            }
-
-            this.setData({
-                pageReady: true,
-                _lastProfileId: profileId,
-                errorText: getErrorMessage(error),
-                latestRecordDisplay: null,
-                hasLatestRecord: false,
-                hasMedicationSummary: false,
-                medicationText: "",
-                medicationCount: 0,
-                medicationShortcutText: "添加长期用药记录",
-                emergencyText: "",
-                memberItems: [],
-                memberCount: 0,
-                showMemberPanel: false,
-                selectedMember: null,
-            });
         }
     },
 
@@ -718,9 +836,50 @@ Page({
             return;
         }
 
-        wx.navigateTo({
-            url: `/pages/profile-edit/profile-edit?profileId=${this.data.currentProfileId}&mode=edit`,
+        this.setData({ showEditPanel: true });
+    },
+
+    handleCloseEditPanel() {
+        if (!this.data.showEditPanel) {
+            return;
+        }
+
+        this.setData({ showEditPanel: false });
+    },
+
+    handleEditPanelVisibilityChange(event) {
+        this.syncTabBarVisibility({
+            showEditPanel: Boolean(
+                event && event.detail && event.detail.visible,
+            ),
         });
+    },
+
+    handleProfileEditSaved(event) {
+        const detail = (event && event.detail) || {};
+        const profileId = detail.profileId || this.data.currentProfileId;
+        const profile = profileId ? findProfileById(profileId) : null;
+
+        this.syncProfileMeta();
+
+        if (!profile || profileId !== this.data.currentProfileId) {
+            return;
+        }
+
+        this.applyViewModel(
+            profile,
+            {
+                activeMedications: Array.isArray(this.activeMedications)
+                    ? this.activeMedications.slice()
+                    : [],
+                historicalMedications: Array.isArray(this.historicalMedications)
+                    ? this.historicalMedications.slice()
+                    : [],
+            },
+            Array.isArray(this.memberCache[profileId])
+                ? this.memberCache[profileId].slice()
+                : [],
+        );
     },
 
     handleMemberTap(event) {
@@ -960,6 +1119,9 @@ Page({
             wx.showToast({
                 title: `已删除「${profile.name}」`,
                 icon: "none",
+            });
+            wx.switchTab({
+                url: "/pages/data/data",
             });
         } catch (error) {
             wx.showToast({

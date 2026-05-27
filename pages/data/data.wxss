@@ -69,6 +69,8 @@ page {
 /* ========== 空态 ========== */
 .data-empty {
     padding-top: 120rpx;
+    display: flex;
+    justify-content: center;
 }
 
 /* ========== 错误态 ========== */

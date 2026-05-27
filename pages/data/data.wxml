@@ -7,13 +7,7 @@
     </view>
 
     <view wx:if="{{!hasProfile}}" class="data-empty">
-      <empty-state
-        icon="♥"
-        title="记录家人的血压，从第一条开始"
-        subtitle="先建一个档案吧"
-        buttonText="为家人或自己建档案"
-        bind:buttontap="handleCreateProfile"
-      />
+      <profile-empty-guide bind:create="handleCreateProfile" />
     </view>
 
     <view wx:else>

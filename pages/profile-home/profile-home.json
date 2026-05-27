@@ -1,8 +1,12 @@
 {
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark",
   "navigationBarTitleText": "档案",
   "usingComponents": {
     "empty-state": "/components/empty-state/empty-state",
+    "profile-empty-guide": "/components/profile-empty-guide/profile-empty-guide",
     "profile-switcher": "/components/profile-switcher/profile-switcher",
-    "member-panel": "/components/member-panel/member-panel"
+    "member-panel": "/components/member-panel/member-panel",
+    "profile-edit-panel": "/components/profile-edit-panel/profile-edit-panel"
   }
 }

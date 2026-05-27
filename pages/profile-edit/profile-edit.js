@@ -13,6 +13,11 @@ const LONG_TERM_MEDICATION_OPTIONS = [
   { label: '否', value: false },
 ];
 const PHONE_PATTERN = /^1\d{10}$/;
+const DEFAULT_RETURN_TAB = '/pages/profile-home/profile-home';
+const ALLOWED_RETURN_TABS = new Set([
+  '/pages/data/data',
+  '/pages/profile-home/profile-home',
+]);
 
 function showToast(title, duration = 1500) {
   wx.showToast({
@@ -40,7 +45,23 @@ function getReadableErrorMessage(error) {
   return fallbackMessage;
 }
 
-function goBackOrHome() {
+function normalizeReturnTab(value) {
+  if (!value) {
+    return DEFAULT_RETURN_TAB;
+  }
+
+  let decodedValue = '';
+  try {
+    decodedValue = decodeURIComponent(String(value));
+  } catch (error) {
+    decodedValue = String(value || '');
+  }
+
+  const normalizedValue = decodedValue.trim();
+  return ALLOWED_RETURN_TABS.has(normalizedValue) ? normalizedValue : DEFAULT_RETURN_TAB;
+}
+
+function goBackOrHome(fallbackUrl = DEFAULT_RETURN_TAB) {
   const pages = getCurrentPages();
 
   if (pages.length > 1) {
@@ -49,7 +70,7 @@ function goBackOrHome() {
   }
 
   wx.switchTab({
-    url: '/pages/profile-home/profile-home',
+    url: fallbackUrl,
   });
 }
 
@@ -144,6 +165,7 @@ Page({
   data: {
     mode: 'create',
     profileId: '',
+    returnTab: DEFAULT_RETURN_TAB,
     isEditMode: false,
     isSaving: false,
     relationOptions: RELATION_OPTIONS,
@@ -174,11 +196,13 @@ Page({
   onLoad(options = {}) {
     const mode = options.mode === 'edit' ? 'edit' : 'create';
     const profileId = options.profileId || '';
+    const returnTab = normalizeReturnTab(options.returnTab);
 
     this.originalProfile = null;
     this.setData({
       mode,
       profileId,
+      returnTab,
       isEditMode: mode === 'edit',
       pageTitle: mode === 'edit' ? '完善档案信息' : '为家人或自己建一个档案',
       pageSubtitle: mode === 'edit' ? '补充信息后，后续记录和报告会更完整' : '只需要 30 秒，先填一个名字就好',
@@ -535,7 +559,7 @@ Page({
         }
         this.navigateAfterSaveTimer = setTimeout(() => {
           this.navigateAfterSaveTimer = null;
-          goBackOrHome();
+          goBackOrHome(this.data.returnTab || DEFAULT_RETURN_TAB);
         }, 800);
         return;
       }
@@ -552,7 +576,7 @@ Page({
         });
       }
       wx.switchTab({
-        url: '/pages/profile-home/profile-home',
+        url: this.data.returnTab || DEFAULT_RETURN_TAB,
       });
     } catch (error) {
       console.error('[profile-edit] save failed', {
@@ -569,6 +593,6 @@ Page({
   },
 
   handleCancel() {
-    goBackOrHome();
+    goBackOrHome(this.data.returnTab || DEFAULT_RETURN_TAB);
   },
 });

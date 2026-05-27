@@ -29,6 +29,8 @@ const RANGE_OPTIONS = [
 
 const EXPORT_CHART_CANVAS_WIDTH = 750;
 const REFRESH_TTL_MS = 5 * 1000;
+const STALE_REFRESH_TTL_MS = 30 * 1000;
+const PULL_DOWN_REFRESH_THROTTLE_MS = 2 * 1000;
 
 function pad(value) {
   return String(value).padStart(2, '0');
@@ -422,6 +424,7 @@ Page({
     this.chartRenderToken = 0;
     this.pixelRatio = 1;
     this.lastRefreshAt = 0;
+    this.lastManualRefreshAt = 0;
     this.lastLoadedProfileId = '';
     this.coverageDayCount = NaN;
     this.allRecords = [];
@@ -433,6 +436,8 @@ Page({
     this.lastSeenProfileId = store.getState().currentProfileId || '';
     this.lastLoginReady = getLoginStatus().isLoginReady;
     this.lastProfileMetaSignature = '';
+    this.activeLoadPromise = null;
+    this.activeRefreshPromise = null;
 
     this.syncFontScale();
     this.initSystemInfo();
@@ -458,9 +463,7 @@ Page({
       }
 
       if (nextProfileId !== this.lastSeenProfileId) {
-        this.lastSeenProfileId = nextProfileId;
-        this.syncProfileMeta();
-        this.loadPageData({ force: true, resetReady: true });
+        this.handleCurrentProfileChange(nextProfileId);
         return;
       }
 
@@ -469,6 +472,11 @@ Page({
   },
 
   onShow() {
+    const tabBar = typeof this.getTabBar === 'function' ? this.getTabBar() : null;
+    if (tabBar) {
+      tabBar.setData({ selectedPath: 'pages/data/data' });
+    }
+
     this.syncTabBarVisibility();
     this.syncFontScale();
     const loginStatus = getLoginStatus();
@@ -480,12 +488,41 @@ Page({
     }
 
     this.syncProfileMeta();
+    if (this.activeLoadPromise || this.activeRefreshPromise) {
+      return;
+    }
+
     const profileId = store.getState().currentProfileId || '';
     const shouldResetReady = !this.data.pageReady || profileId !== this.data._lastProfileId;
+    if (!shouldResetReady && this.shouldRefreshOnShow()) {
+      this.refreshPageData({ silent: true }).catch((error) => {
+        console.error('[data] onShow silent refresh failed', error);
+      });
+      return;
+    }
+
     this.loadPageData({
       force: false,
       resetReady: shouldResetReady,
     });
+  },
+
+  async onPullDownRefresh() {
+    const now = Date.now();
+    if (this.lastManualRefreshAt && (now - this.lastManualRefreshAt) < PULL_DOWN_REFRESH_THROTTLE_MS) {
+      wx.stopPullDownRefresh();
+      return;
+    }
+
+    this.lastManualRefreshAt = now;
+
+    try {
+      await this.refreshPageData({ silent: true });
+    } catch (error) {
+      console.error('[data] pull-down refresh failed', error);
+    } finally {
+      wx.stopPullDownRefresh();
+    }
   },
 
   onUnload() {
@@ -578,6 +615,78 @@ Page({
     this.setData({ pageReady: false });
   },
 
+  resetLoadedProfileState() {
+    this.chartRenderToken += 1;
+    this.lastLoadedProfileId = '';
+    this.lastRefreshAt = 0;
+    this.coverageDayCount = NaN;
+    this.allRecords = [];
+    this.rangeRecords = [];
+    this.chartData = null;
+    this.latestRecord = null;
+  },
+
+  handleCurrentProfileChange(profileId) {
+    this.lastSeenProfileId = profileId || '';
+    this.resetLoadedProfileState();
+    this.syncProfileMeta();
+    return this.loadPageData({
+      force: true,
+      resetReady: true,
+    });
+  },
+
+  shouldRefreshOnShow() {
+    if (store.isStale('profiles', null, STALE_REFRESH_TTL_MS)) {
+      return true;
+    }
+
+    if (!this.lastRefreshAt) {
+      return true;
+    }
+
+    return (Date.now() - this.lastRefreshAt) > STALE_REFRESH_TTL_MS;
+  },
+
+  async refreshPageData(options = {}) {
+    if (this.activeRefreshPromise) {
+      return this.activeRefreshPromise;
+    }
+
+    const run = (async () => {
+      const silent = options.silent === true;
+      const app = getApp();
+      const previousProfileId = store.getState().currentProfileId || '';
+
+      if (app && typeof app.login === 'function') {
+        await app.login({ preserveCurrentProfileId: true });
+      }
+
+      this.syncProfileMeta();
+
+      const nextProfileId = store.getState().currentProfileId || '';
+      if (nextProfileId !== previousProfileId && this.activeLoadPromise) {
+        await this.activeLoadPromise;
+        return;
+      }
+
+      await this.loadPageData({
+        force: true,
+        resetReady: options.resetReady === true && !silent,
+      });
+    })();
+
+    this.activeRefreshPromise = run;
+
+    try {
+      return await run;
+    } finally {
+      if (this.activeRefreshPromise === run) {
+        this.activeRefreshPromise = null;
+      }
+    }
+  },
+
   async fetchIndependentRecords(profileId) {
     const result = await callSilent('getRecords', {
       profileId,
@@ -592,129 +701,135 @@ Page({
   },
 
   async loadPageData(options = {}) {
-    const force = options.force === true;
-    const resetReady = options.resetReady === true;
-    const profileId = store.getState().currentProfileId;
+    const run = (async () => {
+      const force = options.force === true;
+      const resetReady = options.resetReady === true;
+      const profileId = store.getState().currentProfileId;
 
-    if (resetReady) {
-      this.enterPageLoading();
-    }
+      if (resetReady) {
+        this.enterPageLoading();
+      }
 
-    if (!profileId) {
-      consumePendingRecordPanelOpen();
-      this.chartRenderToken += 1;
-      this.lastLoadedProfileId = '';
-      this.lastRefreshAt = 0;
-      this.coverageDayCount = NaN;
-      this.allRecords = [];
-      this.rangeRecords = [];
-      this.chartData = null;
+      if (!profileId) {
+        consumePendingRecordPanelOpen();
+        this.resetLoadedProfileState();
+        this.setData({
+          pageReady: true,
+          _lastProfileId: '',
+          hasProfile: false,
+          isLoading: false,
+          errorText: '',
+          latestRecord: null,
+          latestRecordDisplay: null,
+          hasAnyRecords: false,
+          hasRangeRecords: false,
+          hasHeartRateData: false,
+          rangeSummary: {
+            normalCount: 0,
+            abnormalCount: 0,
+            averageText: '--',
+          },
+          heartRateSummary: {
+            normalCount: 0,
+            abnormalCount: 0,
+            averageText: '--',
+          },
+          periodOptions: buildPeriodOptions(NaN),
+        });
+        return;
+      }
+
+      const shouldSkip = !force
+        && this.lastLoadedProfileId === profileId
+        && (Date.now() - this.lastRefreshAt) < REFRESH_TTL_MS;
+
+      if (shouldSkip) {
+        this.consumePendingRecordPanelOpen();
+        return;
+      }
+
+      const profile = findProfile(profileId);
+      if (!profile) {
+        consumePendingRecordPanelOpen();
+        this.rangeRecords = [];
+        this.chartData = null;
+        this.setData({
+          pageReady: true,
+          _lastProfileId: '',
+          hasProfile: false,
+          isLoading: false,
+          errorText: '档案不存在或已被移除',
+        });
+        return;
+      }
+
+      this.requestId += 1;
+      const requestId = this.requestId;
+
       this.setData({
-        pageReady: true,
-        _lastProfileId: '',
-        hasProfile: false,
-        isLoading: false,
+        isLoading: true,
         errorText: '',
-        latestRecord: null,
-        latestRecordDisplay: null,
-        hasAnyRecords: false,
-        hasRangeRecords: false,
-        hasHeartRateData: false,
-        rangeSummary: {
-          normalCount: 0,
-          abnormalCount: 0,
-          averageText: '--',
-        },
-        heartRateSummary: {
-          normalCount: 0,
-          abnormalCount: 0,
-          averageText: '--',
-        },
-        periodOptions: buildPeriodOptions(NaN),
       });
-      return;
-    }
 
-    const shouldSkip = !force
-      && this.lastLoadedProfileId === profileId
-      && (Date.now() - this.lastRefreshAt) < REFRESH_TTL_MS;
+      try {
+        const [latestResult, recordResult] = await Promise.all([
+          recordService.fetchLatestRecord(profileId),
+          this.fetchIndependentRecords(profileId),
+        ]);
 
-    if (shouldSkip) {
-      this.consumePendingRecordPanelOpen();
-      return;
-    }
+        if (requestId !== this.requestId) {
+          return;
+        }
 
-    const profile = findProfile(profileId);
-    if (!profile) {
-      consumePendingRecordPanelOpen();
-      this.rangeRecords = [];
-      this.chartData = null;
-      this.setData({
-        pageReady: true,
-        _lastProfileId: '',
-        hasProfile: false,
-        isLoading: false,
-        errorText: '档案不存在或已被移除',
-      });
-      return;
-    }
+        this.lastLoadedProfileId = profileId;
+        this.lastRefreshAt = Date.now();
+        this.allRecords = Array.isArray(recordResult.records) ? recordResult.records.slice() : [];
+        this.coverageDayCount = countUniqueMeasuredDays(this.allRecords);
+        this.latestRecord = latestResult.record || this.allRecords[0] || null;
 
-    this.requestId += 1;
-    const requestId = this.requestId;
+        this.applyViewModel();
+      } catch (error) {
+        if (requestId !== this.requestId) {
+          return;
+        }
 
-    this.setData({
-      isLoading: true,
-      errorText: '',
-    });
+        consumePendingRecordPanelOpen();
+        this.chartRenderToken += 1;
+        this.rangeRecords = [];
+        this.chartData = null;
+        this.setData({
+          pageReady: true,
+          _lastProfileId: profileId,
+          isLoading: false,
+          errorText: getErrorMessage(error),
+          latestRecord: null,
+          latestRecordDisplay: null,
+          hasAnyRecords: false,
+          hasRangeRecords: false,
+          hasHeartRateData: false,
+          rangeSummary: {
+            normalCount: 0,
+            abnormalCount: 0,
+            averageText: '--',
+          },
+          heartRateSummary: {
+            normalCount: 0,
+            abnormalCount: 0,
+            averageText: '--',
+          },
+          periodOptions: buildPeriodOptions(NaN),
+        });
+      }
+    })();
+
+    this.activeLoadPromise = run;
 
     try {
-      const [latestResult, recordResult] = await Promise.all([
-        recordService.fetchLatestRecord(profileId),
-        this.fetchIndependentRecords(profileId),
-      ]);
-
-      if (requestId !== this.requestId) {
-        return;
+      return await run;
+    } finally {
+      if (this.activeLoadPromise === run) {
+        this.activeLoadPromise = null;
       }
-
-      this.lastLoadedProfileId = profileId;
-      this.lastRefreshAt = Date.now();
-      this.allRecords = Array.isArray(recordResult.records) ? recordResult.records.slice() : [];
-      this.coverageDayCount = countUniqueMeasuredDays(this.allRecords);
-      this.latestRecord = latestResult.record || this.allRecords[0] || null;
-
-      this.applyViewModel();
-    } catch (error) {
-      if (requestId !== this.requestId) {
-        return;
-      }
-
-      consumePendingRecordPanelOpen();
-      this.chartRenderToken += 1;
-      this.rangeRecords = [];
-      this.chartData = null;
-      this.setData({
-        pageReady: true,
-        _lastProfileId: profileId,
-        isLoading: false,
-        errorText: getErrorMessage(error),
-        latestRecord: null,
-        latestRecordDisplay: null,
-        hasAnyRecords: false,
-        hasRangeRecords: false,
-        hasHeartRateData: false,
-        rangeSummary: {
-          normalCount: 0,
-          abnormalCount: 0,
-          averageText: '--',
-        },
-        heartRateSummary: {
-          normalCount: 0,
-          abnormalCount: 0,
-          averageText: '--',
-        },
-        periodOptions: buildPeriodOptions(NaN),
-      });
     }
   },
 

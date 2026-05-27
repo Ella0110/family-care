@@ -1,0 +1,50 @@
+.profile-empty-guide {
+  display: flex;
+  justify-content: center;
+}
+
+.profile-empty-guide__card {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 88rpx 56rpx;
+  border-radius: 48rpx;
+  background: #ffffff;
+  box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.04);
+  text-align: center;
+}
+
+.profile-empty-guide__title {
+  color: #0f172a;
+  font-size: calc(36rpx * var(--font-scale));
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.profile-empty-guide__subtitle {
+  margin-top: 20rpx;
+  color: #999999;
+  font-size: calc(28rpx * var(--font-scale));
+  line-height: 1.6;
+}
+
+.profile-empty-guide__button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
+  margin-top: 48rpx;
+  border-radius: 12rpx;
+  background: #3478f6;
+  color: #ffffff;
+  font-size: calc(32rpx * var(--font-scale));
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.profile-empty-guide__button::after {
+  border: 0;
+}
+
+.profile-empty-guide__button--hover {
+  background: #2467ee;
+}

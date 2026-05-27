@@ -95,12 +95,13 @@ assert.match(read('app.js'), /setStorageSync\(CURRENT_PROFILE_STORAGE_KEY/, 'app
 assert.match(read('app.js'), /getStorageSync\(CURRENT_PROFILE_STORAGE_KEY/, 'app.js should restore currentProfileId');
 
 assert.doesNotMatch(read('utils/record-editor.js'), /requestSubscribeMessage/, 'record-editor should not request subscribe during save');
-assert.match(read('pages/profile-edit/profile-edit.js'), /wx\.switchTab\(\s*\{\s*url: '\/pages\/profile-home\/profile-home'/, 'profile save should switch to profile-home when no back stack exists');
+assert.match(read('pages/profile-edit/profile-edit.js'), /DEFAULT_RETURN_TAB/, 'profile-edit should keep a default return tab for create fallback');
+assert.match(read('pages/profile-edit/profile-edit.js'), /normalizeReturnTab/, 'profile-edit should normalize the requested return tab');
 assert.match(read('pages/profile-edit/profile-edit.js'), /wx\.setStorageSync\('currentProfileId', [^)]+\)/, 'profile create should persist currentProfileId before switching tabs');
 assert.match(
   read('pages/profile-edit/profile-edit.js'),
-  /store\.setState\([\s\S]*currentProfileId:[\s\S]*wx\.setStorageSync\('currentProfileId', [^)]+\)[\s\S]*wx\.switchTab\(/,
-  'profile create should update store and storage before switchTab',
+  /store\.setState\([\s\S]*currentProfileId:[\s\S]*wx\.setStorageSync\('currentProfileId', [^)]+\)[\s\S]*url: this\.data\.returnTab \|\| DEFAULT_RETURN_TAB/,
+  'profile create should update store and storage before switching back to the requested tab',
 );
 assert.match(read('pages/data/data.js'), /pageReady:\s*false/, 'data page should initialize pageReady as false');
 assert.match(read('pages/data/data.js'), /_lastProfileId:\s*''/, 'data page should track the last rendered profile id');
