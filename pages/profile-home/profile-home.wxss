@@ -1,524 +1,561 @@
 .profile-home-page {
-  padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
+    padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
+}
+
+.profile-home-page .card {
+    box-sizing: border-box;
+    padding: 48rpx;
+    border-radius: 64rpx;
+    background: var(--color-card);
+    box-shadow: 0 12rpx 32rpx rgba(17, 24, 39, 0.08);
 }
 
 .profile-home__topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24rpx;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24rpx;
 }
 
 .profile-home__title {
-  display: inline-flex;
-  align-items: center;
-  gap: 10rpx;
-  /* font-size: var(--font-lg); */
-  /* font-weight: 700; */
-  color: var(--color-text);
+    display: inline-flex;
+    align-items: center;
+    gap: 10rpx;
+    /* font-size: var(--font-lg); */
+    /* font-weight: 700; */
+    color: var(--color-text);
 
-  /* 新增 */
-  font-size: 44rpx; /* 略微加大 */
-  font-weight: 800;
-  letter-spacing: -0.5px;
+    /* 新增 */
+    font-size: 44rpx; /* 略微加大 */
+    font-weight: 800;
+    letter-spacing: -0.5px;
 }
 
 .profile-home__arrow {
-  font-size: var(--font-sm);
-  color: var(--color-text-secondary);
+    font-size: var(--font-sm);
+    color: var(--color-text-secondary);
 }
 
 .profile-home__settings {
     color: var(--color-primary);
     /* font-size: var(--font-base); */
     font-weight: 600;
-  
+
     /* 1. 添加背景颜色 */
     /* background-color: #ffffff;  */
-  
+
     /* 2. 添加内边距，撑开背景区域 (上下, 左右) */
     /* padding: 8rpx 24rpx;  */
-  
+
     /* 3. 修改圆角：用较大的固定数值实现胶囊形状 */
-    border-radius: 100rpx; 
-  
+    border-radius: 100rpx;
+
     /* 4. 如果需要边框，必须写完整缩写属性 */
     /* 如果背景已经是白色且在浅色底上，有时只加背景就够了 */
     /* border: 1px solid #ffffff;  */
-  
+
     /* 5. 确保它是行内块或通过 flex 布局，以便 padding 生效 */
-    display: inline-block; 
+    display: inline-block;
 
     /* 新增 */
-    background-color: rgba(0, 0, 0, 0.03); /* 极其微弱的灰色背景 */
+    background-color: rgba(255, 255, 255, 0.9);
     border: none; /* 去掉之前的白色边框 [cite: 22] */
     font-size: 26rpx;
     padding: 10rpx 28rpx;
-  }
+    box-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.04);
+}
 
 .profile-home__empty {
-  padding-top: 120rpx;
+    padding-top: 120rpx;
 }
 
 .profile-home__state-title {
-  font-size: var(--font-lg);
-  font-weight: 700;
+    font-size: var(--font-lg);
+    font-weight: 700;
 }
 
 .profile-home__state-text {
-  margin-top: 12rpx;
-  color: var(--color-text-secondary);
-  font-size: var(--font-base);
+    margin-top: 12rpx;
+    color: var(--color-text-secondary);
+    font-size: var(--font-base);
 }
 
 .profile-home__content {
-  display: flex;
-  flex-direction: column;
-  gap: 36rpx;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.profile-home__hero {
+    margin-top: 0;
 }
 
 .profile-home__hero-top {
-  display: flex;
-  align-items: center;
-  gap: 24rpx;
+    display: flex;
+    align-items: center;
+    gap: 24rpx;
 }
 
 .profile-home__avatar {
-  width: 108rpx;
-  height: 108rpx;
-  border-radius: 50%;
-  /* background: rgba(49, 130, 247, 0.14); */
-  color: var(--color-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--font-xl);
-  /* font-weight: 700; */
-  flex-shrink: 0;
+    width: 88rpx;
+    height: 88rpx;
+    border-radius: 50%;
+    /* background: rgba(49, 130, 247, 0.14); */
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-xl);
+    /* font-weight: 700; */
+    flex-shrink: 0;
 
-  /* 新增 */
-  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-  border: 1rpx solid rgba(49, 130, 247, 0.05); /* 增加边缘精致感 */
-  font-weight: 600; /* 加粗文字 */
-  /* 增加一个极其轻微的向内投影，增加球体感 */
-  box-shadow: inset 0 2rpx 6rpx rgba(0, 0, 0, 0.05);
+    /* 新增 */
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border: 1rpx solid rgba(49, 130, 247, 0.05); /* 增加边缘精致感 */
+    font-weight: 600; /* 加粗文字 */
+    font-size: 36rpx;
+    /* 增加一个极其轻微的向内投影，增加球体感 */
+    box-shadow: inset 0 2rpx 6rpx rgba(0, 0, 0, 0.05);
 }
 
 .profile-home__hero-body {
-  flex: 1;
-  min-width: 0;
+    flex: 1;
+    min-width: 0;
 }
 
 .profile-home__hero-name-row {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  flex-wrap: wrap;
+    display: flex;
+    align-items: center;
+    gap: 12rpx;
+    flex-wrap: wrap;
 }
 
 .profile-home__hero-name {
-  font-size: var(--font-lg);
-  font-weight: 700;
-  color: var(--color-text);
+    font-size: var(--font-lg);
+    font-weight: 700;
+    color: var(--color-text);
 
-  /* 新增 */
-  letter-spacing: 1rpx; /* 增加高级感 */
+    /* 新增 */
+    letter-spacing: 1rpx; /* 增加高级感 */
 }
 
 .profile-home__hero-age {
-  padding: 6rpx 14rpx;
-  border-radius: 100rpx;
-  /* background: #f3f4f6; */
-  /* color: var(--color-text-secondary); */
-  font-size: var(--font-xs);
+    padding: 6rpx 14rpx;
+    border-radius: 100rpx;
+    /* background: #f3f4f6; */
+    /* color: var(--color-text-secondary); */
+    font-size: var(--font-xs);
 
-  /* 新增 */
-  background: #f2f2f7; /* 使用更淡的 iOS 系统灰色 */
-  color: #8e8e93;
-  font-weight: 500;
+    /* 新增 */
+    background: #f2f2f7; /* 使用更淡的 iOS 系统灰色 */
+    color: #8e8e93;
+    font-weight: 500;
 }
 
 .profile-home__hero-birth {
-  margin-top: 8rpx;
-  color: var(--color-text-secondary);
-  font-size: var(--font-sm);
+    margin-top: 8rpx;
+    color: var(--color-text-secondary);
+    font-size: var(--font-sm);
 }
 
 .profile-home__edit {
-  /* color: var(--color-primary); */
-  /* font-size: var(--font-base); */
-  font-weight: 600;
-  flex-shrink: 0;
+    /* color: var(--color-primary); */
+    /* font-size: var(--font-base); */
+    font-weight: 600;
+    flex-shrink: 0;
 
-  /* 新增 */
-  background: #f2f2f7;
-  padding: 8rpx 20rpx;
-  border-radius: 100rpx;
-  font-size: 24rpx;
-  color: #8e8e93; /* 弱化“编辑”，让用户关注健康数据本身 */
+    /* 新增 */
+    background: #f2f2f7;
+    padding: 8rpx 20rpx;
+    border-radius: 100rpx;
+    font-size: 24rpx;
+    color: #8e8e93; /* 弱化“编辑”，让用户关注健康数据本身 */
 }
 
 .profile-home__overview {
-  /* margin-top: 28rpx;
+    /* margin-top: 28rpx;
   border-top: 1rpx solid #e5e7eb;
   padding-top: 24rpx; */
 
-  /* 修改 */
-  margin-top: 48rpx;
-  border-top: none; /* 核心修改点  */
-  padding-top: 0;
+    /* 修改 */
+    margin-top: 28rpx;
+    border-top: 1rpx solid #f1f5f9;
+    padding-top: 24rpx;
 }
 
 .profile-home__overview-title,
 .profile-home__section-title {
-  /* font-size: var(--font-base);
+    /* font-size: var(--font-base);
   font-weight: 700;
   color: var(--color-text); */
 
-  /* 新增 */
-  font-size: 30rpx;
-  font-weight: 700;
-  color: #000000;
-  letter-spacing: -0.5rpx;
+    /* 新增 */
+    font-size: 24rpx;
+    font-weight: 600;
+    color: #94a3b8;
+    letter-spacing: 0.05em;
 }
 
 .profile-home__overview-row {
-  /* display: flex;
+    /* display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 24rpx;
   margin-top: 18rpx; */
-  display: flex;
-  align-items: center; /* 改为居中对齐，更显精致 [cite: 32] */
-  justify-content: space-between;
-  margin-top: 32rpx; /* 增加行间距 */
+    display: flex;
+    align-items: center; /* 改为居中对齐，更显精致 [cite: 32] */
+    justify-content: space-between;
+    margin-top: 20rpx;
+}
+
+.profile-home__overview-row:first-child {
+    margin-top: 0;
 }
 
 .profile-home__overview-label {
-  /* color: var(--color-text-secondary);
+    /* color: var(--color-text-secondary);
   font-size: var(--font-sm);
   flex-shrink: 0; */
-  color: #8e8e93; 
-  font-size: 26rpx;
+    color: #8e8e93;
+    font-size: 26rpx;
 }
 
 .profile-home__overview-value {
-  /* text-align: right;
+    /* text-align: right;
   color: var(--color-text);
   font-size: var(--font-base); */
-  color: #1c1c1e;
-  font-size: 32rpx;
-  font-weight: 500;
+    color: #1c1c1e;
+    font-size: 32rpx;
+    font-weight: 500;
 }
 
 .profile-home__overview-value--danger {
-  color: var(--color-danger);
-  font-weight: 700;
+    color: var(--color-danger);
+    font-weight: 700;
 }
 
 .profile-home__section-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
-/* 覆写成员管理卡片的 Padding，上下减小，左右保持 [cite: 34, 63] */
-.profile-home__members {
-    padding: 32rpx 40rpx !important; 
-  }
+.profile-home__section-title {
+    margin-top: 40rpx;
+    margin-bottom: 0;
+}
+
+.profile-home__members.card {
+    margin-top: 12rpx;
+    padding: 28rpx 32rpx;
+}
 
 .profile-home__members-scroll {
-  margin-top: 22rpx;
-  white-space: nowrap;
-  margin-top: 16rpx !important;
+    white-space: nowrap;
+    margin-top: 0;
 }
 
 .profile-home__members-list {
-  display: inline-flex;
-  /* gap: 20rpx;
+    display: inline-flex;
+    /* gap: 20rpx;
   padding-bottom: 4rpx; */
 
-  /* 新增 */
-  gap: 32rpx; /* 增加成员之间的间距 */
-  padding-bottom: 8rpx;
+    /* 新增 */
+    gap: 32rpx; /* 增加成员之间的间距 */
+    padding-bottom: 8rpx;
 }
 
 .profile-home__member {
-  /* width: 132rpx; */
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
+    /* width: 132rpx; */
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
 
-  /* 新增 */
-  width: 110rpx; /* 稍微收窄容器，让文字折行更自然 */
+    /* 新增 */
+    width: 110rpx; /* 稍微收窄容器，让文字折行更自然 */
 }
 
 .profile-home__member-avatar {
-  width: 88rpx;
-  height: 88rpx;
-  border-radius: 50%;
-  /* background: #eff6ff; */
-  /* color: var(--color-primary); */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /* font-size: var(--font-lg); */
-  /* font-weight: 700; */
-  overflow: hidden;
+    width: 88rpx;
+    height: 88rpx;
+    border-radius: 50%;
+    /* background: #eff6ff; */
+    /* color: var(--color-primary); */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* font-size: var(--font-lg); */
+    /* font-weight: 700; */
+    overflow: hidden;
 
-  /* 新增 */
-  background: #F0F4F8; /* iOS System Gray 6 */
-  color: #007AFF; /* 让“家”字看起来更像是一个水印图标而非文字 */
-  font-size: 32rpx;
-  font-weight: 600;
-  border: 1rpx solid rgba(0, 122, 255, 0.05); /* 极淡的描边增加边缘清晰度 */
+    /* 新增 */
+    background: #f0f4f8; /* iOS System Gray 6 */
+    color: #007aff; /* 让“家”字看起来更像是一个水印图标而非文字 */
+    font-size: 32rpx;
+    font-weight: 600;
+    border: 1rpx solid rgba(0, 122, 255, 0.05); /* 极淡的描边增加边缘清晰度 */
 }
 
 .profile-home__member-avatar--image {
-  background: #e5e7eb;
+    background: #e5e7eb;
 }
 
 .profile-home__member-avatar-image {
-  width: 100%;
-  height: 100%;
+    width: 100%;
+    height: 100%;
 }
 
 .profile-home__member-avatar--invite {
-  /* border: 2rpx dashed #93c5fd;
+    /* border: 2rpx dashed #93c5fd;
   background: #f8fbff; */
-  /* 新增 */
-  border: 2rpx dashed #D1D9E0; /* 更淡的灰色虚线 */
-  background: transparent;
-  color: #007AFF; /* 仅在加号处使用品牌蓝 */
-  font-size: 40rpx;
+    /* 新增 */
+    border: 2rpx dashed #d1d9e0; /* 更淡的灰色虚线 */
+    background: transparent;
+    color: #007aff; /* 仅在加号处使用品牌蓝 */
+    font-size: 40rpx;
 }
 
 .profile-home__member-name {
-  /* margin-top: 12rpx; */
-  /* color: var(--color-text); */
-  /* font-size: var(--font-sm); */
-  font-weight: 600;
-  text-align: center;
-  white-space: normal;
-  /* line-height: 1.4; */
+    /* margin-top: 12rpx; */
+    /* color: var(--color-text); */
+    /* font-size: var(--font-sm); */
+    font-weight: 600;
+    text-align: center;
+    white-space: normal;
+    /* line-height: 1.4; */
 
-  /* 新增 */
-  margin-top: 12rpx;
-  color: #1D1D1F;
-  font-size: 24rpx;
-  line-height: 1.2;
+    /* 新增 */
+    margin-top: 12rpx;
+    color: #1d1d1f;
+    font-size: 24rpx;
+    line-height: 1.2;
 }
 
 .profile-home__member-role {
-  /* margin-top: 4rpx; */
-  /* color: var(--color-text-secondary); */
-  /* font-size: var(--font-xs); */
-  text-align: center;
+    /* margin-top: 4rpx; */
+    /* color: var(--color-text-secondary); */
+    /* font-size: var(--font-xs); */
+    text-align: center;
 
-  /* 新增 */
-  margin-top: 4rpx;
-  color: #8E8E93; /* Apple System Gray */
-  font-size: 20rpx;
-  font-weight: 400;
+    /* 新增 */
+    margin-top: 4rpx;
+    color: #8e8e93; /* Apple System Gray */
+    font-size: 20rpx;
+    font-weight: 400;
 }
 
 .profile-home__shortcut-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 12rpx;
 }
 
 .profile-home__shortcut {
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
+    display: flex;
+    align-items: center;
+    gap: 20rpx;
+}
+
+.profile-home__shortcut + .profile-home__shortcut {
+    margin-top: 16rpx;
 }
 
 .profile-home__shortcut--disabled {
-  opacity: 0.5;
+    opacity: 0.5;
 }
 
 .profile-home__shortcut-icon {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 24rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  font-size: var(--font-lg);
-  font-weight: 700;
-  flex-shrink: 0;
+    width: 80rpx;
+    height: 80rpx;
+    border-radius: 24rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: var(--font-lg);
+    font-weight: 700;
+    flex-shrink: 0;
 }
 
 .profile-home__shortcut-icon--report {
-  background: #3182f7;
+    background: #ebf5ff;
 }
 
 .profile-home__shortcut-icon--medication {
-  background: #f59e0b;
+    background: #fff7ed;
 }
 
 .profile-home__shortcut-body {
-  flex: 1;
-  min-width: 0;
+    flex: 1;
+    min-width: 0;
 }
 
 .profile-home__shortcut-title {
-  color: var(--color-text);
-  font-size: var(--font-base);
-  font-weight: 700;
+    color: var(--color-text);
+    font-size: var(--font-base);
+    font-weight: 700;
 }
 
 .profile-home__shortcut-subtitle {
-  margin-top: 6rpx;
-  color: var(--color-text-secondary);
-  font-size: var(--font-sm);
+    margin-top: 6rpx;
+    color: var(--color-text-secondary);
+    font-size: var(--font-sm);
 }
 
 .profile-home__shortcut-arrow {
-  color: #9ca3af;
-  font-size: var(--font-lg);
+    color: #9ca3af;
+    font-size: var(--font-lg);
 }
 
 .profile-home__settings-card {
-  display: flex;
-  flex-direction: column;
-  gap: 18rpx;
+    display: flex;
+    flex-direction: column;
+    gap: 18rpx;
+    margin-top: 0;
+}
+
+.profile-home__settings-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 12rpx;
+}
+
+.profile-home__settings-card + .profile-home__settings-card {
+    margin-top: 16rpx;
 }
 
 .profile-home__setting-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24rpx;
-  padding-top: 6rpx;
-}
-
-.profile-home__setting-row--font {
-  padding-top: 22rpx;
-  border-top: 1rpx solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24rpx;
 }
 
 .profile-home__setting-main {
-  flex: 1;
-  min-width: 0;
+    flex: 1;
+    min-width: 0;
 }
 
 .profile-home__setting-title {
-  color: var(--color-text);
-  font-size: var(--font-base);
-  font-weight: 600;
+    color: var(--color-text);
+    font-size: var(--font-base);
+    font-weight: 600;
 }
 
 .profile-home__setting-subtitle {
-  margin-top: 4rpx;
-  color: var(--color-text-secondary);
-  font-size: var(--font-sm);
+    margin-top: 4rpx;
+    color: var(--color-text-secondary);
+    font-size: var(--font-sm);
 }
 
 .profile-home__setting-link {
-  color: var(--color-text-secondary);
-  font-size: var(--font-sm);
+    color: var(--color-text-secondary);
+    font-size: var(--font-sm);
 }
 
 .profile-home__font-scale-control {
-  display: flex;
-  align-items: center;
-  gap: 4rpx;
-  padding: 4rpx;
-  background: #f1f5f9;
-  border-radius: 16rpx;
-  flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 4rpx;
+    padding: 4rpx;
+    background: #f1f5f9;
+    border-radius: 16rpx;
+    flex-shrink: 0;
 }
 
 .profile-home__font-scale-pill {
-  min-width: 84rpx;
-  min-height: 60rpx;
-  padding: 10rpx 24rpx;
-  border-radius: 12rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #94a3b8;
-  background: transparent;
-  font-size: 24rpx;
-  font-weight: 600;
-  box-sizing: border-box;
+    min-width: 84rpx;
+    min-height: 60rpx;
+    padding: 10rpx 24rpx;
+    border-radius: 12rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    background: transparent;
+    font-size: 24rpx;
+    font-weight: 600;
+    box-sizing: border-box;
 }
 
 .profile-home__font-scale-pill--active {
-  background: #3182f7;
-  color: #ffffff;
-  box-shadow: 0 2rpx 8rpx rgba(49, 130, 247, 0.2);
+    background: #3182f7;
+    color: #ffffff;
+    box-shadow: 0 2rpx 8rpx rgba(49, 130, 247, 0.2);
 }
 
 .profile-home__danger {
-  display: flex;
-  align-items: center;
-  gap: 18rpx;
+    display: flex;
+    align-items: center;
+    gap: 18rpx;
+    margin-top: 12rpx;
+    padding: 0 32rpx;
+    background: transparent;
+    box-shadow: none;
 }
 
 .profile-home__danger-icon {
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 18rpx;
-  background: rgba(180, 35, 24, 0.08);
-  color: var(--color-danger);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--font-lg);
-  flex-shrink: 0;
+    width: 64rpx;
+    height: 64rpx;
+    border-radius: 18rpx;
+    background: rgba(180, 35, 24, 0.08);
+    color: var(--color-danger);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-lg);
+    flex-shrink: 0;
 }
 
 .profile-home__danger-main {
-  flex: 1;
+    flex: 1;
 }
 
 .profile-home__danger-title {
-  color: var(--color-danger);
-  font-size: var(--font-base);
-  font-weight: 700;
+    color: var(--color-danger);
+    font-size: var(--font-base);
+    font-weight: 700;
 }
 
 .profile-home__danger-subtitle {
-  margin-top: 4rpx;
-  color: var(--color-text-secondary);
-  font-size: var(--font-sm);
+    margin-top: 4rpx;
+    color: #94a3b8;
+    font-size: 24rpx;
 }
 
 .profile-home__footer-link {
-  color: var(--color-primary);
-  font-size: var(--font-base);
-  font-weight: 600;
-  text-align: center;
-  padding: 12rpx 0;
+    color: var(--color-primary);
+    font-size: var(--font-base);
+    font-weight: 600;
+    text-align: center;
+    padding: 12rpx 0;
 }
 
 .profile-home__loading {
-  min-height: calc(100vh - 64rpx);
-  background: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    min-height: calc(100vh - 64rpx);
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .profile-home__loading-spinner {
-  width: 56rpx;
-  height: 56rpx;
-  border-radius: 50%;
-  border: 6rpx solid #e5e7eb;
-  border-top-color: var(--color-primary);
-  animation: profile-home-loading-spin 0.8s linear infinite;
+    width: 56rpx;
+    height: 56rpx;
+    border-radius: 50%;
+    border: 6rpx solid #e5e7eb;
+    border-top-color: var(--color-primary);
+    animation: profile-home-loading-spin 0.8s linear infinite;
 }
 
 @keyframes profile-home-loading-spin {
-  from {
-    transform: rotate(0deg);
-  }
+    from {
+        transform: rotate(0deg);
+    }
 
-  to {
-    transform: rotate(360deg);
-  }
+    to {
+        transform: rotate(360deg);
+    }
 }

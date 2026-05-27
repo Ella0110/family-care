@@ -62,12 +62,8 @@
           </view>
         </view>
       </view>
-      
-      <view class="profile-home__section-head">
-          <view class="profile-home__section-title">成员管理（{{memberCount}}/10）</view>
-        </view>
+      <view class="profile-home__section-title">成员管理（{{memberCount}}/10）</view>
       <view class="card profile-home__members">
-        
         <scroll-view scroll-x class="profile-home__members-scroll">
           <view class="profile-home__members-list">
             <view
@@ -96,13 +92,15 @@
           </view>
         </scroll-view>
       </view>
-
+      <view class="profile-home__section-head">
+          <view class="profile-home__section-title">功能</view>
+    </view>
       <view class="profile-home__shortcut-grid">
         <view
           class="card profile-home__shortcut {{!hasLatestRecord ? 'profile-home__shortcut--disabled' : ''}}"
           bindtap="handleOpenReport"
         >
-          <view class="profile-home__shortcut-icon profile-home__shortcut-icon--report">报</view>
+          <view class="profile-home__shortcut-icon profile-home__shortcut-icon--report">📄</view>
           <view class="profile-home__shortcut-body">
             <view class="profile-home__shortcut-title">生成就诊报告</view>
             <view class="profile-home__shortcut-subtitle">选择时间段，导出专业报表</view>
@@ -111,7 +109,7 @@
         </view>
 
         <view class="card profile-home__shortcut" bindtap="handleOpenMedicationManagement">
-          <view class="profile-home__shortcut-icon profile-home__shortcut-icon--medication">药</view>
+          <view class="profile-home__shortcut-icon profile-home__shortcut-icon--medication">💊</view>
           <view class="profile-home__shortcut-body">
             <view class="profile-home__shortcut-title">药物管理</view>
             <view class="profile-home__shortcut-subtitle">{{medicationShortcutText}}</view>
@@ -121,39 +119,43 @@
       </view>
 
       <view class="profile-home__section-title">快捷设置</view>
-      <view class="card profile-home__settings-card">
-        
+      <view class="profile-home__settings-stack">
 
-        <view class="profile-home__setting-row">
-          <view class="profile-home__setting-main">
-            <view class="profile-home__setting-title">异常血压通知</view>
-            <view class="profile-home__setting-subtitle">血压异常时推送提醒</view>
+        <view class="card profile-home__settings-card">
+          <view class="profile-home__setting-row">
+            <view class="profile-home__setting-main">
+              <view class="profile-home__setting-title">异常血压通知</view>
+              <view class="profile-home__setting-subtitle">血压异常时推送提醒</view>
+            </view>
+            <switch
+              checked="{{activeRelationshipSubscribeAlerts}}"
+              color="#3182F7"
+              bindchange="handleToggleSubscribeAlerts"
+            />
           </view>
-          <switch
-            checked="{{activeRelationshipSubscribeAlerts}}"
-            color="#3182F7"
-            bindchange="handleToggleSubscribeAlerts"
-          />
         </view>
-
-        <view class="profile-home__setting-row profile-home__setting-row--font">
-          <view class="profile-home__setting-main">
-            <view class="profile-home__setting-title">字体大小</view>
-          </view>
-          <view class="profile-home__font-scale-control">
-            <view
-              wx:for="{{fontScaleOptions}}"
-              wx:key="value"
-              class="profile-home__font-scale-pill {{selectedFontScale === item.value ? 'profile-home__font-scale-pill--active' : ''}}"
-              data-scale="{{item.value}}"
-              bindtap="handleSelectFontScale"
-            >
-              {{item.label}}
+        <view class="card profile-home__settings-card">
+          <view class="profile-home__setting-row">
+            <view class="profile-home__setting-main">
+              <view class="profile-home__setting-title">字体大小</view>
+            </view>
+            <view class="profile-home__font-scale-control">
+              <view
+                wx:for="{{fontScaleOptions}}"
+                wx:key="value"
+                class="profile-home__font-scale-pill {{selectedFontScale === item.value ? 'profile-home__font-scale-pill--active' : ''}}"
+                data-scale="{{item.value}}"
+                bindtap="handleSelectFontScale"
+              >
+                {{item.label}}
+              </view>
             </view>
           </view>
         </view>
       </view>
-
+       <view class="profile-home__section-head">
+          <view class="profile-home__section-title">其他</view>
+    </view>
       <view wx:if="{{canManageCurrentProfile}}" class="card profile-home__danger" bindtap="handleDeleteProfile">
         <view class="profile-home__danger-icon">⚠</view>
         <view class="profile-home__danger-main">
