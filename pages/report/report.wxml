@@ -21,14 +21,14 @@
     <view class="report-state__text">请稍候，正在读取该时间范围内的血压、心率和用药数据。</view>
   </view>
 
-  <view wx:else>
-    <view class="card report-header">
+  <view wx:else class="report-content">
+    <view class="report-section report-section--header">
       <view class="report-header__title">血压心率就诊报告</view>
       <view class="report-header__time">生成于 {{generatedAtText}}</view>
     </view>
 
-    <view class="card report-profile">
-      <view class="report-section__title">患者档案</view>
+    <view class="report-section report-section--patient">
+      <view class="report-section__eyebrow report-section__eyebrow--patient">患者档案</view>
       <view class="report-profile__grid">
         <view class="report-profile__item">
           <view class="report-profile__label">患者姓名</view>
@@ -40,48 +40,68 @@
         </view>
         <view class="report-profile__item report-profile__item--full">
           <view class="report-profile__label">紧急联系人</view>
-          <view class="report-profile__value privacy-target">{{emergencyText}}</view>
+          <view class="report-profile__value privacy-target">
+            <text>{{emergencyNameText}}</text>
+            <text wx:if="{{emergencyNameText && emergencyPhoneText}}"> · </text>
+            <text wx:if="{{emergencyPhoneText}}" class="report-profile__value--emergency">{{emergencyPhoneText}}</text>
+          </view>
         </view>
       </view>
     </view>
 
-    <view wx:if="{{banner}}" class="card report-alert report-alert--{{banner.type}} {{banner.pulse ? 'report-alert--pulse' : ''}}">
-      <view class="report-alert__title">{{banner.title}}</view>
-      <view class="report-alert__text">{{banner.text}}</view>
-    </view>
-
-    <view wx:if="{{hasRecords}}" class="report-summary">
-      <view
-        wx:for="{{summaryCards}}"
-        wx:key="key"
-        class="card report-summary__item"
-      >
-        <view class="report-summary__label">{{item.label}}</view>
-        <view class="report-summary__value {{item.accentClassName}}">
-          {{item.value}}
-        </view>
-        <view class="report-summary__unit">{{item.unit}}</view>
+    <view wx:if="{{banner}}" class="report-section">
+      <view class="report-alert report-alert--{{banner.type}}">
+        <view class="report-alert__title">{{banner.title}}</view>
+        <view class="report-alert__text">{{banner.text}}</view>
       </view>
     </view>
 
-    <view wx:if="{{!hasRecords}}" class="card report-empty">
+    <view wx:if="{{hasRecords}}" class="report-section report-section--summary">
+      <view class="report-section__eyebrow report-section__eyebrow--patient">数据统计摘要</view>
+      <view class="report-summary">
+        <view
+          wx:for="{{summaryCards}}"
+          wx:key="key"
+          class="report-summary__item"
+        >
+          <view class="report-summary__label">{{item.label}}</view>
+          <view class="report-summary__value {{item.accentClassName}}">
+            {{item.value}}
+          </view>
+          <view class="report-summary__unit">{{item.unit}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{!hasRecords}}" class="report-section report-empty">
       该时间段内暂无测量记录
     </view>
 
-    <view wx:if="{{hasRecords}}" class="card report-chart-card">
+    <view wx:if="{{hasRecords}}" class="report-section report-section--chart">
+      <view class="report-section__heading-row">
+        <view class="report-section__eyebrow">血压趋势图</view>
+        <view class="report-section__unit">单位：mmHg</view>
+      </view>
       <canvas id="reportBpChart" type="2d" class="report-chart-card__canvas"></canvas>
     </view>
 
-    <view wx:if="{{hasRecords && hasHeartRateData}}" class="card report-chart-card">
+    <view wx:if="{{hasRecords && hasHeartRateData}}" class="report-section report-section--chart">
+      <view class="report-section__heading-row">
+        <view class="report-section__eyebrow">心率变化图</view>
+        <view class="report-section__unit">单位：bpm</view>
+      </view>
       <canvas id="reportHeartRateChart" type="2d" class="report-chart-card__canvas"></canvas>
     </view>
 
-    <view wx:elif="{{hasRecords}}" class="card report-chart-card">
+    <view wx:elif="{{hasRecords}}" class="report-section report-section--chart">
+      <view class="report-section__heading-row">
+        <view class="report-section__eyebrow">心率变化图</view>
+      </view>
       <view class="report-chart-card__empty">暂无心率数据</view>
     </view>
 
-    <view wx:if="{{hasRecords}}" class="card report-alert-list">
-      <view class="report-section__title">最近异常明细</view>
+    <view wx:if="{{hasRecords}}" class="report-section report-alert-list">
+      <view class="report-section__eyebrow">最近异常明细</view>
 
       <view wx:if="{{recentAlerts.length > 0}}">
         <view
@@ -103,8 +123,7 @@
       <view wx:else class="report-alert-list__empty">该时间段内无异常记录</view>
     </view>
 
-    <view class="card report-disclaimer">
-      <view class="report-disclaimer__line"></view>
+    <view class="report-section report-section--disclaimer">
       <view class="report-disclaimer__text">{{disclaimer}}</view>
     </view>
   </view>

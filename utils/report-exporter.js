@@ -5,6 +5,7 @@ const {
 
 const EXPORT_CANVAS_WIDTH = 750;
 const MAX_EXPORT_HEIGHT = 4000;
+const EXPORT_PADDING = 60;
 const PADDING_X = 40;
 const CONTENT_WIDTH = EXPORT_CANVAS_WIDTH - PADDING_X * 2;
 const SECTION_GAP = 24;
@@ -219,7 +220,7 @@ function drawReportExportCanvas(ctx, payload) {
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, EXPORT_CANVAS_WIDTH, layout.height);
 
-  y = 60;
+  y = EXPORT_PADDING;
   ctx.fillStyle = '#111827';
   ctx.font = 'bold 24px sans-serif';
   ctx.textAlign = 'left';
@@ -296,12 +297,12 @@ function drawReportExportCanvas(ctx, payload) {
 
     y += SECTION_GAP;
     ctx.save();
-    ctx.translate(20, y);
+    ctx.translate(PADDING_X, y);
     drawBloodPressureTrendChart(
       ctx,
       payload.records,
       payload.threshold,
-      { width: EXPORT_CANVAS_WIDTH - 40, height: 300 },
+      { width: CONTENT_WIDTH, height: 300 },
       payload.mode,
     );
     ctx.restore();
@@ -310,12 +311,12 @@ function drawReportExportCanvas(ctx, payload) {
     y += SECTION_GAP;
     if (payload.hasHeartRateData) {
       ctx.save();
-      ctx.translate(20, y);
+      ctx.translate(PADDING_X, y);
       drawHeartRateChart(
         ctx,
         payload.records,
         payload.threshold,
-        { width: EXPORT_CANVAS_WIDTH - 40, height: 260 },
+        { width: CONTENT_WIDTH, height: 260 },
         payload.mode,
       );
       ctx.restore();
@@ -405,6 +406,7 @@ function drawReportExportCanvas(ctx, payload) {
 module.exports = {
   EXPORT_CANVAS_WIDTH,
   MAX_EXPORT_HEIGHT,
+  EXPORT_PADDING,
   EMPTY_TEXT,
   MORE_ALERTS_TEXT,
   measureReportExportHeight,

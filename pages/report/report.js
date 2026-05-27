@@ -17,6 +17,7 @@ const {
 } = require('../../utils/report-chart-renderer');
 const {
   EXPORT_CANVAS_WIDTH,
+  EXPORT_PADDING,
   measureReportExportHeight,
   drawReportExportCanvas,
 } = require('../../utils/report-exporter');
@@ -89,6 +90,37 @@ function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function splitEmergencyText(value) {
+  const safeText = String(value || '').trim();
+
+  if (!safeText || safeText === '未设置') {
+    return {
+      nameText: '未设置',
+      phoneText: '',
+    };
+  }
+
+  if (safeText === '***') {
+    return {
+      nameText: '***',
+      phoneText: '',
+    };
+  }
+
+  const parts = safeText.split(' · ').map((item) => String(item || '').trim()).filter(Boolean);
+  if (parts.length <= 1) {
+    return {
+      nameText: safeText,
+      phoneText: '',
+    };
+  }
+
+  return {
+    nameText: parts.slice(0, -1).join(' · '),
+    phoneText: parts[parts.length - 1],
+  };
+}
+
 function getErrorReason(error) {
   if (!error) {
     return 'unknown';
@@ -151,6 +183,8 @@ Page({
     patientNameText: '未命名档案',
     medicationText: '暂无用药记录',
     emergencyText: '未设置',
+    emergencyNameText: '未设置',
+    emergencyPhoneText: '',
     generatedAtText: '',
     banner: null,
     summaryCards: [],
@@ -379,6 +413,7 @@ Page({
 
     this.chartData = viewModel.chartData;
     this.chartThreshold = viewModel.threshold;
+    const emergencyDisplay = splitEmergencyText(viewModel.patient.emergencyText);
 
     this.setData({
       isLoading: false,
@@ -387,6 +422,8 @@ Page({
       patientNameText: viewModel.patient.nameText,
       medicationText: viewModel.patient.medicationText,
       emergencyText: viewModel.patient.emergencyText,
+      emergencyNameText: emergencyDisplay.nameText,
+      emergencyPhoneText: emergencyDisplay.phoneText,
       generatedAtText: viewModel.generatedAtText,
       banner: viewModel.banner,
       summaryCards: viewModel.summaryCards,
@@ -443,6 +480,15 @@ Page({
           resolve(target);
         });
     });
+  },
+
+  prepareExportCanvas(canvas, logicalHeight, exportScale) {
+    canvas.width = Math.max(1, Math.round(EXPORT_CANVAS_WIDTH * exportScale));
+    canvas.height = Math.max(1, Math.round(logicalHeight * exportScale));
+
+    const ctx = canvas.getContext('2d');
+    ctx.scale(exportScale, exportScale);
+    return ctx;
   },
 
   async renderBloodPressureChart(token) {
@@ -584,6 +630,7 @@ Page({
     try {
       const exportPayload = this.buildExportPayload();
       const exportLayout = measureReportExportHeight(exportPayload);
+      const exportScale = Math.max(1, Number(this.pixelRatio) || 1);
 
       this.exportCanvasPixelHeight = exportLayout.height;
       this.setData({
@@ -594,17 +641,18 @@ Page({
 
       const target = await this.getCanvasNode('#reportExportCanvas');
       const canvas = target.node;
-      const ctx = canvas.getContext('2d');
-
-      canvas.width = EXPORT_CANVAS_WIDTH;
-      canvas.height = exportLayout.height;
+      const ctx = this.prepareExportCanvas(
+        canvas,
+        exportLayout.height,
+        exportScale,
+      );
 
       const lastY = drawReportExportCanvas(ctx, Object.assign({}, exportPayload, {
         exportLayout,
       }));
       const exportPixelHeight = Math.max(
         1,
-        Math.min(exportLayout.height, Math.ceil((Number(lastY) || 0) + 80)),
+        Math.ceil((Number(lastY) || 0) + EXPORT_PADDING),
       );
       const finalExportLayout = Object.assign({}, exportLayout, {
         height: exportPixelHeight,
@@ -616,14 +664,16 @@ Page({
         exportHeight: exportPixelHeight,
       });
 
-      if (exportPixelHeight !== canvas.height) {
-        canvas.width = EXPORT_CANVAS_WIDTH;
-        canvas.height = exportPixelHeight;
+      if (exportPixelHeight !== exportLayout.height) {
         this.setData({
           exportCanvasHeight: Math.max(1, Math.ceil(exportPixelHeight / 2)),
         });
 
-        const redrawCtx = canvas.getContext('2d');
+        const redrawCtx = this.prepareExportCanvas(
+          canvas,
+          exportPixelHeight,
+          exportScale,
+        );
         drawReportExportCanvas(redrawCtx, Object.assign({}, exportPayload, {
           exportLayout: finalExportLayout,
         }));
@@ -642,8 +692,8 @@ Page({
         y: 0,
         width: EXPORT_CANVAS_WIDTH,
         height: exportPixelHeight,
-        destWidth: EXPORT_CANVAS_WIDTH,
-        destHeight: exportPixelHeight,
+        destWidth: Math.max(1, Math.round(EXPORT_CANVAS_WIDTH * exportScale)),
+        destHeight: Math.max(1, Math.round(exportPixelHeight * exportScale)),
       });
       this.exportTempFilePath = result.tempFilePath || '';
 
