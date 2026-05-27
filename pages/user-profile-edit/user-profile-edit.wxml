@@ -1,18 +1,18 @@
 <view class="page page-root" style="--font-scale: {{fontScale}};">
-  <view class="profile-edit-header">
-    <view class="profile-edit-header__back" bindtap="handleBack">返回</view>
-    <view class="profile-edit-header__title">个人资料</view>
-  </view>
-
-  <view class="card profile-edit-card">
-    <view class="profile-edit-section">
+  <view class="profile-edit-card">
+    <view class="profile-edit-section profile-edit-section--avatar">
       <view class="profile-edit-label">头像</view>
+      <view class="profile-edit-hint">用于家人协作时识别你的身份</view>
       <view class="profile-edit-avatar-row">
         <view wx:if="{{form.avatarUrl}}" class="profile-edit-avatar profile-edit-avatar--image">
           <image class="profile-edit-avatar__image" src="{{form.avatarUrl}}" mode="aspectFill" />
         </view>
         <view wx:else class="profile-edit-avatar">{{form.avatarFallback}}</view>
-        <button class="btn-secondary profile-edit-avatar__button" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+        <button
+          class="btn-secondary profile-edit-avatar__button"
+          open-type="chooseAvatar"
+          bindchooseavatar="onChooseAvatar"
+        >
           选择头像
         </button>
       </view>
@@ -20,6 +20,7 @@
 
     <view class="profile-edit-section">
       <view class="profile-edit-label">昵称</view>
+      <view class="profile-edit-hint">最多 20 个字，用于展示给家人</view>
       <input
         class="profile-edit-input"
         type="nickname"
@@ -28,21 +29,20 @@
         value="{{form.nickname}}"
         bindinput="onNicknameInput"
       />
-      <view class="profile-edit-hint">最多 20 字</view>
     </view>
+
+    <view wx:if="{{errorText}}" class="profile-edit-error">{{errorText}}</view>
+
+    <button
+      class="btn-primary profile-edit-save"
+      bindtap="handleSave"
+      loading="{{isSaving}}"
+      disabled="{{isSaving}}"
+    >
+      保存修改
+    </button>
+    <button class="btn-secondary profile-edit-cancel" bindtap="handleBack" disabled="{{isSaving}}">
+      取消
+    </button>
   </view>
-
-  <view wx:if="{{errorText}}" class="profile-edit-error">{{errorText}}</view>
-
-  <button
-    class="btn-primary profile-edit-save"
-    bindtap="handleSave"
-    loading="{{isSaving}}"
-    disabled="{{isSaving}}"
-  >
-    保存修改
-  </button>
-  <button class="btn-secondary profile-edit-cancel" bindtap="handleBack" disabled="{{isSaving}}">
-    取消
-  </button>
 </view>

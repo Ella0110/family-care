@@ -202,6 +202,7 @@ Page({
     currentRelationshipId: '',
     currentSubscribeAlerts: false,
     notifySubscriberCount: 0,
+    showReferenceLineSettings: false,
     thresholdSystolic: DEFAULT_BP_THRESHOLD.systolic,
     thresholdDiastolic: DEFAULT_BP_THRESHOLD.diastolic,
     referenceSystolicElevated: DEFAULT_BP_REFERENCE_LINES.systolicElevated,

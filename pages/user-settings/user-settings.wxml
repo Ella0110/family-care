@@ -105,7 +105,7 @@
     </view>
   </view>
 
-  <view class="settings-group">
+  <view wx:if="{{showReferenceLineSettings}}" class="settings-group">
     <view class="settings-group__title">血压参考线（mmHg）</view>
     <view class="settings-card">
       <view wx:if="{{hasProfile}}" class="settings-reference-grid">
@@ -152,7 +152,7 @@
     </view>
   </view>
 
-  <view class="settings-group">
+  <view wx:if="{{showReferenceLineSettings}}" class="settings-group">
     <view class="settings-group__title">心率参考线（次/分）</view>
     <view class="settings-card">
       <view wx:if="{{hasProfile}}" class="settings-reference-grid">
