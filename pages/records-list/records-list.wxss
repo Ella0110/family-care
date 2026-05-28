@@ -510,7 +510,7 @@ page {
 .records-feedback-layer__title {
     color: #1e293b;
     font-size: calc(34rpx * var(--font-scale));
-    font-weight: 800;
+    font-weight: 700;
     line-height: 1.4;
 }
 
@@ -578,7 +578,8 @@ page {
     transform: translate(-50%, -50%);
     padding: 48rpx;
     border-radius: 32rpx;
-    box-shadow: 0 20rpx 60rpx rgba(15, 23, 42, 0.16);
+    border: 1rpx solid #e2e8f0;
+    box-shadow: 0 12rpx 28rpx rgba(15, 23, 42, 0.1);
     animation: records-dialog-enter 220ms ease-out;
 }
 
@@ -612,7 +613,7 @@ page {
     background: #ef4444;
     color: #ffffff;
     font-size: calc(30rpx * var(--font-scale));
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .records-dialog-layer__confirm::after {

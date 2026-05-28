@@ -86,13 +86,13 @@ function verifyD3RecordsExportImage() {
 
   assert.match(
     exporterJs,
-    /ctx\.font = 'bold 36px sans-serif';[\s\S]*fillText\('血压心率数据记录'/,
+    /const EXPORT_IMAGE_TITLE_FONT_SIZE = 36;[\s\S]*ctx\.font = `bold \$\{EXPORT_IMAGE_TITLE_FONT_SIZE\}px sans-serif`;[\s\S]*fillText\('血压心率数据记录'/,
     'records export title should use the larger 36px title font',
   );
 
   assert.match(
     exporterJs,
-    /ctx\.font = '24px sans-serif';[\s\S]*fillText\(range\.subtitle/,
+    /const EXPORT_IMAGE_SUBTITLE_FONT_SIZE = 24;[\s\S]*ctx\.font = `\$\{EXPORT_IMAGE_SUBTITLE_FONT_SIZE\}px sans-serif`;[\s\S]*fillText\(range\.subtitle/,
     'records export subtitle should use the larger 24px subtitle font',
   );
 

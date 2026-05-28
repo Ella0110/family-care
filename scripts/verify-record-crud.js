@@ -82,15 +82,8 @@ async function main() {
   }, {});
   assert.strictEqual(saved.success, true);
   assert.strictEqual(saved.alertTriggered, true);
-  assert.strictEqual(saved.alertSentTo.length, 1);
-  assert.strictEqual(saved.alertSentTo[0], 'user_record');
-  assert.strictEqual(pushCalls.length, 1);
-  assert.strictEqual(pushCalls[0].touser, 'user_record');
-  assert.strictEqual(pushCalls[0].templateId, 'lrhxG9oawoHDyh1AFVSgiv-cQE7-qTAn87-_nzBDxCY');
-  assert.strictEqual(pushCalls[0].page, 'pages/data/data');
-  assert.strictEqual(pushCalls[0].data.thing1.value, '血压偏高');
-  assert.strictEqual(pushCalls[0].data.thing2.value, '妈妈');
-  assert.strictEqual(pushCalls[0].data.thing4.value, '妈妈的血压152/96 请关注');
+  assert.strictEqual(saved.alertSentTo.length, 0);
+  assert.strictEqual(pushCalls.length, 0);
   assert.strictEqual(buildTipText('妈妈', { systolic: 152, diastolic: 96 }), '妈妈的血压152/96 请关注');
   assert.strictEqual(buildTipText('测试档案名字很长很长很长', { systolic: 152, diastolic: 96 }), '血压152/96 请关注');
 
@@ -108,7 +101,7 @@ async function main() {
   }, {});
   assert.strictEqual(savedSkipPush.success, true);
   assert.strictEqual(savedSkipPush.alertTriggered, true);
-  assert.strictEqual(savedSkipPush.alertSentTo.length, 1);
+  assert.strictEqual(savedSkipPush.alertSentTo.length, 0);
   assert.strictEqual(pushCalls.length, pushCountBeforeSkip, 'skipPush should suppress subscribe message sends');
 
   const listed = await getRecords({ profileId: createdProfile.profile._id }, {});

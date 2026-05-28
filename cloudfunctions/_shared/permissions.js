@@ -25,9 +25,9 @@ const ROLE_PERMISSIONS = Object.freeze({
 });
 
 const ROLE_DEFAULT_SUBSCRIBE_ALERTS = Object.freeze({
-  owner: true,
-  collaborator: true,
-  viewer: true,
+  owner: false,
+  collaborator: false,
+  viewer: false,
 });
 
 const ROLE_SORT_ORDER = Object.freeze({

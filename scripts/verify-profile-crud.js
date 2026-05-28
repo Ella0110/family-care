@@ -51,6 +51,7 @@ async function main() {
   assert.strictEqual(created.success, true);
   assert.strictEqual(created.profile.name, '爸爸');
   assert.strictEqual(created.relationship.role, 'owner');
+  assert.strictEqual(created.relationship.subscribeAlerts, false, 'owner alerts should default to off');
 
   const updated = await updateProfile({
     profileId: created.profile._id,

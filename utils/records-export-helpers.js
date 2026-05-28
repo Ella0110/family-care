@@ -6,7 +6,11 @@ const {
 
 const EXPORT_IMAGE_CANVAS_WIDTH = 750;
 const EXPORT_IMAGE_SIDE_PADDING = 40;
-const EXPORT_IMAGE_TITLE_HEIGHT = 160;
+const EXPORT_IMAGE_TITLE_FONT_SIZE = 36;
+const EXPORT_IMAGE_SUBTITLE_FONT_SIZE = 24;
+const EXPORT_IMAGE_TITLE_Y = 60 + (EXPORT_IMAGE_TITLE_FONT_SIZE / 2);
+const EXPORT_IMAGE_SUBTITLE_Y = EXPORT_IMAGE_TITLE_Y + (EXPORT_IMAGE_TITLE_FONT_SIZE / 2) + 16 + (EXPORT_IMAGE_SUBTITLE_FONT_SIZE / 2);
+const EXPORT_IMAGE_HEADER_TOP = EXPORT_IMAGE_SUBTITLE_Y + (EXPORT_IMAGE_SUBTITLE_FONT_SIZE / 2) + 24;
 const EXPORT_IMAGE_HEADER_ROW_HEIGHT = 60;
 const EXPORT_IMAGE_ROW_HEIGHT = 56;
 const EXPORT_IMAGE_BOTTOM_HEIGHT = 96;
@@ -50,9 +54,9 @@ function buildRecentRange(days, now = new Date()) {
 }
 
 function measureRecordsImageHeight(recordCount) {
-  return EXPORT_IMAGE_TITLE_HEIGHT
+  return EXPORT_IMAGE_HEADER_TOP
     + EXPORT_IMAGE_HEADER_ROW_HEIGHT
-    + Math.max(1, Number(recordCount) || 0) * EXPORT_IMAGE_ROW_HEIGHT
+    + Math.max(0, Number(recordCount) || 0) * EXPORT_IMAGE_ROW_HEIGHT
     + EXPORT_IMAGE_BOTTOM_HEIGHT;
 }
 
@@ -72,7 +76,7 @@ function drawRecordsImageTable(ctx, options) {
   const records = Array.isArray(options && options.records) ? options.records : [];
   const range = options && options.range ? options.range : buildRecentRange(7);
   const width = (options && options.width) || EXPORT_IMAGE_CANVAS_WIDTH;
-  const layoutRowCount = Math.max(1, records.length);
+  const layoutRowCount = records.length;
   const totalHeight = measureRecordsImageHeight(records.length);
   const tableLeft = EXPORT_IMAGE_SIDE_PADDING;
   const tableWidth = width - EXPORT_IMAGE_SIDE_PADDING * 2;
@@ -86,14 +90,14 @@ function drawRecordsImageTable(ctx, options) {
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'center';
   ctx.fillStyle = '#111827';
-  ctx.font = 'bold 36px sans-serif';
-  ctx.fillText('血压心率数据记录', width / 2, 72);
+  ctx.font = `bold ${EXPORT_IMAGE_TITLE_FONT_SIZE}px sans-serif`;
+  ctx.fillText('血压心率数据记录', width / 2, EXPORT_IMAGE_TITLE_Y);
 
   ctx.fillStyle = '#6B7280';
-  ctx.font = '24px sans-serif';
-  ctx.fillText(range.subtitle, width / 2, 116);
+  ctx.font = `${EXPORT_IMAGE_SUBTITLE_FONT_SIZE}px sans-serif`;
+  ctx.fillText(range.subtitle, width / 2, EXPORT_IMAGE_SUBTITLE_Y);
 
-  const headerTop = EXPORT_IMAGE_TITLE_HEIGHT;
+  const headerTop = EXPORT_IMAGE_HEADER_TOP;
   ctx.fillStyle = '#F3F4F6';
   ctx.fillRect(tableLeft, headerTop, tableWidth, EXPORT_IMAGE_HEADER_ROW_HEIGHT);
 
@@ -149,19 +153,6 @@ function drawRecordsImageTable(ctx, options) {
       rowCursorX += columnWidth;
     });
   });
-
-  if (!records.length) {
-    ctx.fillStyle = '#64748B';
-    ctx.font = '26px sans-serif';
-    drawCellText(
-      ctx,
-      '暂无数据',
-      tableLeft,
-      tableLeft + tableWidth,
-      headerTop + EXPORT_IMAGE_HEADER_ROW_HEIGHT + EXPORT_IMAGE_ROW_HEIGHT / 2,
-      'left',
-    );
-  }
 
   ctx.strokeStyle = '#E5E7EB';
   ctx.lineWidth = 1;

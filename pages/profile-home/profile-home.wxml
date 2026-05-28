@@ -148,16 +148,18 @@
           </view>
         </view>
       </view>
-       <view class="profile-home__section-head">
+      <block wx:if="{{canManageCurrentProfile}}">
+        <view class="profile-home__section-head">
           <view class="profile-home__section-title">其他</view>
-    </view>
-      <view wx:if="{{canManageCurrentProfile}}" class="card profile-home__danger" bindtap="handleDeleteProfile">
-        <view class="profile-home__danger-icon">⚠</view>
-        <view class="profile-home__danger-main">
-          <view class="profile-home__danger-title">删除档案</view>
-          <view class="profile-home__danger-subtitle">删除后所有记录无法恢复</view>
         </view>
-      </view>
+        <view class="card profile-home__danger" bindtap="handleDeleteProfile">
+          <view class="profile-home__danger-icon">⚠</view>
+          <view class="profile-home__danger-main">
+            <view class="profile-home__danger-title">删除档案</view>
+            <view class="profile-home__danger-subtitle">删除后所有记录无法恢复</view>
+          </view>
+        </view>
+      </block>
 
       <!-- <view class="profile-home__footer-link" bindtap="handleOpenProfileSwitcher">查看全部档案</view> -->
     </view>

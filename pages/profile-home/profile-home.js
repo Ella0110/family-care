@@ -507,7 +507,7 @@ Page({
             relationshipRole: relationship ? relationship.role : "",
             activeRelationshipId: relationship ? relationship._id : "",
             activeRelationshipSubscribeAlerts: Boolean(
-                relationship ? relationship.subscribeAlerts : true,
+                relationship ? relationship.subscribeAlerts : false,
             ),
         };
         const nextSignature = [

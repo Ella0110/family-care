@@ -246,6 +246,9 @@ async function main() {
   }, {});
   assert.strictEqual(collaboratorSave.success, true);
 
+  const collaboratorDeleteOwnRecord = await deleteRecord({ recordId: collaboratorSave.record._id }, {});
+  assert.strictEqual(collaboratorDeleteOwnRecord.success, true);
+
   const collaboratorEditProfile = await updateProfile({
     profileId: profileA._id,
     patch: { note: '无权编辑档案信息' },
