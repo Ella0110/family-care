@@ -164,13 +164,18 @@
   </view>
 
   <view wx:if="{{showExportPreview}}" class="records-export-preview">
-    <view class="records-export-preview__header">导出预览</view>
+    <view class="records-export-preview__header">
+      <view class="records-export-preview__title">导出预览</view>
+      <view class="records-export-preview__subtitle">确认图片内容完整后，再保存到相册。</view>
+    </view>
     <scroll-view scroll-y class="records-export-preview__scroll">
-      <image
-        src="{{exportTempFilePath}}"
-        mode="widthFix"
-        class="records-export-preview__image"
-      />
+      <view class="records-export-preview__card">
+        <image
+          src="{{exportTempFilePath}}"
+          mode="widthFix"
+          class="records-export-preview__image"
+        />
+      </view>
     </scroll-view>
     <view class="records-export-preview__actions">
       <button

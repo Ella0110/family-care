@@ -1,152 +1,108 @@
-<view class="page">
-  <view class="medication-header">
-    <view class="medication-header__back" bindtap="handleCancel">返回</view>
-    <view class="medication-header__text">
-      <view class="medication-header__title">{{pageTitle}}</view>
-      <view class="medication-header__subtitle">{{pageSubtitle}}</view>
-    </view>
+<view class="page medication-list-page">
+  <view wx:if="{{errorText}}" class="card medication-list__state">
+    <view class="medication-list__state-title">暂时无法加载用药记录</view>
+    <view class="medication-list__state-text">{{errorText}}</view>
+    <button class="btn-secondary medication-list__retry" bindtap="handleRetry">重新加载</button>
   </view>
 
-  <view class="medication-profile-lock">
-    <view class="medication-profile-lock__label">档案</view>
-    <view class="medication-profile-lock__name">{{profileName}}</view>
-    <view class="medication-profile-lock__hint">不可修改</view>
+  <view wx:elif="{{isLoading && !hasLoadedOnce}}" class="card medication-list__state">
+    <view class="medication-list__state-title">正在读取用药...</view>
+    <view class="medication-list__state-text">稍等一下，马上就好。</view>
   </view>
 
-  <view wx:if="{{isLoadingMedication}}" class="card medication-loading">
-    正在读取用药...
-  </view>
-
-  <view class="card medication-form">
-    <view class="form-item">
-      <view class="form-label">药物名称 <text class="form-required">*</text></view>
-      <input
-        class="form-input"
-        value="{{form.drug}}"
-        maxlength="50"
-        placeholder="例如：厄贝沙坦"
-        placeholder-class="form-placeholder"
-        disabled="{{isSaving || isDeleting}}"
-        bindinput="onDrugInput"
-      />
-    </view>
-
-    <view class="form-item">
-      <view class="form-label">剂量 <text class="form-required">*</text></view>
-      <input
-        class="form-input"
-        value="{{form.dose}}"
-        maxlength="20"
-        placeholder="例如：150mg"
-        placeholder-class="form-placeholder"
-        disabled="{{isSaving || isDeleting}}"
-        bindinput="onDoseInput"
-      />
-    </view>
-
-    <view class="form-item">
-      <view class="form-label">频率 <text class="form-required">*</text></view>
-      <picker mode="selector" range="{{frequencyOptions}}" value="{{frequencyIndex}}" bindchange="onFrequencyChange">
-        <view class="picker-field {{frequencyPickerText ? '' : 'is-placeholder'}}">
-          {{frequencyPickerText || '请选择服用频率'}}
-        </view>
-      </picker>
-      <input
-        wx:if="{{showCustomFrequency}}"
-        class="form-input form-input--custom"
-        value="{{form.frequencyCustom}}"
-        maxlength="30"
-        placeholder="请填写具体频率，例如：每日四次"
-        placeholder-class="form-placeholder"
-        disabled="{{isSaving || isDeleting}}"
-        bindinput="onFrequencyCustomInput"
-      />
-    </view>
-
-    <view class="form-item">
-      <view class="form-label">服用时间</view>
-      <picker mode="selector" range="{{timingOptions}}" value="{{timingIndex}}" bindchange="onTimingChange">
-        <view class="picker-field {{timingPickerText ? '' : 'is-placeholder'}}">
-          {{timingPickerText || '请选择服用时间'}}
-        </view>
-      </picker>
-      <input
-        wx:if="{{showCustomTiming}}"
-        class="form-input form-input--custom"
-        value="{{form.timingCustom}}"
-        maxlength="30"
-        placeholder="请填写具体时间"
-        placeholder-class="form-placeholder"
-        disabled="{{isSaving || isDeleting}}"
-        bindinput="onTimingCustomInput"
-      />
-    </view>
-
-    <view class="form-item">
-      <view class="form-label">开始日期</view>
-      <view class="date-row">
-        <picker mode="date" value="{{form.startDate}}" bindchange="onStartDateChange">
-          <view class="picker-field {{form.startDate ? '' : 'is-placeholder'}}">
-            {{form.startDate || '请选择开始日期'}}
+  <block wx:elif="{{hasAnyMedication}}">
+    <view wx:if="{{activeMedications.length}}" class="medication-list__section">
+      <view class="medication-list__section-title">当前用药</view>
+      <view class="medication-list__cards">
+        <view
+          wx:for="{{activeMedications}}"
+          wx:key="_id"
+          class="medication-card-swipe"
+        >
+          <view
+            wx:if="{{canWriteCurrentProfile}}"
+            class="medication-card-swipe__delete"
+            data-id="{{item._id}}"
+            bindtap="handleDeleteMedication"
+          >
+            删除
           </view>
-        </picker>
-        <view class="date-clear" bindtap="clearStartDate">清空</view>
+          <view
+            class="card medication-card"
+            style="{{item.swipeOffsetText}}"
+            data-id="{{item._id}}"
+            data-section="activeMedications"
+            data-index="{{index}}"
+            bindtap="handleOpenMedicationDetail"
+            bindtouchstart="handleCardTouchStart"
+            bindtouchmove="handleCardTouchMove"
+            bindtouchend="handleCardTouchEnd"
+            bindtouchcancel="handleCardTouchEnd"
+          >
+            <view class="medication-card__content">
+              <view class="medication-card__title">{{item.drug}}</view>
+              <view class="medication-card__meta">{{item.summaryText}}</view>
+              <view class="medication-card__timing">{{item.timingText}}</view>
+            </view>
+            <view wx:if="{{canWriteCurrentProfile}}" class="medication-card__arrow">›</view>
+          </view>
+        </view>
       </view>
     </view>
 
-    <view class="form-item">
-      <view class="form-label">停药日期</view>
-      <view class="date-row">
-        <picker mode="date" value="{{form.endDate}}" bindchange="onEndDateChange">
-          <view class="picker-field {{form.endDate ? '' : 'is-placeholder'}}">
-            {{form.endDate || '请选择停药日期'}}
+    <view wx:if="{{historicalMedications.length}}" class="medication-list__section">
+      <view class="medication-list__section-title">历史用药</view>
+      <view class="medication-list__cards">
+        <view
+          wx:for="{{historicalMedications}}"
+          wx:key="_id"
+          class="medication-card-swipe"
+        >
+          <view
+            wx:if="{{canWriteCurrentProfile}}"
+            class="medication-card-swipe__delete"
+            data-id="{{item._id}}"
+            bindtap="handleDeleteMedication"
+          >
+            删除
           </view>
-        </picker>
-        <view class="date-clear" bindtap="clearEndDate">清空</view>
+          <view
+            class="card medication-card medication-card--historical"
+            style="{{item.swipeOffsetText}}"
+            data-id="{{item._id}}"
+            data-section="historicalMedications"
+            data-index="{{index}}"
+            bindtap="handleOpenMedicationDetail"
+            bindtouchstart="handleCardTouchStart"
+            bindtouchmove="handleCardTouchMove"
+            bindtouchend="handleCardTouchEnd"
+            bindtouchcancel="handleCardTouchEnd"
+          >
+            <view class="medication-card__content">
+              <view class="medication-card__title">{{item.drug}}</view>
+              <view class="medication-card__meta">{{item.summaryText}}</view>
+              <view class="medication-card__timing">{{item.timingText}}</view>
+            </view>
+            <view wx:if="{{canWriteCurrentProfile}}" class="medication-card__arrow">›</view>
+          </view>
+        </view>
       </view>
-      <view class="form-help">留空表示长期用药</view>
     </view>
+  </block>
 
-    <view class="form-item">
-      <view class="form-label">备注</view>
-      <textarea
-        class="form-textarea"
-        value="{{form.note}}"
-        maxlength="200"
-        placeholder="可填写联合用药、注意事项等"
-        placeholder-class="form-placeholder"
-        disabled="{{isSaving || isDeleting}}"
-        bindinput="onNoteInput"
-      />
-      <view class="form-help">{{form.note.length}} / 200</view>
-    </view>
+  <view wx:else class="card medication-empty">
+    <view class="medication-empty__title">暂无用药记录</view>
+    <view class="medication-empty__text">把家人正在服用的药物记下来，后续查看和回顾都会更清晰。</view>
+    <button
+      wx:if="{{canWriteCurrentProfile}}"
+      class="btn-primary medication-empty__button"
+      bindtap="handleCreateMedication"
+    >
+      添加用药
+    </button>
   </view>
 
-  <view class="medication-actions">
-    <view wx:if="{{errorText}}" class="medication-error">{{errorText}}</view>
-    <button
-      class="btn-primary medication-button"
-      loading="{{isSaving}}"
-      disabled="{{isSaving || isDeleting || isLoadingMedication}}"
-      bindtap="handleSubmit"
-    >
-      {{isEditMode ? '保存修改' : '保存'}}
-    </button>
-    <button
-      wx:if="{{isEditMode}}"
-      class="medication-delete-button"
-      loading="{{isDeleting}}"
-      disabled="{{isSaving || isDeleting || isLoadingMedication}}"
-      bindtap="handleDelete"
-    >
-      删除
-    </button>
-    <button
-      class="btn-secondary medication-button"
-      disabled="{{isSaving || isDeleting}}"
-      bindtap="handleCancel"
-    >
-      取消
-    </button>
+  <view wx:if="{{canWriteCurrentProfile && hasAnyMedication}}" class="medication-list__footer">
+    <button class="btn-primary medication-list__footer-button" bindtap="handleCreateMedication">添加用药</button>
   </view>
 </view>

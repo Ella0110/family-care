@@ -101,6 +101,13 @@ page {
     box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.04);
 }
 
+.data-latest--empty {
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
 .data-latest__content {
 }
 
@@ -225,32 +232,108 @@ page {
 }
 
 .data-latest__empty {
-    text-align: center;
-    padding: 40rpx 0 24rpx;
+    display: flex;
+    justify-content: center;
 }
 
-.data-latest__empty-icon {
-    font-size: 80rpx;
-    color: #cbd5e1;
+.data-latest__empty-card {
+    width: 100%;
+    padding: 80rpx 48rpx;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 40rpx;
+    box-shadow: 0 20px 25px -5px rgba(49, 130, 247, 0.04);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.data-latest__empty-orbit {
+    width: 200rpx;
+    height: 200rpx;
+    border: 4rpx dashed #dbeafe;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: data-empty-spin 10s linear infinite;
+}
+
+.data-latest__empty-orbit-fill {
+    width: 164rpx;
+    height: 164rpx;
+    border-radius: 50%;
+    background: #eff6ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: data-empty-counter-spin 10s linear infinite;
+}
+
+.data-latest__empty-heart {
+    width: 100rpx;
+    height: 100rpx;
 }
 
 .data-latest__empty-title {
-    margin-top: 16rpx;
-    font-size: 32rpx;
-    font-weight: 700;
-    color: #111827;
+    margin-top: 40rpx;
+    font-size: 36rpx;
+    font-weight: 800;
+    color: #0f172a;
 }
 
 .data-latest__empty-text {
-    margin-top: 8rpx;
+    margin-top: 20rpx;
     font-size: 26rpx;
+    line-height: 1.7;
     color: #94a3b8;
+    max-width: 520rpx;
+}
+
+.data-latest__empty-button {
+    width: 80%;
+    min-height: 88rpx;
+    margin-top: 40rpx;
+    border-radius: 24rpx;
+    background: #3478f6;
+    color: #ffffff;
+    font-size: 30rpx;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.data-latest__empty-button::after {
+    border: 0;
 }
 
 .data-latest__empty-import {
-    margin-top: 16rpx;
-    font-size: 28rpx;
-    color: #3182f7;
+    margin-top: 24rpx;
+    font-size: 26rpx;
+    color: #3478f6;
+}
+
+@keyframes data-empty-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes data-empty-counter-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(-360deg);
+    }
 }
 
 /* ==========================================================

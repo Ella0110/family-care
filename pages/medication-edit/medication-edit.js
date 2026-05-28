@@ -2,33 +2,38 @@ const { store } = require('../../store/index');
 const medicationService = require('../../services/medication-service');
 const { getErrorMessage } = require('../../utils/error-messages');
 const { canWrite } = require('../../utils/permission-helpers');
-const {
-  OTHER_OPTION,
-  FREQUENCY_OPTIONS,
-  TIMING_OPTIONS,
-  getChinaDateString,
-  resolveMedicationOptionState,
-} = require('../../utils/medication');
 
-function showToast(title, duration = 1500) {
-  wx.showToast({
-    title,
-    icon: 'none',
-    duration,
-  });
+const DELETE_ACTION_WIDTH_RPX = 148;
+const DELETE_ACTION_THRESHOLD_RPX = 72;
+
+function buildSwipeStyle(offset = 0) {
+  return `transform: translateX(${offset}rpx);`;
 }
 
-function goBackOrHome() {
-  const pages = getCurrentPages();
+function findProfile(profileId) {
+  const state = store.getState();
+  return (state.profiles || []).find((profile) => profile && profile._id === profileId) || null;
+}
 
-  if (pages.length > 1) {
-    wx.navigateBack({ delta: 1 });
-    return;
-  }
+function buildTimingText(medication) {
+  const timing = String((medication && medication.timing) || '').trim();
+  return timing || '服用时间未填写';
+}
 
-  wx.switchTab({
-    url: '/pages/profile-home/profile-home',
-  });
+function normalizeMedicationList(items = [], { historical = false, sectionKey = '' } = {}) {
+  return items
+    .filter(Boolean)
+    .map((item) => ({
+      _id: item._id || '',
+      drug: item.drug || '未命名药物',
+      summaryText: [item.dose || '', item.frequency || '']
+        .filter(Boolean)
+        .join(' · '),
+      timingText: buildTimingText(item),
+      isHistorical: historical,
+      sectionKey,
+      swipeOffsetText: buildSwipeStyle(0),
+    }));
 }
 
 function showConfirmModal(options) {
@@ -42,407 +47,345 @@ function showConfirmModal(options) {
   });
 }
 
-function findProfile(profileId) {
-  const state = store.getState();
-  return (state.profiles || []).find((profile) => profile && profile._id === profileId) || null;
-}
-
-function trimText(value) {
-  return String(value || '').trim();
-}
-
-function canAccessMedicationEdit(profileId) {
-  if (!profileId) {
-    return false;
-  }
-
-  return canWrite(store.getState(), profileId);
-}
-
 Page({
   data: {
-    mode: 'create',
     profileId: '',
-    medicationId: '',
-    profileName: '当前档案',
-    pageTitle: '添加用药',
-    pageSubtitle: '请按当前长期用药情况填写',
-    isEditMode: false,
-    isLoadingMedication: false,
-    isSaving: false,
-    isDeleting: false,
+    canWriteCurrentProfile: false,
+    isLoading: false,
+    hasLoadedOnce: false,
     errorText: '',
-    frequencyOptions: FREQUENCY_OPTIONS,
-    timingOptions: TIMING_OPTIONS,
-    frequencyIndex: -1,
-    timingIndex: -1,
-    frequencyPickerText: '',
-    timingPickerText: '',
-    showCustomFrequency: false,
-    showCustomTiming: false,
-    form: {
-      drug: '',
-      dose: '',
-      frequencySelection: '',
-      frequencyCustom: '',
-      timingSelection: '',
-      timingCustom: '',
-      startDate: '',
-      endDate: '',
-      note: '',
-    },
+    activeMedications: [],
+    historicalMedications: [],
+    hasAnyMedication: false,
+    openDeleteMedicationId: '',
+    openDeleteSection: '',
+    openDeleteIndex: -1,
+    activeSwipeMedicationId: '',
+    activeSwipeSection: '',
+    activeSwipeIndex: -1,
+    swipeOffsetRpx: 0,
+    isDeletingMedicationId: '',
   },
 
   onLoad(options = {}) {
-    const mode = options.mode === 'edit' ? 'edit' : 'create';
-    const profileId = options.profileId || '';
-    const medicationId = options.medicationId || '';
+    const profileId = options.profileId || store.getState().currentProfileId || '';
     const profile = findProfile(profileId);
-    const today = getChinaDateString();
 
-    this.originalMedication = null;
+    this.profileId = profileId;
+    this.requestId = 0;
+    this.rowTouchState = null;
+    this.lastSwipeMoveAt = 0;
+    this.lastSwipeGesture = null;
 
     this.setData({
-      mode,
       profileId,
-      medicationId,
-      profileName: profile ? profile.name : '当前档案',
-      pageTitle: mode === 'edit' ? '编辑用药' : `为 ${profile ? profile.name : '当前档案'} 添加用药`,
-      pageSubtitle: mode === 'edit' ? '修改后会回到首页' : '请按当前长期用药情况填写',
-      isEditMode: mode === 'edit',
-      'form.startDate': today,
-    });
-
-    if (!profileId) {
-      this.setData({ errorText: '档案不存在' });
-      return;
-    }
-
-    if (!canAccessMedicationEdit(profileId)) {
-      showToast('你没有权限管理用药');
-      goBackOrHome();
-      return;
-    }
-
-    if (mode === 'edit') {
-      this.loadMedicationForEdit();
-    }
-  },
-
-  async loadMedicationForEdit() {
-    if (!this.data.medicationId) {
-      this.setData({ errorText: getErrorMessage({ code: 'MEDICATION_NOT_FOUND' }) });
-      return;
-    }
-
-    const cachedMedication = medicationService.getCachedMedication(this.data.profileId, this.data.medicationId);
-    if (cachedMedication) {
-      this.fillFormFromMedication(cachedMedication);
-      return;
-    }
-
-    this.setData({
-      isLoadingMedication: true,
-      errorText: '',
-    });
-
-    try {
-      const result = await medicationService.fetchMedications(this.data.profileId);
-      const allMedications = result.activeMedications.concat(result.historicalMedications);
-      const medication = allMedications.find((item) => item && item._id === this.data.medicationId);
-
-      if (!medication) {
-        this.setData({ errorText: getErrorMessage({ code: 'MEDICATION_NOT_FOUND' }) });
-        return;
-      }
-
-      this.fillFormFromMedication(medication);
-    } catch (error) {
-      this.setData({ errorText: getErrorMessage(error) });
-    } finally {
-      this.setData({ isLoadingMedication: false });
-    }
-  },
-
-  fillFormFromMedication(medication) {
-    const frequencyState = resolveMedicationOptionState(medication.frequency, FREQUENCY_OPTIONS);
-    const timingState = resolveMedicationOptionState(medication.timing, TIMING_OPTIONS);
-
-    this.originalMedication = medication;
-    this.setData({
-      frequencyIndex: frequencyState.pickerIndex,
-      frequencyPickerText: frequencyState.selection,
-      showCustomFrequency: frequencyState.selection === OTHER_OPTION,
-      timingIndex: timingState.pickerIndex,
-      timingPickerText: timingState.selection,
-      showCustomTiming: timingState.selection === OTHER_OPTION,
-      'form.drug': medication.drug || '',
-      'form.dose': medication.dose || '',
-      'form.frequencySelection': frequencyState.selection,
-      'form.frequencyCustom': frequencyState.customValue,
-      'form.timingSelection': timingState.selection,
-      'form.timingCustom': timingState.customValue,
-      'form.startDate': medication.startDate || '',
-      'form.endDate': medication.endDate || '',
-      'form.note': medication.note || '',
+      canWriteCurrentProfile: canWrite(store.getState(), profileId),
+      errorText: profileId && profile ? '' : '档案不存在',
     });
   },
 
-  onDrugInput(event) {
-    this.setData({
-      'form.drug': event.detail.value,
-      errorText: '',
-    });
-  },
-
-  onDoseInput(event) {
-    this.setData({
-      'form.dose': event.detail.value,
-      errorText: '',
-    });
-  },
-
-  onFrequencyChange(event) {
-    const frequencyIndex = Number(event.detail.value);
-    const selection = FREQUENCY_OPTIONS[frequencyIndex] || '';
-    const showCustomFrequency = selection === OTHER_OPTION;
-    const nextData = {
-      frequencyIndex,
-      frequencyPickerText: selection,
-      showCustomFrequency,
-      'form.frequencySelection': selection,
-      errorText: '',
-    };
-
-    if (!showCustomFrequency) {
-      nextData['form.frequencyCustom'] = '';
-    }
-
-    this.setData(nextData);
-  },
-
-  onFrequencyCustomInput(event) {
-    this.setData({
-      'form.frequencyCustom': event.detail.value,
-      errorText: '',
-    });
-  },
-
-  onTimingChange(event) {
-    const timingIndex = Number(event.detail.value);
-    const selection = TIMING_OPTIONS[timingIndex] || '';
-    const showCustomTiming = selection === OTHER_OPTION;
-    const nextData = {
-      timingIndex,
-      timingPickerText: selection,
-      showCustomTiming,
-      'form.timingSelection': selection,
-      errorText: '',
-    };
-
-    if (!showCustomTiming) {
-      nextData['form.timingCustom'] = '';
-    }
-
-    this.setData(nextData);
-  },
-
-  onTimingCustomInput(event) {
-    this.setData({
-      'form.timingCustom': event.detail.value,
-      errorText: '',
-    });
-  },
-
-  onStartDateChange(event) {
-    this.setData({
-      'form.startDate': event.detail.value,
-      errorText: '',
-    });
-  },
-
-  onEndDateChange(event) {
-    this.setData({
-      'form.endDate': event.detail.value,
-      errorText: '',
-    });
-  },
-
-  clearStartDate() {
-    this.setData({
-      'form.startDate': '',
-      errorText: '',
-    });
-  },
-
-  clearEndDate() {
-    this.setData({
-      'form.endDate': '',
-      errorText: '',
-    });
-  },
-
-  onNoteInput(event) {
-    this.setData({
-      'form.note': event.detail.value,
-      errorText: '',
-    });
-  },
-
-  validateForm() {
-    const form = this.data.form;
-    const drug = trimText(form.drug);
-    const dose = trimText(form.dose);
-    const frequencySelection = trimText(form.frequencySelection);
-    const frequencyCustom = trimText(form.frequencyCustom);
-    const timingSelection = trimText(form.timingSelection);
-    const timingCustom = trimText(form.timingCustom);
-    const startDate = trimText(form.startDate);
-    const endDate = trimText(form.endDate);
-    const note = trimText(form.note);
-
+  onShow() {
     if (!this.data.profileId) {
-      return '档案不存在';
+      return;
     }
 
-    if (!drug) {
-      return '药物名称不能为空';
-    }
-    if (drug.length > 50) {
-      return '药物名称不能超过 50 个字';
-    }
-
-    if (!dose) {
-      return '剂量不能为空';
-    }
-    if (dose.length > 20) {
-      return '剂量不能超过 20 个字';
-    }
-
-    if (!frequencySelection) {
-      return '请选择服用频率';
-    }
-
-    if (frequencySelection === OTHER_OPTION && !frequencyCustom) {
-      return '请填写具体频率';
-    }
-    if (frequencySelection === OTHER_OPTION && frequencyCustom.length > 30) {
-      return '具体频率不能超过 30 个字';
-    }
-
-    if (timingSelection === OTHER_OPTION && !timingCustom) {
-      return '请填写具体时间';
-    }
-    if (timingSelection === OTHER_OPTION && timingCustom.length > 30) {
-      return '具体时间不能超过 30 个字';
-    }
-
-    if (startDate && !/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
-      return '开始日期格式有误';
-    }
-    if (endDate && !/^\d{4}-\d{2}-\d{2}$/.test(endDate)) {
-      return '停药日期格式有误';
-    }
-    if (startDate && endDate && endDate <= startDate) {
-      return '停药日期必须晚于开始日期';
-    }
-
-    if (note.length > 200) {
-      return '备注不能超过 200 个字';
-    }
-
-    return '';
+    this.loadMedications();
   },
 
-  buildPayload() {
-    const form = this.data.form;
-    const frequencySelection = trimText(form.frequencySelection);
-    const timingSelection = trimText(form.timingSelection);
-    const frequencyCustom = trimText(form.frequencyCustom);
-    const timingCustom = trimText(form.timingCustom);
-
-    return {
-      drug: trimText(form.drug),
-      dose: trimText(form.dose),
-      frequency: frequencySelection === OTHER_OPTION ? frequencyCustom : frequencySelection,
-      timing: timingSelection
-        ? (timingSelection === OTHER_OPTION ? timingCustom : timingSelection)
-        : null,
-      startDate: trimText(form.startDate) || null,
-      endDate: trimText(form.endDate) || null,
-      note: trimText(form.note) || null,
-    };
-  },
-
-  buildPatch() {
-    const nextPayload = this.buildPayload();
-    const original = this.originalMedication || {};
-    const previousPayload = {
-      drug: original.drug || '',
-      dose: original.dose || '',
-      frequency: original.frequency || '',
-      timing: original.timing || null,
-      startDate: original.startDate || null,
-      endDate: original.endDate || null,
-      note: original.note || null,
-    };
-    const patch = {};
-
-    Object.keys(nextPayload).forEach((key) => {
-      if (nextPayload[key] !== previousPayload[key]) {
-        patch[key] = nextPayload[key];
-      }
+  applyMedicationGroups(groups = {}) {
+    const activeMedications = normalizeMedicationList(groups.active, {
+      historical: false,
+      sectionKey: 'activeMedications',
+    });
+    const historicalMedications = normalizeMedicationList(groups.historical, {
+      historical: true,
+      sectionKey: 'historicalMedications',
     });
 
-    return patch;
+    this.setData({
+      activeMedications,
+      historicalMedications,
+      hasAnyMedication: activeMedications.length + historicalMedications.length > 0,
+      hasLoadedOnce: true,
+      openDeleteMedicationId: '',
+      openDeleteSection: '',
+      openDeleteIndex: -1,
+      activeSwipeMedicationId: '',
+      activeSwipeSection: '',
+      activeSwipeIndex: -1,
+      swipeOffsetRpx: 0,
+    });
   },
 
-  async handleSubmit() {
-    const validationMessage = this.validateForm();
-    if (validationMessage) {
-      showToast(validationMessage);
-      return;
-    }
+  loadMedications() {
+    const requestId = this.requestId + 1;
+    this.requestId = requestId;
 
-    if (this.data.isEditMode && !this.originalMedication) {
-      showToast(getErrorMessage({ code: 'MEDICATION_NOT_FOUND' }));
-      return;
-    }
+    this.setData({
+      isLoading: !this.data.hasLoadedOnce,
+      errorText: '',
+    });
 
-    let shouldResetSaving = true;
-    this.setData({ isSaving: true });
-
-    try {
-      if (this.data.isEditMode) {
-        const patch = this.buildPatch();
-
-        if (Object.keys(patch).length === 0) {
-          showToast('未做修改');
+    return medicationService.loadMedications(this.data.profileId, {
+      onCacheHit: (groups) => {
+        if (requestId !== this.requestId) {
           return;
         }
 
-        await medicationService.updateMedication(this.data.medicationId, patch);
-        showToast('已更新', 800);
-      } else {
-        await medicationService.createMedication(this.data.profileId, this.buildPayload());
-        showToast('已添加', 800);
+        this.applyMedicationGroups(groups);
+      },
+      onFresh: (groups) => {
+        if (requestId !== this.requestId) {
+          return;
+        }
+
+        this.applyMedicationGroups(groups);
+        this.setData({
+          isLoading: false,
+          errorText: '',
+        });
+      },
+      onError: (error, context = {}) => {
+        if (requestId !== this.requestId) {
+          return;
+        }
+
+        this.setData({
+          isLoading: false,
+          hasLoadedOnce: true,
+          errorText: context.hasCache ? '' : getErrorMessage(error),
+        });
+      },
+    }).finally(() => {
+      if (requestId !== this.requestId) {
+        return;
       }
 
-      shouldResetSaving = false;
-      setTimeout(() => {
-        goBackOrHome();
-      }, 800);
-    } catch (error) {
-      showToast(getErrorMessage(error));
-    } finally {
-      if (shouldResetSaving) {
-        this.setData({ isSaving: false });
-      }
-    }
+      this.setData({
+        isLoading: false,
+      });
+    });
   },
 
-  async handleDelete() {
-    if (!this.data.isEditMode || !this.data.medicationId) {
+  applySwipePatch(entries = [], nextData = {}) {
+    const patch = Object.assign({}, nextData);
+
+    entries.forEach((entry) => {
+      if (!entry || !entry.section || entry.index < 0) {
+        return;
+      }
+
+      patch[`${entry.section}[${entry.index}].swipeOffsetText`] = buildSwipeStyle(entry.offset || 0);
+    });
+
+    this.setData(patch);
+  },
+
+  closeSwipeCard() {
+    if (!this.data.openDeleteMedicationId && !this.data.activeSwipeMedicationId) {
+      return;
+    }
+
+    const entries = [];
+    if (this.data.openDeleteSection && this.data.openDeleteIndex >= 0) {
+      entries.push({
+        section: this.data.openDeleteSection,
+        index: this.data.openDeleteIndex,
+        offset: 0,
+      });
+    }
+    if (
+      this.data.activeSwipeMedicationId
+      && this.data.activeSwipeMedicationId !== this.data.openDeleteMedicationId
+      && this.data.activeSwipeSection
+      && this.data.activeSwipeIndex >= 0
+    ) {
+      entries.push({
+        section: this.data.activeSwipeSection,
+        index: this.data.activeSwipeIndex,
+        offset: 0,
+      });
+    }
+
+    this.applySwipePatch(entries, {
+      openDeleteMedicationId: '',
+      openDeleteSection: '',
+      openDeleteIndex: -1,
+      activeSwipeMedicationId: '',
+      activeSwipeSection: '',
+      activeSwipeIndex: -1,
+      swipeOffsetRpx: 0,
+    });
+  },
+
+  handleCardTouchStart(event) {
+    if (!this.data.canWriteCurrentProfile || this.data.isDeletingMedicationId) {
+      return;
+    }
+
+    const medicationId = event.currentTarget.dataset.id;
+    const section = event.currentTarget.dataset.section;
+    const index = Number(event.currentTarget.dataset.index);
+    const touch = event.touches && event.touches[0];
+
+    if (!medicationId || !section || Number.isNaN(index) || !touch) {
+      return;
+    }
+
+    if (this.data.openDeleteMedicationId && this.data.openDeleteMedicationId !== medicationId) {
+      this.closeSwipeCard();
+    }
+
+    this.rowTouchState = {
+      medicationId,
+      section,
+      index,
+      startX: touch.clientX,
+      startY: touch.clientY,
+      baseOffset:
+        this.data.openDeleteMedicationId === medicationId ? -DELETE_ACTION_WIDTH_RPX : 0,
+      direction: '',
+      moved: false,
+    };
+  },
+
+  handleCardTouchMove(event) {
+    const state = this.rowTouchState;
+    const medicationId = event.currentTarget.dataset.id;
+    const touch = event.touches && event.touches[0];
+
+    if (!state || state.medicationId !== medicationId || !touch) {
+      return;
+    }
+
+    const deltaX = touch.clientX - state.startX;
+    const deltaY = touch.clientY - state.startY;
+
+    if (!state.direction) {
+      if (Math.abs(deltaX) < 8 && Math.abs(deltaY) < 8) {
+        return;
+      }
+
+      state.direction = Math.abs(deltaX) > Math.abs(deltaY) ? 'horizontal' : 'vertical';
+    }
+
+    if (state.direction !== 'horizontal') {
+      return;
+    }
+
+    const moveAt = Date.now();
+    if (moveAt - this.lastSwipeMoveAt < 16) {
+      return;
+    }
+    this.lastSwipeMoveAt = moveAt;
+
+    let nextOffset = state.baseOffset + deltaX;
+    nextOffset = Math.min(0, nextOffset);
+    nextOffset = Math.max(-DELETE_ACTION_WIDTH_RPX, nextOffset);
+
+    state.moved = true;
+
+    this.applySwipePatch(
+      [
+        {
+          section: state.section,
+          index: state.index,
+          offset: nextOffset,
+        },
+      ],
+      {
+        activeSwipeMedicationId: state.medicationId,
+        activeSwipeSection: state.section,
+        activeSwipeIndex: state.index,
+        swipeOffsetRpx: nextOffset,
+      },
+    );
+  },
+
+  handleCardTouchEnd() {
+    const state = this.rowTouchState;
+    if (!state) {
+      return;
+    }
+
+    if (state.direction !== 'horizontal' || !state.moved) {
+      this.rowTouchState = null;
+      return;
+    }
+
+    const finalOffset = this.data.activeSwipeMedicationId === state.medicationId
+      ? this.data.swipeOffsetRpx
+      : state.baseOffset;
+    const shouldOpen = Math.abs(finalOffset) > DELETE_ACTION_THRESHOLD_RPX;
+
+    this.lastSwipeGesture = {
+      medicationId: state.medicationId,
+      at: Date.now(),
+    };
+
+    this.setData({
+      openDeleteMedicationId: shouldOpen ? state.medicationId : '',
+      openDeleteSection: shouldOpen ? state.section : '',
+      openDeleteIndex: shouldOpen ? state.index : -1,
+      activeSwipeMedicationId: '',
+      activeSwipeSection: '',
+      activeSwipeIndex: -1,
+      swipeOffsetRpx: 0,
+    });
+
+    this.applySwipePatch([
+      {
+        section: state.section,
+        index: state.index,
+        offset: shouldOpen ? -DELETE_ACTION_WIDTH_RPX : 0,
+      },
+    ]);
+
+    this.rowTouchState = null;
+  },
+
+  handleRetry() {
+    this.loadMedications();
+  },
+
+  handleCreateMedication() {
+    if (!this.data.canWriteCurrentProfile) {
+      return;
+    }
+
+    wx.navigateTo({
+      url: `/pages/medication-detail/medication-detail?mode=create&profileId=${this.data.profileId}`,
+    });
+  },
+
+  handleOpenMedicationDetail(event) {
+    const medicationId = event.currentTarget.dataset.id || '';
+    if (!medicationId || !this.data.canWriteCurrentProfile) {
+      return;
+    }
+
+    if (
+      this.lastSwipeGesture
+      && this.lastSwipeGesture.medicationId === medicationId
+      && Date.now() - this.lastSwipeGesture.at < 250
+    ) {
+      return;
+    }
+
+    if (this.data.openDeleteMedicationId === medicationId) {
+      this.closeSwipeCard();
+      return;
+    }
+
+    wx.navigateTo({
+      url: `/pages/medication-detail/medication-detail?mode=edit&profileId=${this.data.profileId}&medicationId=${medicationId}`,
+    });
+  },
+
+  async handleDeleteMedication(event) {
+    const medicationId = event.currentTarget.dataset.id || '';
+
+    if (!medicationId || !this.data.canWriteCurrentProfile || this.data.isDeletingMedicationId) {
       return;
     }
 
@@ -450,7 +393,7 @@ Page({
       title: '确定删除这条用药？',
       content: '删除后无法恢复',
       confirmText: '删除',
-      confirmColor: '#b42318',
+      confirmColor: '#ef4444',
       cancelText: '取消',
     });
 
@@ -458,26 +401,28 @@ Page({
       return;
     }
 
-    let shouldResetDeleting = true;
-    this.setData({ isDeleting: true });
+    this.setData({
+      isDeletingMedicationId: medicationId,
+    });
 
     try {
-      await medicationService.deleteMedication(this.data.medicationId);
-      showToast('已删除', 800);
-      shouldResetDeleting = false;
-      setTimeout(() => {
-        goBackOrHome();
-      }, 800);
+      await medicationService.deleteMedication(medicationId);
+      this.closeSwipeCard();
+      wx.showToast({
+        title: '已删除',
+        icon: 'success',
+        duration: 800,
+      });
+      await this.loadMedications();
     } catch (error) {
-      showToast(getErrorMessage(error));
+      wx.showToast({
+        title: getErrorMessage(error),
+        icon: 'none',
+      });
     } finally {
-      if (shouldResetDeleting) {
-        this.setData({ isDeleting: false });
-      }
+      this.setData({
+        isDeletingMedicationId: '',
+      });
     }
-  },
-
-  handleCancel() {
-    goBackOrHome();
   },
 });

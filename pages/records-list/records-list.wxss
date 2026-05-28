@@ -406,26 +406,44 @@ page {
     z-index: 35;
     display: flex;
     flex-direction: column;
-    background: #ffffff;
+    background: #eef3fb;
 }
 
 .records-export-preview__header {
-    padding: 32rpx 32rpx 20rpx;
+    padding: 36rpx 32rpx 20rpx;
+}
+
+.records-export-preview__title {
     color: #1e293b;
     font-size: calc(36rpx * var(--font-scale));
     font-weight: 800;
 }
 
+.records-export-preview__subtitle {
+    margin-top: 10rpx;
+    color: #94a3b8;
+    font-size: calc(24rpx * var(--font-scale));
+    line-height: 1.6;
+}
+
 .records-export-preview__scroll {
     flex: 1;
     min-height: 0;
-    padding: 0 32rpx 180rpx;
+    padding: 8rpx 32rpx 196rpx;
     box-sizing: border-box;
+}
+
+.records-export-preview__card {
+    border-radius: 32rpx;
+    background: #ffffff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+    padding: 24rpx;
 }
 
 .records-export-preview__image {
     display: block;
     width: 100%;
+    border-radius: 20rpx;
 }
 
 .records-export-preview__actions {
@@ -435,18 +453,22 @@ page {
     left: 0;
     display: flex;
     gap: 16rpx;
-    padding: 20rpx 32rpx 32rpx;
+    padding: 20rpx 32rpx calc(env(safe-area-inset-bottom) + 28rpx);
     background: rgba(255, 255, 255, 0.98);
     box-shadow: 0 -12rpx 32rpx rgba(17, 24, 39, 0.08);
 }
 
 .records-export-preview__button {
     flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     min-height: 88rpx;
     margin: 0;
     border-radius: 20rpx;
     font-size: calc(28rpx * var(--font-scale));
     font-weight: 700;
+    text-align: center;
 }
 
 .records-export-preview__button::after {
@@ -454,12 +476,13 @@ page {
 }
 
 .records-export-preview__button--primary {
-    background: #3182f7;
+    background: #3478f6;
     color: #ffffff;
 }
 
 .records-export-preview__button--secondary {
-    background: #f1f5f9;
+    background: #ffffff;
+    border: 2rpx solid #e2e8f0;
     color: #64748b;
 }
 

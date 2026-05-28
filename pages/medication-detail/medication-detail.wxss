@@ -1,0 +1,141 @@
+.page {
+  background: #eef3fb;
+}
+
+.medication-detail-page {
+  min-height: 100vh;
+  padding: 32rpx 28rpx 48rpx;
+  background: #eef3fb;
+}
+
+.medication-detail__state,
+.medication-detail__form {
+  border-radius: 32rpx;
+  background: #ffffff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+}
+
+.medication-detail__state {
+  margin-bottom: 20rpx;
+  padding: 32rpx;
+}
+
+.medication-detail__state-text {
+  color: #64748b;
+  font-size: 28rpx;
+}
+
+.medication-detail__form {
+  padding: 36rpx 32rpx;
+}
+
+.form-item + .form-item {
+  margin-top: 36rpx;
+}
+
+.form-label {
+  margin-bottom: 16rpx;
+  color: #334155;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.form-required,
+.medication-detail__error,
+.medication-detail__delete {
+  color: #ef4444;
+}
+
+.form-input,
+.picker-field {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 88rpx;
+  border: 1px solid #e2e8f0;
+  border-radius: 16rpx;
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 30rpx;
+}
+
+.form-input {
+  padding: 0 28rpx;
+}
+
+.form-input--custom {
+  margin-top: 16rpx;
+}
+
+.picker-field {
+  display: flex;
+  align-items: center;
+  padding: 0 28rpx;
+}
+
+.picker-field.is-placeholder,
+.form-placeholder {
+  color: #94a3b8;
+}
+
+.date-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16rpx;
+  align-items: center;
+}
+
+.date-clear {
+  flex-shrink: 0;
+  min-width: 88rpx;
+  color: #3478f6;
+  font-size: 26rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+.form-help {
+  margin-top: 10rpx;
+  color: #94a3b8;
+  font-size: 24rpx;
+}
+
+.medication-detail__actions {
+  padding: 32rpx 8rpx 0;
+}
+
+.medication-detail__error {
+  margin-bottom: 20rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 20rpx;
+  background: #fef2f2;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.medication-detail__button,
+.medication-detail__cancel {
+  width: 100%;
+  min-height: 96rpx;
+  border-radius: 24rpx;
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.medication-detail__button::after,
+.medication-detail__delete::after,
+.medication-detail__cancel::after {
+  border: 0;
+}
+
+.medication-detail__delete {
+  margin-top: 20rpx;
+  background: transparent;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.medication-detail__cancel {
+  margin-top: 12rpx;
+  background: transparent;
+  color: #94a3b8;
+}

@@ -343,15 +343,53 @@ Page({
             return;
         }
 
+        const profileId = store.getState().currentProfileId || "";
+        const memberRefreshAt = profileId
+            ? store.getLastRefreshAt("members", profileId)
+            : 0;
+        const membersStale = profileId
+            ? store.isStale("members", profileId, MEMBER_STALE_THRESHOLD)
+            : true;
+        const app = getApp();
+        const memberListDirty =
+            app && typeof app.hasPendingMemberListRefresh === "function"
+                ? app.hasPendingMemberListRefresh()
+                : Boolean(app && app.globalData && app.globalData.memberListDirty);
+
+        console.log("[profile-home] member refresh gate", {
+            profileId,
+            memberListDirty,
+            memberRefreshAt,
+            membersStale,
+        });
+
         this.syncProfileMeta();
         if (this.activeLoadPromise || this.activeRefreshPromise) {
             return;
         }
 
-        const profileId = store.getState().currentProfileId || "";
+        if (memberListDirty) {
+            if (
+                app &&
+                typeof app.consumePendingMemberListRefresh === "function"
+            ) {
+                app.consumePendingMemberListRefresh();
+            } else if (app && app.globalData) {
+                app.globalData.memberListDirty = false;
+            }
+
+            this.refreshPageData({ silent: true }).catch((error) => {
+                console.error(
+                    "[profile-home] onShow dirty member refresh failed",
+                    error,
+                );
+            });
+            return;
+        }
+
         const shouldResetReady =
             !this.data.pageReady || profileId !== this.data._lastProfileId;
-        if (!shouldResetReady && this.shouldRefreshOnShow()) {
+        if (!shouldResetReady && this.shouldRefreshOnShow(profileId)) {
             this.refreshPageData({ silent: true }).catch((error) => {
                 console.error("[profile-home] onShow silent refresh failed", error);
             });
@@ -535,8 +573,15 @@ Page({
         this.setData({ pageReady: false });
     },
 
-    shouldRefreshOnShow() {
+    shouldRefreshOnShow(profileId) {
         if (store.isStale("profiles", null, STALE_REFRESH_TTL_MS)) {
+            return true;
+        }
+
+        if (
+            profileId &&
+            store.isStale("members", profileId, MEMBER_STALE_THRESHOLD)
+        ) {
             return true;
         }
 
@@ -610,6 +655,13 @@ Page({
             const resetReady = options.resetReady === true;
             const profileId = store.getState().currentProfileId || "";
             const forceMembers = options.forceMembers === true || force;
+            const membersStale = profileId
+                ? store.isStale(
+                      "members",
+                      profileId,
+                      MEMBER_STALE_THRESHOLD,
+                  )
+                : false;
 
             if (resetReady) {
                 this.enterPageLoading();
@@ -644,7 +696,8 @@ Page({
             const shouldSkip =
                 !force &&
                 this.lastLoadedProfileId === profileId &&
-                Date.now() - this.lastRefreshAt < REFRESH_TTL_MS;
+                Date.now() - this.lastRefreshAt < REFRESH_TTL_MS &&
+                !membersStale;
 
             if (shouldSkip) {
                 return;
@@ -1000,22 +1053,9 @@ Page({
             return;
         }
 
-        if (!this.data.canWriteCurrentProfile) {
-            wx.showToast({
-                title: "当前仅支持查看用药摘要",
-                icon: "none",
-            });
-            return;
-        }
-
-        const firstMedication =
-            this.activeMedications[0] || this.historicalMedications[0];
-        const url =
-            firstMedication && firstMedication._id
-                ? `/pages/medication-edit/medication-edit?mode=edit&profileId=${this.data.currentProfileId}&medicationId=${firstMedication._id}`
-                : `/pages/medication-edit/medication-edit?mode=create&profileId=${this.data.currentProfileId}`;
-
-        wx.navigateTo({ url });
+        wx.navigateTo({
+            url: `/pages/medication-edit/medication-edit?profileId=${this.data.currentProfileId}`,
+        });
     },
 
     async handleSelectFontScale(event) {

@@ -127,6 +127,22 @@ Page({
       return;
     }
 
+    const app = getApp();
+    const memberListDirty = app && typeof app.hasPendingMemberListRefresh === 'function'
+      ? app.hasPendingMemberListRefresh()
+      : Boolean(app && app.globalData && app.globalData.memberListDirty);
+
+    if (memberListDirty) {
+      console.log('[profile-members] memberListDirty refresh');
+      if (app && typeof app.consumePendingMemberListRefresh === 'function') {
+        app.consumePendingMemberListRefresh();
+      } else if (app && app.globalData) {
+        app.globalData.memberListDirty = false;
+      }
+      this.loadMembers();
+      return;
+    }
+
     if (store.isStale('members', this.data.profileId, STALE_THRESHOLD) || !(this.data.members || []).length) {
       this.loadMembers();
     }

@@ -468,6 +468,41 @@ const store = {
   },
 
   /**
+   * Clears refresh timestamps so a scope becomes stale again.
+   *
+   * @param {'profiles'|'members'} scope
+   * @param {string|null} [key]
+   * @returns {StoreState}
+   */
+  clearRefresh(scope, key = null) {
+    if (scope === 'profiles') {
+      state.lastRefreshAt = Object.assign({}, state.lastRefreshAt, {
+        profiles: 0,
+      });
+      return notify();
+    }
+
+    if (scope === 'members') {
+      const nextMembers = Object.assign({}, state.lastRefreshAt.members);
+
+      if (key) {
+        delete nextMembers[key];
+      } else {
+        Object.keys(nextMembers).forEach((profileId) => {
+          delete nextMembers[profileId];
+        });
+      }
+
+      state.lastRefreshAt = Object.assign({}, state.lastRefreshAt, {
+        members: nextMembers,
+      });
+      return notify();
+    }
+
+    return snapshot();
+  },
+
+  /**
    * @param {'profiles'|'members'} scope
    * @param {string|null} key
    * @param {number} ttlMs

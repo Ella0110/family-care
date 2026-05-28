@@ -214,6 +214,7 @@ App({
     userProfile: null,
     inviteLaunchToken: null,
     openRecordPanelOnDataTab: false,
+    memberListDirty: false,
   },
 
   onShow() {
@@ -251,6 +252,20 @@ App({
   consumePendingRecordPanelOpen() {
     const pending = Boolean(this.globalData.openRecordPanelOnDataTab);
     this.globalData.openRecordPanelOnDataTab = false;
+    return pending;
+  },
+
+  markMemberListDirty() {
+    this.globalData.memberListDirty = true;
+  },
+
+  hasPendingMemberListRefresh() {
+    return Boolean(this.globalData.memberListDirty);
+  },
+
+  consumePendingMemberListRefresh() {
+    const pending = Boolean(this.globalData.memberListDirty);
+    this.globalData.memberListDirty = false;
     return pending;
   },
 

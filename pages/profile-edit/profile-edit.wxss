@@ -1,23 +1,43 @@
+.page {
+  background: #eef3fb;
+}
+
+.profile-edit-page {
+  padding: 36rpx 28rpx 48rpx;
+}
+
 .profile-edit__header {
-  padding: 16rpx 4rpx 32rpx;
+  padding: 16rpx 8rpx 48rpx;
 }
 
 .profile-edit__title {
-  color: #111827;
-  font-size: 48rpx;
+  color: #0f172a;
+  font-size: 36rpx;
   font-weight: 800;
-  line-height: 1.3;
+  line-height: 1.35;
 }
 
 .profile-edit__subtitle {
-  margin-top: 14rpx;
-  color: #4b5563;
-  font-size: 32rpx;
-  line-height: 1.55;
+  margin-top: 16rpx;
+  color: #94a3b8;
+  font-size: 28rpx;
+  line-height: 1.65;
 }
 
 .profile-edit__form {
-  padding: 36rpx 32rpx;
+  padding: 40rpx 32rpx;
+  border-radius: 32rpx;
+  background: #ffffff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+}
+
+.profile-edit__form--create {
+  padding: 48rpx;
+  border-radius: 40rpx;
+  background: rgba(255, 255, 255, 0.7);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(49, 130, 247, 0.08);
 }
 
 .form-item + .form-item {
@@ -25,18 +45,18 @@
 }
 
 .form-item--nested {
-  margin-top: 18rpx;
+  margin-top: 16rpx;
 }
 
 .form-label {
-  margin-bottom: 14rpx;
-  color: #111827;
-  font-size: 34rpx;
+  margin-bottom: 16rpx;
+  color: #334155;
+  font-size: 28rpx;
   font-weight: 700;
 }
 
 .form-required {
-  color: #b42318;
+  color: #ef4444;
 }
 
 .form-input,
@@ -45,23 +65,26 @@
   box-sizing: border-box;
   width: 100%;
   min-height: 96rpx;
-  padding: 24rpx 28rpx;
-  border: 2rpx solid #bfdbfe;
-  border-radius: 24rpx;
-  background: #f8fbff;
-  color: #111827;
-  font-size: 34rpx;
+  padding: 0 28rpx;
+  border: 1px solid #e2e8f0;
+  border-radius: 16rpx;
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 32rpx;
   line-height: 1.45;
 }
 
+.form-input {
+  display: block;
+  height: 96rpx;
+}
+
 .form-input--name {
-  min-height: 112rpx;
-  font-size: 42rpx;
   font-weight: 700;
 }
 
 .form-input--spaced {
-  margin-top: 18rpx;
+  margin-top: 16rpx;
 }
 
 .form-picker {
@@ -71,22 +94,23 @@
 
 .form-picker--empty,
 .form-placeholder {
-  color: #8a95a6;
+  color: #94a3b8;
 }
 
 .form-textarea {
   min-height: 180rpx;
+  padding: 24rpx 28rpx;
 }
 
 .form-help {
   margin-top: 10rpx;
-  color: #6b7280;
-  font-size: 26rpx;
+  color: #94a3b8;
+  font-size: 24rpx;
 }
 
 .gender-options {
   display: flex;
-  gap: 20rpx;
+  gap: 16rpx;
 }
 
 .gender-option {
@@ -94,49 +118,74 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 92rpx;
-  border: 2rpx solid #bfdbfe;
-  border-radius: 24rpx;
-  background: #f8fbff;
-  color: #1f2937;
-  font-size: 34rpx;
+  min-height: 88rpx;
+  border-radius: 16rpx;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 30rpx;
   font-weight: 700;
 }
 
 .gender-option--active {
-  border-color: #1d4ed8;
-  background: #dbeafe;
-  color: #1d4ed8;
+  border-color: #3478f6;
+  background: #3478f6;
+  color: #ffffff;
 }
 
 .profile-edit__progress {
   padding: 24rpx;
   border-radius: 24rpx;
-  background: #f8fbff;
+  background: #f8fafc;
 }
 
 .profile-edit__progress-title {
-  color: #111827;
-  font-size: 30rpx;
+  color: #0f172a;
+  font-size: 28rpx;
   font-weight: 800;
 }
 
 .profile-edit__progress-item {
   margin-top: 12rpx;
-  color: #6b7280;
-  font-size: 28rpx;
+  color: #64748b;
+  font-size: 26rpx;
 }
 
 .profile-edit__progress-item.is-completed {
-  color: #1d4ed8;
+  color: #3478f6;
 }
 
 .profile-edit__actions {
-  padding: 32rpx 0;
+  margin-top: 40rpx;
+}
+
+.profile-edit__actions--create {
+  margin-top: 40rpx;
+}
+
+.profile-edit__button {
+  width: 100%;
+  min-height: 96rpx;
+  border-radius: 24rpx;
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.profile-edit__button--create {
+  box-shadow: 0 8px 24px rgba(49, 130, 247, 0.3);
 }
 
 .profile-edit__button + .profile-edit__button {
   margin-top: 20rpx;
+}
+
+.profile-edit__button--ghost {
+  min-height: 72rpx;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 28rpx;
+  font-weight: 600;
+  box-shadow: none;
 }
 
 .profile-edit__button::after {

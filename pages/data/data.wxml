@@ -18,7 +18,7 @@
 
       <view wx:else>
         <!-- 最近血压卡片（保持不动） -->
-        <view class="card data-latest">
+        <view class="card data-latest {{latestRecordDisplay ? '' : 'data-latest--empty'}}">
           <view wx:if="{{latestRecordDisplay}}" class="data-latest__content">
             <view class="data-latest__status {{latestRecordDisplay.statusClassName}}">
               <view class="data-latest__status-dot"></view>
@@ -47,10 +47,17 @@
           </view>
 
           <view wx:else class="data-latest__empty">
-            <view class="data-latest__empty-icon">♥</view>
-            <view class="data-latest__empty-title">开启你的健康记录</view>
-            <view class="data-latest__empty-text">每天定时测量并记录</view>
-            <view class="data-latest__empty-import" bindtap="handleImportRecords">已有数据？导入历史记录</view>
+            <view class="data-latest__empty-card">
+              <view class="data-latest__empty-orbit">
+                <view class="data-latest__empty-orbit-fill">
+                  <image class="data-latest__empty-heart" src="/assets/data-empty-heart.svg" mode="aspectFit" />
+                </view>
+              </view>
+              <view class="data-latest__empty-title">开启你的健康记录</view>
+              <view class="data-latest__empty-text">每天定时测量并记录，我们将为你生成专业的健康趋势分析。</view>
+              <button class="data-latest__empty-button" bindtap="handleOpenRecordPanel">记录血压</button>
+              <view class="data-latest__empty-import" bindtap="handleImportRecords">已有数据？导入历史记录</view>
+            </view>
           </view>
         </view>
 

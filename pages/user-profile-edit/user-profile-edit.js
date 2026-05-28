@@ -120,7 +120,16 @@ Page({
       store.setState({
         user: result.user,
       });
+      console.log('clearRefresh members called');
+      store.clearRefresh('members');
       const app = getApp();
+      if (app && typeof app.markMemberListDirty === 'function') {
+        app.markMemberListDirty();
+        console.log('[user-profile-edit] memberListDirty = true');
+      } else if (app && app.globalData) {
+        app.globalData.memberListDirty = true;
+        console.log('[user-profile-edit] memberListDirty = true');
+      }
       if (app && typeof app.syncInviterProfileState === 'function') {
         app.syncInviterProfileState(result.user);
       }

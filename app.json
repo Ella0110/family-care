@@ -8,6 +8,7 @@
     "pages/profile-threshold-edit/profile-threshold-edit",
     "pages/profile-members/profile-members",
     "pages/medication-edit/medication-edit",
+    "pages/medication-detail/medication-detail",
     "pages/invite-create/invite-create",
     "pages/invite-accept/invite-accept",
     "pages/report/report",

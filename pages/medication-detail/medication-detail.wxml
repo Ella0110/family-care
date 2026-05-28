@@ -1,0 +1,118 @@
+<view class="page medication-detail-page">
+  <view wx:if="{{isLoadingMedication}}" class="card medication-detail__state">
+    <view class="medication-detail__state-text">正在读取用药...</view>
+  </view>
+
+  <view class="card medication-detail__form">
+    <view class="form-item">
+      <view class="form-label">药物名称 <text class="form-required">*</text></view>
+      <input
+        class="form-input"
+        value="{{form.drug}}"
+        maxlength="50"
+        placeholder="例如：厄贝沙坦"
+        placeholder-class="form-placeholder"
+        disabled="{{isSaving || isDeleting}}"
+        bindinput="onDrugInput"
+      />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">剂量 <text class="form-required">*</text></view>
+      <input
+        class="form-input"
+        value="{{form.dose}}"
+        maxlength="20"
+        placeholder="例如：150mg"
+        placeholder-class="form-placeholder"
+        disabled="{{isSaving || isDeleting}}"
+        bindinput="onDoseInput"
+      />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">频率 <text class="form-required">*</text></view>
+      <picker mode="selector" range="{{frequencyOptions}}" value="{{frequencyIndex}}" bindchange="onFrequencyChange">
+        <view class="picker-field {{frequencyPickerText ? '' : 'is-placeholder'}}">
+          {{frequencyPickerText || '请选择服用频率'}}
+        </view>
+      </picker>
+      <input
+        wx:if="{{showCustomFrequency}}"
+        class="form-input form-input--custom"
+        value="{{form.frequencyCustom}}"
+        maxlength="30"
+        placeholder="请填写具体频率，例如：每日四次"
+        placeholder-class="form-placeholder"
+        disabled="{{isSaving || isDeleting}}"
+        bindinput="onFrequencyCustomInput"
+      />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">服用时间</view>
+      <input
+        class="form-input"
+        value="{{form.timing}}"
+        maxlength="30"
+        placeholder="例如：早餐后、早晚各一次"
+        placeholder-class="form-placeholder"
+        disabled="{{isSaving || isDeleting}}"
+        bindinput="onTimingInput"
+      />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">开始日期</view>
+      <view class="date-row">
+        <picker mode="date" value="{{form.startDate}}" bindchange="onStartDateChange">
+          <view class="picker-field {{form.startDate ? '' : 'is-placeholder'}}">
+            {{form.startDate || '请选择开始日期'}}
+          </view>
+        </picker>
+        <view class="date-clear" bindtap="clearStartDate">清空</view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">停药日期</view>
+      <view class="date-row">
+        <picker mode="date" value="{{form.endDate}}" bindchange="onEndDateChange">
+          <view class="picker-field {{form.endDate ? '' : 'is-placeholder'}}">
+            {{form.endDate || '请选择停药日期'}}
+          </view>
+        </picker>
+        <view class="date-clear" bindtap="clearEndDate">清空</view>
+      </view>
+      <view class="form-help">留空表示长期用药</view>
+    </view>
+  </view>
+
+  <view class="medication-detail__actions">
+    <view wx:if="{{errorText}}" class="medication-detail__error">{{errorText}}</view>
+    <button
+      class="btn-primary medication-detail__button"
+      loading="{{isSaving}}"
+      disabled="{{isSaving || isDeleting || isLoadingMedication}}"
+      bindtap="handleSubmit"
+    >
+      保存
+    </button>
+    <button
+      wx:if="{{isEditMode}}"
+      class="medication-detail__delete"
+      loading="{{isDeleting}}"
+      disabled="{{isSaving || isDeleting || isLoadingMedication}}"
+      bindtap="handleDelete"
+    >
+      删除
+    </button>
+    <button
+      class="medication-detail__cancel"
+      disabled="{{isSaving || isDeleting}}"
+      bindtap="handleCancel"
+    >
+      取消
+    </button>
+  </view>
+</view>

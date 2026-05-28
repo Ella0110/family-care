@@ -3,7 +3,7 @@ const profileService = require('../../services/profile-service');
 const { getErrorMessage } = require('../../utils/error-messages');
 const { isOwner } = require('../../utils/permission-helpers');
 
-const RELATION_OPTIONS = ['父亲', '母亲', '本人', '配偶', '子女', '其他'];
+const RELATION_OPTIONS = ['父亲', '母亲', '爷爷', '奶奶', '外公', '外婆', '我自己', '其他'];
 const GENDER_OPTIONS = [
   { label: '男', value: 'male' },
   { label: '女', value: 'female' },
@@ -104,7 +104,7 @@ function trimText(value) {
 }
 
 function normalizeRelationState(relation) {
-  const nextRelation = trimText(relation);
+  const nextRelation = trimText(relation === '本人' ? '我自己' : relation);
 
   if (!nextRelation) {
     return {
