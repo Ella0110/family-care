@@ -44,6 +44,10 @@
                 <text class="data-latest__meta-value">{{latestRecordDisplay.measuredAtText}}</text>
               </view>
             </view>
+
+            <view wx:if="{{latestRecordDisplay.recorderText}}" class="data-latest__recorder">
+              {{latestRecordDisplay.recorderText}}
+            </view>
           </view>
 
           <view wx:else class="data-latest__empty">

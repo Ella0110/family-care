@@ -231,6 +231,13 @@ page {
     color: #dc2626;
 }
 
+.data-latest__recorder {
+    margin-top: 18rpx;
+    color: #cbd5e1;
+    font-size: calc(22rpx * var(--font-scale));
+    line-height: 1.4;
+}
+
 .data-latest__empty {
     display: flex;
     justify-content: center;

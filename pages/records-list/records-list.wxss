@@ -214,6 +214,13 @@ page {
     line-height: 1.4;
 }
 
+.records-row__recorder {
+    margin-top: 6rpx;
+    color: #cbd5e1;
+    font-size: calc(22rpx * var(--font-scale));
+    line-height: 1.4;
+}
+
 .records-row__status {
     display: inline-flex;
     align-items: center;

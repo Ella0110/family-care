@@ -12,6 +12,49 @@ function trimText(value) {
   return String(value || '').trim();
 }
 
+function isLocalAvatarPath(value) {
+  const normalized = trimText(value);
+  return /^wxfile:\/\//i.test(normalized)
+    || /^https?:\/\/tmp\//i.test(normalized)
+    || /^\/(private\/)?var\//i.test(normalized)
+    || /^\/tmp\//i.test(normalized);
+}
+
+function getAvatarFileExtension(filePath) {
+  const normalized = String(filePath || '').split('?')[0];
+  const match = normalized.match(/\.(jpg|jpeg|png|webp)$/i);
+  return match ? match[1].toLowerCase() : 'png';
+}
+
+async function uploadAvatarIfNeeded(avatarUrl, userId) {
+  const normalized = trimText(avatarUrl);
+  if (!normalized || !isLocalAvatarPath(normalized)) {
+    return normalized;
+  }
+
+  if (!wx.cloud || typeof wx.cloud.uploadFile !== 'function') {
+    throw new Error('CLOUD_UPLOAD_UNAVAILABLE');
+  }
+
+  const extension = getAvatarFileExtension(normalized);
+  const cloudPath = [
+    'user-avatars',
+    userId || 'anonymous',
+    `${Date.now()}-${Math.random().toString(16).slice(2, 8)}.${extension}`,
+  ].join('/');
+
+  const result = await wx.cloud.uploadFile({
+    cloudPath,
+    filePath: normalized,
+  });
+
+  if (!result || !result.fileID) {
+    throw new Error('AVATAR_UPLOAD_FAILED');
+  }
+
+  return result.fileID;
+}
+
 function getCurrentFontScale() {
   const app = getApp();
   return normalizeFontScale(app && app.globalData ? app.globalData.fontScale : DEFAULT_FONT_SCALE);
@@ -113,9 +156,17 @@ Page({
     });
 
     try {
+      const currentUserId = (store.getState().user && store.getState().user._id) || '';
+      const avatarUrl = await uploadAvatarIfNeeded(
+        trimText(this.data.form.avatarUrl) || '',
+        currentUserId,
+      );
       const result = await userService.updateProfile({
         nickname: trimText(this.data.form.nickname),
-        avatarUrl: trimText(this.data.form.avatarUrl) || '',
+        avatarUrl,
+      });
+      this.setData({
+        'form.avatarUrl': avatarUrl,
       });
       store.setState({
         user: result.user,

@@ -116,7 +116,7 @@ function verifyD3RecordsExportImage() {
 
   assert.match(
     pageJs,
-    /const exportScale = Math\.max\(1,\s*Number\(wx\.getSystemInfoSync\(\)\.pixelRatio\)\s*\|\|\s*1\);/,
+    /function resolveExportScale\(logicalHeight,\s*systemDpr\) \{[\s\S]*let exportScale = Math\.max\(1,\s*Number\(systemDpr\)\s*\|\|\s*1\);/,
     'records export should derive a DPR-aware export scale from system pixel ratio',
   );
 

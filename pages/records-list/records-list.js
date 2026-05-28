@@ -3,7 +3,7 @@ const { callSilent } = require('../../services/request');
 const { getErrorMessage } = require('../../utils/error-messages');
 const { getBPStatusDisplay, getReferenceLines } = require('../../utils/bp-status');
 const { DEFAULT_FONT_SCALE, normalizeFontScale } = require('../../utils/font-scale');
-const { canWrite, isViewer } = require('../../utils/permission-helpers');
+const { canWrite, isViewer, getCurrentRelationship } = require('../../utils/permission-helpers');
 const { recordsToCSV, normalizeDate } = require('../../utils/csv-helpers');
 const { deleteRecordById } = require('../../utils/record-editor');
 const {
@@ -18,6 +18,7 @@ const DELETE_ACTION_THRESHOLD_RPX = 60;
 const FEEDBACK_TOAST_MS = 1500;
 const EXPORT_DAY_OPTIONS = [7, 30, 90];
 const MONTH_PICKER_START_YEAR = 2000;
+const MAX_EXPORT_CANVAS_HEIGHT = 4096;
 
 function pad(value) {
   return String(value).padStart(2, '0');
@@ -209,6 +210,68 @@ function findProfile(profileId) {
   return (state.profiles || []).find((profile) => profile && profile._id === profileId) || null;
 }
 
+function canDeleteRecord(record, options = {}) {
+  if (!record) {
+    return false;
+  }
+
+  if (options.role === 'owner') {
+    return true;
+  }
+
+  return Boolean(
+    options.canWrite
+      && options.currentUserId
+      && record.recordedBy
+      && record.recordedBy === options.currentUserId,
+  );
+}
+
+function buildRecorderText(record, options = {}) {
+  if (!options.showRecorderLabel || !record) {
+    return '';
+  }
+
+  if (options.currentUserId && record.recordedBy === options.currentUserId) {
+    return '我录入';
+  }
+
+  const recordedByName = String(record.recordedByName || '').trim();
+  return recordedByName ? `由 ${recordedByName} 录入` : '';
+}
+
+function shouldShowRecorderLabel(records, options = {}) {
+  if (options.role && options.role !== 'owner') {
+    return true;
+  }
+
+  const recorderIds = new Set(
+    (Array.isArray(records) ? records : [])
+      .map((record) => record && record.recordedBy)
+      .filter(Boolean),
+  );
+
+  if (!recorderIds.size) {
+    return false;
+  }
+
+  if (options.currentUserId && (recorderIds.size > 1 || !recorderIds.has(options.currentUserId))) {
+    return true;
+  }
+
+  return recorderIds.size > 1;
+}
+
+function resolveExportScale(logicalHeight, systemDpr) {
+  let exportScale = Math.max(1, Number(systemDpr) || 1);
+
+  while (logicalHeight * exportScale > MAX_EXPORT_CANVAS_HEIGHT && exportScale > 1) {
+    exportScale -= 0.5;
+  }
+
+  return Math.max(1, Math.round(exportScale * 2) / 2);
+}
+
 function getCurrentFontScale() {
   const app = getApp();
   return normalizeFontScale(app && app.globalData ? app.globalData.fontScale : DEFAULT_FONT_SCALE);
@@ -350,6 +413,8 @@ Page({
     this.isClosingRecordPanel = false;
     this.pendingPanelRefresh = false;
     this.rowPathMap = {};
+    this.currentUserId = state.user && state.user._id;
+    this.currentRelationshipRole = '';
 
     this.setData({
       profileId,
@@ -397,6 +462,10 @@ Page({
   refreshProfileContext() {
     const profile = findProfile(this.data.profileId);
     const state = store.getState();
+    const relationship = getCurrentRelationship(state, this.data.profileId);
+
+    this.currentUserId = state.user && state.user._id;
+    this.currentRelationshipRole = relationship ? relationship.role : '';
 
     this.setData({
       profileName: profile ? profile.name : '当前档案',
@@ -411,6 +480,10 @@ Page({
     const groups = [];
     const groupMap = {};
     const seenMonthKeys = new Set();
+    const showRecorderLabel = shouldShowRecorderLabel(records, {
+      role: this.currentRelationshipRole,
+      currentUserId: this.currentUserId,
+    });
     const swipeState = {
       openRecordId: this.data.openDeleteRecordId,
       activeRecordId: this.data.activeSwipeRecordId,
@@ -442,10 +515,21 @@ Page({
       const status = getBPStatusDisplay(payload.systolic, payload.diastolic, referenceLines);
       const statusMeta = buildStatusMeta(status);
       const swipeOffset = getSwipeOffset(record._id, swipeState);
+      const canDelete = canDeleteRecord(record, {
+        role: this.currentRelationshipRole,
+        canWrite: this.data.canWriteCurrentProfile,
+        currentUserId: this.currentUserId,
+      });
+      const recorderText = buildRecorderText(record, {
+        currentUserId: this.currentUserId,
+        showRecorderLabel,
+      });
       groupMap[key].records.push(Object.assign({}, record, {
         timeText: formatTime(measuredAt),
         valueText: `${payload.systolic} / ${payload.diastolic}`,
         heartRateText: payload.heartRate ? `心率 ${payload.heartRate} bpm` : '',
+        recorderText,
+        canDelete,
         statusText: statusMeta.text,
         statusClassName: statusMeta.className,
         swipeOffsetText: `transform: translateX(${swipeOffset}rpx);`,
@@ -664,7 +748,10 @@ Page({
       }
 
       const exportHeight = measureRecordsImageHeight(result.records.length);
-      const exportScale = Math.max(1, Number(wx.getSystemInfoSync().pixelRatio) || 1);
+      const exportScale = resolveExportScale(
+        exportHeight,
+        Number(wx.getSystemInfoSync().pixelRatio) || 1,
+      );
       this.setData({
         exportCanvasHeight: exportHeight,
       });
@@ -716,7 +803,7 @@ Page({
     } catch (error) {
       console.error('[records-list] export image failed', error);
       wx.showToast({
-        title: '生成失败，请尝试更短时间范围',
+        title: '生成失败，请稍后重试',
         icon: 'none',
       });
     } finally {
@@ -941,8 +1028,13 @@ Page({
     }
 
     const recordId = event.currentTarget.dataset.recordId;
+    const record = this.recordsById[recordId];
     const touch = event.touches && event.touches[0];
-    if (!recordId || !touch) {
+    if (!recordId || !touch || !canDeleteRecord(record, {
+      role: this.currentRelationshipRole,
+      canWrite: this.data.canWriteCurrentProfile,
+      currentUserId: this.currentUserId,
+    })) {
       return;
     }
 
@@ -1040,7 +1132,31 @@ Page({
     const recordId = event.currentTarget.dataset.recordId;
     const record = this.recordsById[recordId];
 
-    if (!record || !this.data.canWriteCurrentProfile) {
+    if (!record || !canDeleteRecord(record, {
+      role: this.currentRelationshipRole,
+      canWrite: this.data.canWriteCurrentProfile,
+      currentUserId: this.currentUserId,
+    })) {
+      return;
+    }
+
+    const systemInfo = wx.getSystemInfoSync();
+    const isAndroid = systemInfo.platform === 'android';
+    if (isAndroid) {
+      wx.showModal({
+        title: '确定删除此记录？',
+        content: '删除后数据将无法恢复',
+        confirmText: '删除',
+        confirmColor: '#EF4444',
+        cancelText: '取消',
+        success: (res) => {
+          if (!res.confirm) {
+            return;
+          }
+
+          this.deleteRecordWithFeedback(recordId);
+        },
+      });
       return;
     }
 
@@ -1081,6 +1197,16 @@ Page({
       return;
     }
 
+    await this.deleteRecordWithFeedback(recordId, {
+      closeDialog: true,
+    });
+  },
+
+  async deleteRecordWithFeedback(recordId, options = {}) {
+    if (!recordId || this.data.isDeletingRecord) {
+      return;
+    }
+
     this.setData({
       isDeletingRecord: true,
     });
@@ -1100,6 +1226,13 @@ Page({
       this.setData({
         isDeletingRecord: false,
       });
+      if (options.closeDialog) {
+        this.setData({
+          showDeleteDialog: false,
+          pendingDeleteRecordId: '',
+          pendingDeleteRecordText: '',
+        });
+      }
       wx.showToast({
         title: getErrorMessage(error),
         icon: 'none',

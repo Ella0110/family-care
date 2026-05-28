@@ -67,7 +67,7 @@
           class="records-row-swipe"
         >
           <view
-            wx:if="{{canWriteCurrentProfile}}"
+            wx:if="{{record.canDelete}}"
             class="records-row-swipe__delete"
             data-record-id="{{record._id}}"
             bindtap="handleDeleteActionTap"
@@ -89,6 +89,7 @@
             <view class="records-row__main">
               <view class="records-row__value">{{record.valueText}}</view>
               <view wx:if="{{record.heartRateText}}" class="records-row__heart">{{record.heartRateText}}</view>
+              <view wx:if="{{record.recorderText}}" class="records-row__recorder">{{record.recorderText}}</view>
             </view>
             <view class="records-row__status {{record.statusClassName}}">{{record.statusText}}</view>
             <view wx:if="{{!isViewerMode}}" class="records-row__arrow">›</view>

@@ -33,6 +33,9 @@ const EXPORT_CHART_SUBTITLE_Y = 96;
 const EXPORT_CHART_TOP = 130;
 const EXPORT_CHART_HEIGHT = 380;
 const EXPORT_CHART_SUMMARY_Y = 556;
+const EXPORT_CHART_TITLE_FONT_SIZE = 30;
+const EXPORT_CHART_SUBTITLE_FONT_SIZE = 18;
+const EXPORT_CHART_SUMMARY_FONT_SIZE = 28;
 const REFRESH_TTL_MS = 5 * 1000;
 const STALE_REFRESH_TTL_MS = 30 * 1000;
 const PULL_DOWN_REFRESH_THROTTLE_MS = 2 * 1000;
@@ -378,7 +381,43 @@ function buildLatestDisplay(record, profile) {
     heartRateText: Number.isFinite(heartRate) ? `${heartRate} bpm` : '--',
     heartRateClassName: heartRateAlert ? 'is-alert' : '',
     measuredAtText: formatMeasuredAt(record.measuredAt),
+    recorderText: '',
   };
+}
+
+function buildRecorderText(record, options = {}) {
+  if (!options.showRecorderLabel || !record) {
+    return '';
+  }
+
+  if (options.currentUserId && record.recordedBy === options.currentUserId) {
+    return '我录入';
+  }
+
+  const recordedByName = String(record.recordedByName || '').trim();
+  return recordedByName ? `由 ${recordedByName} 录入` : '';
+}
+
+function shouldShowRecorderLabel(records, options = {}) {
+  if (options.role && options.role !== 'owner') {
+    return true;
+  }
+
+  const recorderIds = new Set(
+    (Array.isArray(records) ? records : [])
+      .map((record) => record && record.recordedBy)
+      .filter(Boolean),
+  );
+
+  if (!recorderIds.size) {
+    return false;
+  }
+
+  if (options.currentUserId && (recorderIds.size > 1 || !recorderIds.has(options.currentUserId))) {
+    return true;
+  }
+
+  return recorderIds.size > 1;
 }
 
 function buildChartExportHeight() {
@@ -449,6 +488,7 @@ Page({
     this.lastSeenProfileId = store.getState().currentProfileId || '';
     this.lastLoginReady = getLoginStatus().isLoginReady;
     this.lastProfileMetaSignature = '';
+    this.currentUserId = store.getState().user && store.getState().user._id;
     this.activeLoadPromise = null;
     this.activeRefreshPromise = null;
 
@@ -575,6 +615,7 @@ Page({
 
     const profile = currentProfileId ? findProfile(currentProfileId) : null;
     const relationship = currentProfileId ? getCurrentRelationship(state, currentProfileId) : null;
+    this.currentUserId = state.user && state.user._id;
     const profileName = profile && profile.name ? profile.name : '';
     const nextMeta = {
       profiles,
@@ -855,6 +896,16 @@ Page({
       ? this.data.selectedDays
       : ((periodOptions.find((item) => item.enabled) || periodOptions[0] || { days: 7 }).days);
     const latestRecordDisplay = buildLatestDisplay(this.latestRecord, profile);
+    const showRecorderLabel = shouldShowRecorderLabel(this.allRecords, {
+      role: this.data.relationshipRole,
+      currentUserId: this.currentUserId,
+    });
+    if (latestRecordDisplay) {
+      latestRecordDisplay.recorderText = buildRecorderText(this.latestRecord, {
+        currentUserId: this.currentUserId,
+        showRecorderLabel,
+      });
+    }
 
     this.chartThreshold = getThreshold(profile);
     this.rangeRecords = getRangeRecords(this.allRecords, nextSelectedDays, new Date());
@@ -1154,29 +1205,31 @@ Page({
 
     try {
       const exportHeight = buildChartExportHeight();
+      const exportScale = Math.max(1, Number(this.pixelRatio) || 1);
       this.setData({ exportCanvasHeight: exportHeight });
 
       await wait(80);
       const target = await this.getCanvasNode('#dataExportCanvas');
       const canvas = target.node;
-      canvas.width = EXPORT_CHART_CANVAS_WIDTH;
-      canvas.height = exportHeight;
+      canvas.width = Math.max(1, Math.round(EXPORT_CHART_CANVAS_WIDTH * exportScale));
+      canvas.height = Math.max(1, Math.round(exportHeight * exportScale));
 
       const ctx = canvas.getContext('2d');
+      ctx.scale(exportScale, exportScale);
       ctx.clearRect(0, 0, EXPORT_CHART_CANVAS_WIDTH, exportHeight);
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, EXPORT_CHART_CANVAS_WIDTH, exportHeight);
 
       ctx.textAlign = 'center';
       ctx.fillStyle = '#111827';
-      ctx.font = 'bold 24px sans-serif';
+      ctx.font = `bold ${EXPORT_CHART_TITLE_FONT_SIZE}px sans-serif`;
       ctx.fillText(
         `${this.data.profileName || '当前档案'}的${isHeartRateChart ? '心率数据' : '血压数据'}`,
         EXPORT_CHART_CANVAS_WIDTH / 2,
         EXPORT_CHART_TITLE_Y,
       );
       ctx.fillStyle = '#6B7280';
-      ctx.font = '14px sans-serif';
+      ctx.font = `${EXPORT_CHART_SUBTITLE_FONT_SIZE}px sans-serif`;
       ctx.fillText(
         `近 ${this.data.selectedDays} 天数据（${formatExportDateRange(this.data.selectedDays)}）`,
         EXPORT_CHART_CANVAS_WIDTH / 2,
@@ -1213,7 +1266,7 @@ Page({
         this.data.heartRateSummary,
       );
       ctx.fillStyle = '#94A3B8';
-      ctx.font = '22px sans-serif';
+      ctx.font = `${EXPORT_CHART_SUMMARY_FONT_SIZE}px sans-serif`;
       ctx.fillText(summaryText, EXPORT_CHART_CANVAS_WIDTH / 2, EXPORT_CHART_SUMMARY_Y);
 
       const result = await wrapCanvasToTempFilePath(canvas, {
@@ -1221,8 +1274,8 @@ Page({
         y: 0,
         width: EXPORT_CHART_CANVAS_WIDTH,
         height: exportHeight,
-        destWidth: EXPORT_CHART_CANVAS_WIDTH,
-        destHeight: exportHeight,
+        destWidth: Math.max(1, Math.round(EXPORT_CHART_CANVAS_WIDTH * exportScale)),
+        destHeight: Math.max(1, Math.round(exportHeight * exportScale)),
       });
       this.exportTempFilePath = result.tempFilePath || '';
       await this.trySaveImageToAlbum(this.exportTempFilePath, {

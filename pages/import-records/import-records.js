@@ -3,9 +3,11 @@ const recordService = require('../../services/record-service');
 const { getErrorMessage } = require('../../utils/error-messages');
 const { DEFAULT_FONT_SCALE, normalizeFontScale } = require('../../utils/font-scale');
 const { canWrite } = require('../../utils/permission-helpers');
-const { parseCSV, formatEast8DateYMD, formatEast8TimeHM } = require('../../utils/csv-helpers');
+const { parseCSV, formatEast8DateYMD, formatEast8TimeHM, normalizeDate } = require('../../utils/csv-helpers');
 
 const PARSE_DEBOUNCE_MS = 500;
+const IMPORT_DEDUPE_FETCH_LIMIT = 500;
+const IMPORT_FEEDBACK_DURATION_MS = 1000;
 
 function getCurrentFontScale() {
   const app = getApp();
@@ -44,11 +46,148 @@ function createEmptyPreview() {
   };
 }
 
+function toTimestamp(value) {
+  const date = normalizeDate(value);
+  const timestamp = date.getTime();
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+}
+
+function floorToMinuteTimestamp(timestamp) {
+  if (!Number.isFinite(timestamp) || timestamp <= 0) {
+    return 0;
+  }
+
+  return Math.floor(timestamp / 60000) * 60000;
+}
+
+function ceilToMinuteTimestamp(timestamp) {
+  const minuteStart = floorToMinuteTimestamp(timestamp);
+  if (!minuteStart) {
+    return 0;
+  }
+
+  return minuteStart + 59999;
+}
+
+function toMinuteKey(measuredAt) {
+  const date = normalizeDate(measuredAt);
+  if (Number.isNaN(date.getTime())) {
+    return 0;
+  }
+
+  date.setSeconds(0, 0);
+  return date.getTime();
+}
+
+function buildImportDedupKey(record) {
+  if (!record) {
+    return '';
+  }
+
+  const minuteKey = toMinuteKey(record.measuredAt);
+  if (!minuteKey) {
+    return '';
+  }
+
+  const payload = record.payload || {};
+  const systolic = Number(
+    Object.prototype.hasOwnProperty.call(payload, 'systolic') ? payload.systolic : record.systolic,
+  );
+  const diastolic = Number(
+    Object.prototype.hasOwnProperty.call(payload, 'diastolic') ? payload.diastolic : record.diastolic,
+  );
+
+  return `${minuteKey}_${systolic}_${diastolic}`;
+}
+
+async function dedupeImportRecords(profileId, records) {
+  const pendingRecords = Array.isArray(records) ? records.slice() : [];
+  if (!profileId || !pendingRecords.length) {
+    return {
+      recordsToImport: pendingRecords,
+      duplicateCount: 0,
+    };
+  }
+
+  const timestamps = pendingRecords
+    .map((record) => toTimestamp(record && record.measuredAt))
+    .filter((value) => value > 0);
+
+  if (!timestamps.length) {
+    return {
+      recordsToImport: pendingRecords,
+      duplicateCount: 0,
+    };
+  }
+
+  const since = floorToMinuteTimestamp(Math.min.apply(null, timestamps));
+  const until = ceilToMinuteTimestamp(Math.max.apply(null, timestamps));
+  console.log('[import-records] start getRecords for dedupe', {
+    profileId,
+    since,
+    until,
+    candidateCount: pendingRecords.length,
+  });
+  const result = await recordService.fetchRecords(profileId, {
+    since,
+    until,
+    limit: IMPORT_DEDUPE_FETCH_LIMIT,
+  });
+  console.log('[import-records] getRecords returned', {
+    success: true,
+    existingCount: Array.isArray(result.records) ? result.records.length : 0,
+    hasMore: result.hasMore === true,
+  });
+
+  const existingKeys = new Set();
+  (result.records || []).forEach((existingRecord) => {
+    const existKey = buildImportDedupKey(existingRecord);
+    console.log('已有记录 measuredAt:', typeof existingRecord.measuredAt, existingRecord.measuredAt);
+    console.log('已有记录 dedupe key:', existKey);
+    if (existKey) {
+      existingKeys.add(existKey);
+    }
+  });
+
+  const recordsToImport = [];
+  let duplicateCount = 0;
+
+  pendingRecords.forEach((importRecord) => {
+    const importKey = buildImportDedupKey(importRecord);
+    console.log('待导入记录 measuredAt:', typeof importRecord.measuredAt, importRecord.measuredAt);
+    console.log('去重 key 对比 - 待导入:', importKey, '已有 Set:', Array.from(existingKeys));
+    console.log('去重 key 对比 - 待导入:', importKey, '已有:', existingKeys.has(importKey) ? importKey : '');
+
+    if (!importKey) {
+      recordsToImport.push(importRecord);
+      return;
+    }
+
+    if (existingKeys.has(importKey)) {
+      console.log(`待导入 key: ${importKey} 在已有 Set 中找到，标记为重复`);
+      duplicateCount += 1;
+      return;
+    }
+
+    existingKeys.add(importKey);
+    recordsToImport.push(importRecord);
+  });
+
+  return {
+    recordsToImport,
+    duplicateCount,
+  };
+}
+
 async function batchImport(profileId, validRecords, onProgress) {
   const CONCURRENCY = 5;
   const results = { success: 0, failed: 0, errors: [] };
   const records = Array.isArray(validRecords) ? validRecords.slice() : [];
   let completed = 0;
+  console.log('[import-records] start saveRecord batch', {
+    profileId,
+    total: records.length,
+  });
 
   for (let index = 0; index < records.length; index += CONCURRENCY) {
     const chunk = records.slice(index, index + CONCURRENCY);
@@ -63,6 +202,11 @@ async function batchImport(profileId, validRecords, onProgress) {
           { skipPush: true },
         ).then(() => {
           results.success += 1;
+          console.log('[import-records] saveRecord completed', {
+            measuredAt: record.measuredAt,
+            payload: record.payload,
+            successCount: results.success,
+          });
         }).catch((error) => {
           results.failed += 1;
           results.errors.push({
@@ -83,6 +227,7 @@ async function batchImport(profileId, validRecords, onProgress) {
     }
   }
 
+  console.log('[import-records] all saveRecord completed', results);
   return results;
 }
 
@@ -272,6 +417,7 @@ Page({
   },
 
   async handleImport() {
+    console.log('[import-records] entered handleImport');
     if (this.data.isImporting || this.data.isParsing) {
       return;
     }
@@ -291,11 +437,67 @@ Page({
       importResultText: '',
       importProgressText: `正在导入 0/${records.length}...`,
     });
+    wx.showLoading({
+      title: '正在导入',
+      mask: true,
+    });
+    let loadingVisible = true;
+    const hideImportLoading = () => {
+      if (!loadingVisible) {
+        return;
+      }
+
+      wx.hideLoading();
+      loadingVisible = false;
+    };
 
     try {
+      let dedupeResult;
+      try {
+        dedupeResult = await dedupeImportRecords(
+          this.data.profileId,
+          records,
+        );
+      } catch (error) {
+        console.warn('[import-records] getRecords dedupe failed, fallback to direct import', error);
+        console.log('[import-records] getRecords returned', {
+          success: false,
+          error: getErrorMessage(error),
+        });
+        dedupeResult = {
+          recordsToImport: records.slice(),
+          duplicateCount: 0,
+        };
+      }
+      const { recordsToImport, duplicateCount } = dedupeResult;
+      console.log('[import-records] dedupe result', {
+        duplicateCount,
+        remainingCount: recordsToImport.length,
+      });
+
+      if (!recordsToImport.length) {
+        const duplicateOnlyText = '所有记录已存在，无需重复导入';
+        this.setData({
+          hasImportResult: true,
+          importResultText: duplicateOnlyText,
+          importProgressText: '',
+        });
+        hideImportLoading();
+        wx.showToast({
+          title: duplicateOnlyText,
+          icon: 'none',
+          duration: IMPORT_FEEDBACK_DURATION_MS,
+        });
+        return;
+      }
+
+      this.setData({
+        importProgressText: `正在导入 0/${recordsToImport.length}...`,
+      });
+
       const results = await batchImport(
         this.data.profileId,
-        records,
+        recordsToImport,
         (completed, total) => {
           this.setData({
             importProgressText: `正在导入 ${completed}/${total}...`,
@@ -303,16 +505,46 @@ Page({
         },
       );
 
-      const resultText = results.failed > 0
+      let resultText = results.failed > 0
         ? `成功导入 ${results.success} 条记录，${results.failed} 条导入失败`
         : `成功导入 ${results.success} 条记录`;
+
+      if (duplicateCount > 0) {
+        resultText = `发现 ${duplicateCount} 条重复记录已跳过，实际导入 ${results.success} 条`;
+        if (results.failed > 0) {
+          resultText = `${resultText}，${results.failed} 条导入失败`;
+        }
+      }
 
       this.setData({
         hasImportResult: true,
         importResultText: resultText,
         importProgressText: '',
       });
+      const resultToastText = duplicateCount > 0
+        ? `已跳过 ${duplicateCount} 条重复`
+        : (results.failed > 0 ? '导入完成' : '导入成功');
+      hideImportLoading();
+      wx.showToast({
+        title: resultToastText,
+        icon: results.failed > 0 ? 'none' : 'success',
+        duration: IMPORT_FEEDBACK_DURATION_MS,
+      });
+    } catch (error) {
+      console.error('[import-records] import failed', error);
+      const message = getErrorMessage(error);
+      this.setData({
+        hasImportResult: true,
+        importResultText: message,
+        importProgressText: '',
+      });
+      hideImportLoading();
+      wx.showToast({
+        title: message,
+        icon: 'none',
+      });
     } finally {
+      hideImportLoading();
       this.setData({
         isImporting: false,
       });
