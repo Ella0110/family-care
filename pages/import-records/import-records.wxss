@@ -1,7 +1,7 @@
 .import-page {
   min-height: 100vh;
-  padding-bottom: 220rpx;
-  background: #f0f4fa;
+  padding-bottom: calc(244rpx + env(safe-area-inset-bottom));
+  background: #eef3fb;
 }
 
 .import-card + .import-card {
@@ -9,13 +9,12 @@
 }
 
 .import-card {
+  padding: 32rpx;
   border-radius: 32rpx;
   background: #ffffff;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.03);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
 }
 
-.import-card__title,
-.import-preview__summary,
 .import-result__title {
   color: #1e293b;
   font-size: calc(32rpx * var(--font-scale));
@@ -23,7 +22,6 @@
   line-height: 1.4;
 }
 
-.import-card__text,
 .import-result__text,
 .import-footer__text,
 .import-preview__sub {
@@ -33,58 +31,106 @@
   line-height: 1.7;
 }
 
+.import-textarea__wrap {
+  position: relative;
+}
+
 .import-textarea {
   width: 100%;
   min-height: 420rpx;
-  padding: 28rpx;
-  border-radius: 20rpx;
+  padding: 32rpx;
+  border-radius: 16rpx;
   background: #f8fafc;
+  border: 1px solid #e2e8f0;
   box-sizing: border-box;
-  color: #64748b;
+  color: #334155;
   font-size: calc(26rpx * var(--font-scale));
   line-height: 1.7;
 }
 
-.import-card__actions {
+.import-textarea__clear {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
   display: flex;
-  gap: 20rpx;
+  align-items: center;
+  justify-content: center;
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: #e5e5ea;
+  color: #ffffff;
+  font-size: calc(24rpx * var(--font-scale));
+  line-height: 1;
+}
+
+.import-parse-status {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
   margin-top: 24rpx;
 }
 
-.import-card__button,
+.import-parse-status--pending .import-parse-status__text {
+  color: #64748b;
+}
+
+.import-parse-status--success .import-parse-status__text,
+.import-parse-status--success .import-parse-status__icon {
+  color: #10b981;
+}
+
+.import-parse-status--warning .import-parse-status__text,
+.import-parse-status--warning .import-parse-status__icon {
+  color: #f59e0b;
+}
+
+.import-parse-status__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32rpx;
+  height: 32rpx;
+  font-size: calc(24rpx * var(--font-scale));
+  font-weight: 700;
+  line-height: 1;
+}
+
+.import-parse-status__text {
+  font-size: calc(26rpx * var(--font-scale));
+  font-weight: 600;
+  line-height: 1.6;
+}
+
 .import-result__button,
 .import-footer__button {
-  flex: 1;
-  min-height: 88rpx;
-  border-radius: 20rpx;
-  font-size: calc(28rpx * var(--font-scale));
+  min-height: 96rpx;
+  border-radius: 24rpx;
+  font-size: calc(30rpx * var(--font-scale));
   font-weight: 600;
 }
 
-.import-card__button::after,
 .import-result__button::after,
 .import-footer__button::after {
   border-width: 0;
 }
 
-.import-card__button.btn-primary,
 .import-result__button.btn-primary,
 .import-footer__button.btn-primary {
-  background: #3182f7;
+  background: #3478f6;
   color: #ffffff;
 }
 
-.import-card__button.btn-secondary {
-  background: #ffffff;
-  border: 2rpx solid #3182f7;
-  color: #3182f7;
+.import-preview__section {
+  margin-top: 8rpx;
 }
 
-.import-preview__section {
-  margin-top: 28rpx;
+.import-preview__section + .import-preview__section {
+  margin-top: 32rpx;
 }
 
 .import-preview__section-title {
+  margin-bottom: 16rpx;
   font-size: calc(28rpx * var(--font-scale));
   font-weight: 700;
 }
@@ -97,18 +143,24 @@
   color: #b42318;
 }
 
+.import-preview__list {
+  overflow: hidden;
+  border-radius: 24rpx;
+  background: #ffffff;
+}
+
+.import-preview__item {
+  padding: 24rpx;
+  border-radius: 20rpx;
+  border: 1rpx solid #f1f5f9;
+}
+
 .import-preview__item + .import-preview__item {
   margin-top: 16rpx;
 }
 
-.import-preview__item {
-  margin-top: 18rpx;
-  padding: 20rpx;
-  border-radius: 20rpx;
-}
-
 .import-preview__item--success {
-  background: #ecfdf5;
+  background: #ffffff;
 }
 
 .import-preview__item--error {
@@ -124,13 +176,12 @@
 
 .import-footer {
   position: fixed;
-  right: 32rpx;
-  bottom: 32rpx;
-  left: 32rpx;
-  padding: 24rpx;
-  border-radius: 32rpx;
+  right: 28rpx;
+  bottom: calc(24rpx + env(safe-area-inset-bottom));
+  left: 28rpx;
+  padding: 24rpx 0 0;
   background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 12rpx 32rpx rgba(17, 24, 39, 0.12);
+  box-shadow: 0 -8rpx 24rpx rgba(15, 23, 42, 0.06);
 }
 
 .import-footer__button[disabled] {

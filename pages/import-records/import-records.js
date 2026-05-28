@@ -5,6 +5,8 @@ const { DEFAULT_FONT_SCALE, normalizeFontScale } = require('../../utils/font-sca
 const { canWrite } = require('../../utils/permission-helpers');
 const { parseCSV, formatEast8DateYMD, formatEast8TimeHM } = require('../../utils/csv-helpers');
 
+const PARSE_DEBOUNCE_MS = 500;
+
 function getCurrentFontScale() {
   const app = getApp();
   return normalizeFontScale(app && app.globalData ? app.globalData.fontScale : DEFAULT_FONT_SCALE);
@@ -29,6 +31,16 @@ function buildPreview(validRecords, errors) {
       });
     }),
     errors: invalid,
+  };
+}
+
+function createEmptyPreview() {
+  return {
+    total: 0,
+    validCount: 0,
+    errorCount: 0,
+    validRecords: [],
+    errors: [],
   };
 }
 
@@ -98,14 +110,11 @@ Page({
     fontScale: DEFAULT_FONT_SCALE,
     profileId: '',
     csvText: '',
+    isParsing: false,
+    parseStatusTone: '',
+    parseStatusText: '',
     hasPreview: false,
-    preview: {
-      total: 0,
-      validCount: 0,
-      errorCount: 0,
-      validRecords: [],
-      errors: [],
-    },
+    preview: createEmptyPreview(),
     isImporting: false,
     importProgressText: '',
     hasImportResult: false,
@@ -114,6 +123,8 @@ Page({
 
   onLoad(options = {}) {
     this.syncFontScale();
+    this.parseTimer = null;
+    this.parseRequestId = 0;
 
     const profileId = options.profileId || '';
     const writable = profileId ? canWrite(store.getState(), profileId) : false;
@@ -146,9 +157,92 @@ Page({
     this.syncFontScale();
   },
 
+  onUnload() {
+    this.cancelScheduledParse();
+  },
+
   syncFontScale() {
     this.setData({
       fontScale: getCurrentFontScale(),
+    });
+  },
+
+  cancelScheduledParse() {
+    if (this.parseTimer) {
+      clearTimeout(this.parseTimer);
+      this.parseTimer = null;
+    }
+  },
+
+  resetPreviewState(extraPatch = {}) {
+    this.pendingRecords = [];
+    this.setData(Object.assign({
+      isParsing: false,
+      parseStatusTone: '',
+      parseStatusText: '',
+      hasPreview: false,
+      preview: createEmptyPreview(),
+    }, extraPatch));
+  },
+
+  schedulePreviewParse() {
+    const text = String(this.data.csvText || '').trim();
+    this.cancelScheduledParse();
+
+    if (!text) {
+      this.resetPreviewState();
+      return;
+    }
+
+    this.parseRequestId += 1;
+    const requestId = this.parseRequestId;
+    this.setData({
+      isParsing: true,
+      parseStatusTone: 'pending',
+      parseStatusText: '解析中...',
+    });
+
+    this.parseTimer = setTimeout(() => {
+      this.parseTimer = null;
+      this.runPreviewParse(requestId);
+    }, PARSE_DEBOUNCE_MS);
+  },
+
+  flushPreviewParse() {
+    if (!this.parseTimer) {
+      return;
+    }
+
+    clearTimeout(this.parseTimer);
+    this.parseTimer = null;
+    this.runPreviewParse(this.parseRequestId);
+  },
+
+  runPreviewParse(requestId) {
+    const text = String(this.data.csvText || '').trim();
+    if (!text) {
+      this.resetPreviewState();
+      return;
+    }
+
+    const parsed = parseCSV(this.data.csvText);
+    if (requestId !== this.parseRequestId) {
+      return;
+    }
+
+    this.pendingRecords = parsed.valid;
+    const preview = buildPreview(parsed.valid, parsed.errors);
+    const hasErrors = preview.errorCount > 0;
+    const statusText = hasErrors
+      ? `共 ${preview.total} 条，有效 ${preview.validCount} 条，错误 ${preview.errorCount} 条`
+      : `${preview.validCount} 条血压数据已成功解析`;
+
+    this.setData({
+      isParsing: false,
+      parseStatusTone: hasErrors ? 'warning' : 'success',
+      parseStatusText: statusText,
+      hasPreview: preview.total > 0,
+      preview,
     });
   },
 
@@ -159,49 +253,26 @@ Page({
       importResultText: '',
       importProgressText: '',
     });
+    this.schedulePreviewParse();
+  },
+
+  handleInputBlur() {
+    this.flushPreviewParse();
   },
 
   handleClear() {
-    this.pendingRecords = [];
-    this.setData({
+    this.cancelScheduledParse();
+    this.parseRequestId += 1;
+    this.resetPreviewState({
       csvText: '',
-      hasPreview: false,
       hasImportResult: false,
       importResultText: '',
       importProgressText: '',
-      preview: {
-        total: 0,
-        validCount: 0,
-        errorCount: 0,
-        validRecords: [],
-        errors: [],
-      },
     });
-  },
-
-  handlePreview() {
-    const parsed = parseCSV(this.data.csvText);
-    this.pendingRecords = parsed.valid;
-    const preview = buildPreview(parsed.valid, parsed.errors);
-
-    this.setData({
-      hasPreview: true,
-      hasImportResult: false,
-      importResultText: '',
-      importProgressText: '',
-      preview,
-    });
-
-    if (preview.validCount === 0) {
-      wx.showToast({
-        title: '无有效数据',
-        icon: 'none',
-      });
-    }
   },
 
   async handleImport() {
-    if (this.data.isImporting) {
+    if (this.data.isImporting || this.data.isParsing) {
       return;
     }
 

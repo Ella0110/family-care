@@ -28,6 +28,11 @@ const RANGE_OPTIONS = [
 ];
 
 const EXPORT_CHART_CANVAS_WIDTH = 750;
+const EXPORT_CHART_TITLE_Y = 60;
+const EXPORT_CHART_SUBTITLE_Y = 96;
+const EXPORT_CHART_TOP = 130;
+const EXPORT_CHART_HEIGHT = 380;
+const EXPORT_CHART_SUMMARY_Y = 556;
 const REFRESH_TTL_MS = 5 * 1000;
 const STALE_REFRESH_TTL_MS = 30 * 1000;
 const PULL_DOWN_REFRESH_THROTTLE_MS = 2 * 1000;
@@ -377,7 +382,15 @@ function buildLatestDisplay(record, profile) {
 }
 
 function buildChartExportHeight() {
-  return 620;
+  return 640;
+}
+
+function buildChartExportSummaryText(chartType, selectedDays, rangeSummary, heartRateSummary) {
+  if (chartType === 'hr') {
+    return `近 ${selectedDays}天 | 均值 ${heartRateSummary.averageText || '--'} bpm | 异常${heartRateSummary.abnormalCount}次`;
+  }
+
+  return `近 ${selectedDays}天 | 均值 ${rangeSummary.averageText || '--'} mmHg | 异常${rangeSummary.abnormalCount}次`;
 }
 
 Page({
@@ -1160,24 +1173,24 @@ Page({
       ctx.fillText(
         `${this.data.profileName || '当前档案'}的${isHeartRateChart ? '心率数据' : '血压数据'}`,
         EXPORT_CHART_CANVAS_WIDTH / 2,
-        60,
+        EXPORT_CHART_TITLE_Y,
       );
       ctx.fillStyle = '#6B7280';
       ctx.font = '14px sans-serif';
       ctx.fillText(
         `近 ${this.data.selectedDays} 天数据（${formatExportDateRange(this.data.selectedDays)}）`,
         EXPORT_CHART_CANVAS_WIDTH / 2,
-        96,
+        EXPORT_CHART_SUBTITLE_Y,
       );
 
       ctx.save();
-      ctx.translate(20, 130);
+      ctx.translate(20, EXPORT_CHART_TOP);
       if (isHeartRateChart) {
         drawHeartRateChart(
           ctx,
           this.chartData,
           this.chartThreshold,
-          { width: 710, height: 380 },
+          { width: 710, height: EXPORT_CHART_HEIGHT },
           this.data.selectedDays,
           { hideTitle: true },
         );
@@ -1186,12 +1199,22 @@ Page({
           ctx,
           this.chartData,
           this.chartThreshold,
-          { width: 710, height: 380 },
+          { width: 710, height: EXPORT_CHART_HEIGHT },
           this.data.selectedDays,
           { hideTitle: true },
         );
       }
       ctx.restore();
+
+      const summaryText = buildChartExportSummaryText(
+        chartType,
+        this.data.selectedDays,
+        this.data.rangeSummary,
+        this.data.heartRateSummary,
+      );
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = '22px sans-serif';
+      ctx.fillText(summaryText, EXPORT_CHART_CANVAS_WIDTH / 2, EXPORT_CHART_SUMMARY_Y);
 
       const result = await wrapCanvasToTempFilePath(canvas, {
         x: 0,
