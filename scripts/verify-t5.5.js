@@ -56,7 +56,7 @@ assert.strictEqual(range.label, '近 7 天');
 assert.strictEqual(range.since.getTime(), new Date(2026, 4, 1, 0, 0, 0, 0).getTime(), 'buildRecentRange should anchor since to local start of day');
 assert.strictEqual(range.startDateText, '2026.05.01');
 assert.strictEqual(range.endDateText, '2026.05.07');
-assert.strictEqual(exportHelpers.measureRecordsImageHeight(3), 396, 'image height should follow fixed table layout');
+assert.strictEqual(exportHelpers.measureRecordsImageHeight(3), 484, 'image height should follow the updated readable export layout');
 
 const appConfig = JSON.parse(read('app.json'));
 assert.ok(appConfig.pages.includes('pages/import-records/import-records'), 'app.json should register import-records page');

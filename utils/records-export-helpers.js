@@ -6,15 +6,15 @@ const {
 
 const EXPORT_IMAGE_CANVAS_WIDTH = 750;
 const EXPORT_IMAGE_SIDE_PADDING = 40;
-const EXPORT_IMAGE_TITLE_HEIGHT = 120;
-const EXPORT_IMAGE_HEADER_ROW_HEIGHT = 44;
-const EXPORT_IMAGE_ROW_HEIGHT = 44;
-const EXPORT_IMAGE_BOTTOM_HEIGHT = 100;
+const EXPORT_IMAGE_TITLE_HEIGHT = 160;
+const EXPORT_IMAGE_HEADER_ROW_HEIGHT = 60;
+const EXPORT_IMAGE_ROW_HEIGHT = 56;
+const EXPORT_IMAGE_BOTTOM_HEIGHT = 96;
 const TABLE_COLUMNS = [
-  { key: 'time', label: '测量时间', widthRatio: 0.4, align: 'left' },
-  { key: 'systolic', label: '高压 (mmHg)', widthRatio: 0.2, align: 'right' },
-  { key: 'diastolic', label: '低压 (mmHg)', widthRatio: 0.2, align: 'right' },
-  { key: 'heartRate', label: '心率 (bpm)', widthRatio: 0.2, align: 'right' },
+  { key: 'time', label: '测量时间', widthRatio: 0.31, align: 'left' },
+  { key: 'systolic', label: '高压 (mmHg)', widthRatio: 0.23, align: 'left' },
+  { key: 'diastolic', label: '低压 (mmHg)', widthRatio: 0.23, align: 'left' },
+  { key: 'heartRate', label: '心率 (bpm)', widthRatio: 0.23, align: 'left' },
 ];
 
 function pad(value) {
@@ -52,12 +52,12 @@ function buildRecentRange(days, now = new Date()) {
 function measureRecordsImageHeight(recordCount) {
   return EXPORT_IMAGE_TITLE_HEIGHT
     + EXPORT_IMAGE_HEADER_ROW_HEIGHT
-    + Math.max(0, Number(recordCount) || 0) * EXPORT_IMAGE_ROW_HEIGHT
+    + Math.max(1, Number(recordCount) || 0) * EXPORT_IMAGE_ROW_HEIGHT
     + EXPORT_IMAGE_BOTTOM_HEIGHT;
 }
 
 function drawCellText(ctx, text, left, right, centerY, align) {
-  const inset = 12;
+  const inset = 16;
   ctx.textAlign = align;
 
   if (align === 'right') {
@@ -72,6 +72,7 @@ function drawRecordsImageTable(ctx, options) {
   const records = Array.isArray(options && options.records) ? options.records : [];
   const range = options && options.range ? options.range : buildRecentRange(7);
   const width = (options && options.width) || EXPORT_IMAGE_CANVAS_WIDTH;
+  const layoutRowCount = Math.max(1, records.length);
   const totalHeight = measureRecordsImageHeight(records.length);
   const tableLeft = EXPORT_IMAGE_SIDE_PADDING;
   const tableWidth = width - EXPORT_IMAGE_SIDE_PADDING * 2;
@@ -85,19 +86,19 @@ function drawRecordsImageTable(ctx, options) {
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'center';
   ctx.fillStyle = '#111827';
-  ctx.font = 'bold 20px sans-serif';
+  ctx.font = 'bold 36px sans-serif';
   ctx.fillText('血压心率数据记录', width / 2, 72);
 
   ctx.fillStyle = '#6B7280';
-  ctx.font = '14px sans-serif';
-  ctx.fillText(range.subtitle, width / 2, 102);
+  ctx.font = '24px sans-serif';
+  ctx.fillText(range.subtitle, width / 2, 116);
 
   const headerTop = EXPORT_IMAGE_TITLE_HEIGHT;
   ctx.fillStyle = '#F3F4F6';
   ctx.fillRect(tableLeft, headerTop, tableWidth, EXPORT_IMAGE_HEADER_ROW_HEIGHT);
 
   ctx.fillStyle = '#374151';
-  ctx.font = '14px sans-serif';
+  ctx.font = 'bold 28px sans-serif';
 
   let cursorX = tableLeft;
   TABLE_COLUMNS.forEach((column, index) => {
@@ -114,7 +115,7 @@ function drawRecordsImageTable(ctx, options) {
   });
 
   const tableTop = headerTop;
-  const tableBottom = headerTop + EXPORT_IMAGE_HEADER_ROW_HEIGHT + records.length * EXPORT_IMAGE_ROW_HEIGHT;
+  const tableBottom = headerTop + EXPORT_IMAGE_HEADER_ROW_HEIGHT + layoutRowCount * EXPORT_IMAGE_ROW_HEIGHT;
 
   records.forEach((record, index) => {
     const rowTop = headerTop + EXPORT_IMAGE_HEADER_ROW_HEIGHT + index * EXPORT_IMAGE_ROW_HEIGHT;
@@ -132,7 +133,7 @@ function drawRecordsImageTable(ctx, options) {
     ];
 
     ctx.fillStyle = '#111827';
-    ctx.font = '14px sans-serif';
+    ctx.font = '26px sans-serif';
 
     let rowCursorX = tableLeft;
     TABLE_COLUMNS.forEach((column, columnIndex) => {
@@ -149,12 +150,31 @@ function drawRecordsImageTable(ctx, options) {
     });
   });
 
+  if (!records.length) {
+    ctx.fillStyle = '#64748B';
+    ctx.font = '26px sans-serif';
+    drawCellText(
+      ctx,
+      '暂无数据',
+      tableLeft,
+      tableLeft + tableWidth,
+      headerTop + EXPORT_IMAGE_HEADER_ROW_HEIGHT + EXPORT_IMAGE_ROW_HEIGHT / 2,
+      'left',
+    );
+  }
+
   ctx.strokeStyle = '#E5E7EB';
   ctx.lineWidth = 1;
 
-  for (let lineIndex = 0; lineIndex <= records.length + 1; lineIndex += 1) {
-    const y = headerTop + lineIndex * EXPORT_IMAGE_ROW_HEIGHT;
-    const lineY = lineIndex === 0 ? headerTop : y;
+  ctx.beginPath();
+  ctx.moveTo(tableLeft, tableTop);
+  ctx.lineTo(tableLeft + tableWidth, tableTop);
+  ctx.moveTo(tableLeft, tableTop + EXPORT_IMAGE_HEADER_ROW_HEIGHT);
+  ctx.lineTo(tableLeft + tableWidth, tableTop + EXPORT_IMAGE_HEADER_ROW_HEIGHT);
+  ctx.stroke();
+
+  for (let lineIndex = 0; lineIndex < layoutRowCount; lineIndex += 1) {
+    const lineY = tableTop + EXPORT_IMAGE_HEADER_ROW_HEIGHT + (lineIndex + 1) * EXPORT_IMAGE_ROW_HEIGHT;
     ctx.beginPath();
     ctx.moveTo(tableLeft, lineY);
     ctx.lineTo(tableLeft + tableWidth, lineY);

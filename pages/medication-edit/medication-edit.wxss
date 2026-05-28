@@ -70,6 +70,7 @@
   align-items: center;
   justify-content: center;
   background: #ef4444;
+  border-radius: 0 32rpx 32rpx 0;
   color: #ffffff;
   font-size: 28rpx;
   font-weight: 700;

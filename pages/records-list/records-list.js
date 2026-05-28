@@ -664,6 +664,7 @@ Page({
       }
 
       const exportHeight = measureRecordsImageHeight(result.records.length);
+      const exportScale = Math.max(1, Number(wx.getSystemInfoSync().pixelRatio) || 1);
       this.setData({
         exportCanvasHeight: exportHeight,
       });
@@ -687,8 +688,9 @@ Page({
       const canvas = canvasResult.node;
       const ctx = canvas.getContext('2d');
 
-      canvas.width = EXPORT_IMAGE_CANVAS_WIDTH;
-      canvas.height = exportHeight;
+      canvas.width = Math.max(1, Math.round(EXPORT_IMAGE_CANVAS_WIDTH * exportScale));
+      canvas.height = Math.max(1, Math.round(exportHeight * exportScale));
+      ctx.scale(exportScale, exportScale);
 
       drawRecordsImageTable(ctx, {
         records: result.records,
@@ -703,8 +705,8 @@ Page({
         y: 0,
         width: EXPORT_IMAGE_CANVAS_WIDTH,
         height: exportHeight,
-        destWidth: EXPORT_IMAGE_CANVAS_WIDTH,
-        destHeight: exportHeight,
+        destWidth: Math.max(1, Math.round(EXPORT_IMAGE_CANVAS_WIDTH * exportScale)),
+        destHeight: Math.max(1, Math.round(exportHeight * exportScale)),
       });
 
       this.setData({
