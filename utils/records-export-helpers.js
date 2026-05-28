@@ -6,19 +6,29 @@ const {
 
 const EXPORT_IMAGE_CANVAS_WIDTH = 750;
 const EXPORT_IMAGE_SIDE_PADDING = 40;
+const EXPORT_IMAGE_TOP_PADDING = 72;
 const EXPORT_IMAGE_TITLE_FONT_SIZE = 36;
-const EXPORT_IMAGE_SUBTITLE_FONT_SIZE = 24;
-const EXPORT_IMAGE_TITLE_Y = 60 + (EXPORT_IMAGE_TITLE_FONT_SIZE / 2);
-const EXPORT_IMAGE_SUBTITLE_Y = EXPORT_IMAGE_TITLE_Y + (EXPORT_IMAGE_TITLE_FONT_SIZE / 2) + 16 + (EXPORT_IMAGE_SUBTITLE_FONT_SIZE / 2);
-const EXPORT_IMAGE_HEADER_TOP = EXPORT_IMAGE_SUBTITLE_Y + (EXPORT_IMAGE_SUBTITLE_FONT_SIZE / 2) + 24;
-const EXPORT_IMAGE_HEADER_ROW_HEIGHT = 60;
+const EXPORT_IMAGE_SUBTITLE_FONT_SIZE = 22;
+const EXPORT_IMAGE_HEADER_LABEL_FONT_SIZE = 26;
+const EXPORT_IMAGE_HEADER_UNIT_FONT_SIZE = 20;
+const EXPORT_IMAGE_HEADER_LINE_GAP = 6;
+const EXPORT_IMAGE_HEADER_VERTICAL_PADDING = 16;
+const EXPORT_IMAGE_TITLE_Y = EXPORT_IMAGE_TOP_PADDING;
+const EXPORT_IMAGE_TITLE_BOTTOM_Y = EXPORT_IMAGE_TITLE_Y + (EXPORT_IMAGE_TITLE_FONT_SIZE / 2);
+const EXPORT_IMAGE_SUBTITLE_Y = EXPORT_IMAGE_TITLE_BOTTOM_Y + 20 + (EXPORT_IMAGE_SUBTITLE_FONT_SIZE / 2);
+const EXPORT_IMAGE_SUBTITLE_BOTTOM_Y = EXPORT_IMAGE_SUBTITLE_Y + (EXPORT_IMAGE_SUBTITLE_FONT_SIZE / 2);
+const EXPORT_IMAGE_HEADER_LABEL_Y = EXPORT_IMAGE_SUBTITLE_BOTTOM_Y + 30 + (EXPORT_IMAGE_HEADER_LABEL_FONT_SIZE / 2);
+const EXPORT_IMAGE_HEADER_UNIT_Y = EXPORT_IMAGE_HEADER_LABEL_Y + (EXPORT_IMAGE_HEADER_LABEL_FONT_SIZE / 2) + 6 + (EXPORT_IMAGE_HEADER_UNIT_FONT_SIZE / 2);
+const EXPORT_IMAGE_HEADER_TOP = EXPORT_IMAGE_HEADER_LABEL_Y - (EXPORT_IMAGE_HEADER_LABEL_FONT_SIZE / 2) - EXPORT_IMAGE_HEADER_VERTICAL_PADDING;
+const EXPORT_IMAGE_HEADER_BOTTOM = EXPORT_IMAGE_HEADER_UNIT_Y + (EXPORT_IMAGE_HEADER_UNIT_FONT_SIZE / 2) + EXPORT_IMAGE_HEADER_VERTICAL_PADDING;
+const EXPORT_IMAGE_HEADER_ROW_HEIGHT = EXPORT_IMAGE_HEADER_BOTTOM - EXPORT_IMAGE_HEADER_TOP;
 const EXPORT_IMAGE_ROW_HEIGHT = 56;
 const EXPORT_IMAGE_BOTTOM_HEIGHT = 96;
 const TABLE_COLUMNS = [
-  { key: 'time', label: '测量时间', widthRatio: 0.31, align: 'left' },
-  { key: 'systolic', label: '高压 (mmHg)', widthRatio: 0.23, align: 'left' },
-  { key: 'diastolic', label: '低压 (mmHg)', widthRatio: 0.23, align: 'left' },
-  { key: 'heartRate', label: '心率 (bpm)', widthRatio: 0.23, align: 'left' },
+  { key: 'time', label: '测量时间', unit: '', widthRatio: 0.38, align: 'left' },
+  { key: 'systolic', label: '高压', unit: '(mmHg)', widthRatio: 0.2, align: 'left' },
+  { key: 'diastolic', label: '低压', unit: '(mmHg)', widthRatio: 0.2, align: 'left' },
+  { key: 'heartRate', label: '心率', unit: '(bpm)', widthRatio: 0.22, align: 'left' },
 ];
 
 function pad(value) {
@@ -60,6 +70,20 @@ function measureRecordsImageHeight(recordCount) {
     + EXPORT_IMAGE_BOTTOM_HEIGHT;
 }
 
+function getRecordsExportLayoutMetrics() {
+  return {
+    titleY: EXPORT_IMAGE_TITLE_Y,
+    titleBottomY: EXPORT_IMAGE_TITLE_BOTTOM_Y,
+    subtitleY: EXPORT_IMAGE_SUBTITLE_Y,
+    subtitleBottomY: EXPORT_IMAGE_SUBTITLE_BOTTOM_Y,
+    headerTop: EXPORT_IMAGE_HEADER_TOP,
+    headerLabelY: EXPORT_IMAGE_HEADER_LABEL_Y,
+    headerUnitY: EXPORT_IMAGE_HEADER_UNIT_Y,
+    headerBottom: EXPORT_IMAGE_HEADER_BOTTOM,
+    headerHeight: EXPORT_IMAGE_HEADER_ROW_HEIGHT,
+  };
+}
+
 function drawCellText(ctx, text, left, right, centerY, align) {
   const inset = 16;
   ctx.textAlign = align;
@@ -98,23 +122,35 @@ function drawRecordsImageTable(ctx, options) {
   ctx.fillText(range.subtitle, width / 2, EXPORT_IMAGE_SUBTITLE_Y);
 
   const headerTop = EXPORT_IMAGE_HEADER_TOP;
-  ctx.fillStyle = '#F3F4F6';
+  ctx.fillStyle = '#F8FAFC';
   ctx.fillRect(tableLeft, headerTop, tableWidth, EXPORT_IMAGE_HEADER_ROW_HEIGHT);
-
-  ctx.fillStyle = '#374151';
-  ctx.font = 'bold 28px sans-serif';
 
   let cursorX = tableLeft;
   TABLE_COLUMNS.forEach((column, index) => {
     const columnWidth = columnWidths[index];
+    ctx.fillStyle = '#334155';
+    ctx.font = `bold ${EXPORT_IMAGE_HEADER_LABEL_FONT_SIZE}px sans-serif`;
     drawCellText(
       ctx,
       column.label,
       cursorX,
       cursorX + columnWidth,
-      headerTop + EXPORT_IMAGE_HEADER_ROW_HEIGHT / 2,
-      column.align === 'right' ? 'right' : 'left',
+      EXPORT_IMAGE_HEADER_LABEL_Y,
+      column.align,
     );
+
+    if (column.unit) {
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = `${EXPORT_IMAGE_HEADER_UNIT_FONT_SIZE}px sans-serif`;
+      drawCellText(
+        ctx,
+        column.unit,
+        cursorX,
+        cursorX + columnWidth,
+        EXPORT_IMAGE_HEADER_UNIT_Y,
+        column.align,
+      );
+    }
     cursorX += columnWidth;
   });
 
@@ -191,6 +227,7 @@ function drawRecordsImageTable(ctx, options) {
 module.exports = {
   EXPORT_IMAGE_CANVAS_WIDTH,
   buildRecentRange,
+  getRecordsExportLayoutMetrics,
   measureRecordsImageHeight,
   drawRecordsImageTable,
 };

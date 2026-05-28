@@ -92,20 +92,26 @@ function verifyD3RecordsExportImage() {
 
   assert.match(
     exporterJs,
-    /const EXPORT_IMAGE_SUBTITLE_FONT_SIZE = 24;[\s\S]*ctx\.font = `\$\{EXPORT_IMAGE_SUBTITLE_FONT_SIZE\}px sans-serif`;[\s\S]*fillText\(range\.subtitle/,
-    'records export subtitle should use the larger 24px subtitle font',
+    /const EXPORT_IMAGE_SUBTITLE_FONT_SIZE = 22;[\s\S]*ctx\.font = `\$\{EXPORT_IMAGE_SUBTITLE_FONT_SIZE\}px sans-serif`;[\s\S]*fillText\(range\.subtitle/,
+    'records export subtitle should use the readable 22px subtitle font',
   );
 
   assert.match(
     exporterJs,
-    /ctx\.font = 'bold 28px sans-serif';/,
-    'records export table header should use the larger 28px font',
+    /const EXPORT_IMAGE_HEADER_LABEL_FONT_SIZE = 26;[\s\S]*ctx\.font = `bold \$\{EXPORT_IMAGE_HEADER_LABEL_FONT_SIZE\}px sans-serif`;/,
+    'records export table header labels should use the new 26px font',
+  );
+
+  assert.match(
+    exporterJs,
+    /const EXPORT_IMAGE_HEADER_UNIT_FONT_SIZE = 20;[\s\S]*ctx\.font = `\$\{EXPORT_IMAGE_HEADER_UNIT_FONT_SIZE\}px sans-serif`;/,
+    'records export table header units should use the new 20px font',
   );
 
   assert.match(
     exporterJs,
     /ctx\.font = '26px sans-serif';/,
-    'records export table rows should use the larger 26px font',
+    'records export table rows should use the larger 26px row font',
   );
 
   assert.match(

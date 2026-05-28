@@ -1,6 +1,7 @@
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
+const exportHelpers = require('../utils/records-export-helpers');
 
 function read(relativePath) {
   return fs.readFileSync(path.join(__dirname, '..', relativePath), 'utf8');
@@ -16,18 +17,33 @@ function verifyE1RecordsExportLayout() {
   );
   assert.match(
     exporterJs,
-    /const EXPORT_IMAGE_SUBTITLE_FONT_SIZE = 24;/,
-    'records export should define the larger subtitle font size as a named constant',
+    /const EXPORT_IMAGE_SUBTITLE_FONT_SIZE = 22;/,
+    'records export should define the updated subtitle font size as a named constant',
   );
   assert.match(
     exporterJs,
-    /const EXPORT_IMAGE_SUBTITLE_Y = EXPORT_IMAGE_TITLE_Y \+ \(EXPORT_IMAGE_TITLE_FONT_SIZE \/ 2\) \+ 16 \+ \(EXPORT_IMAGE_SUBTITLE_FONT_SIZE \/ 2\);/,
-    'records export subtitle position should be derived from title size plus the required 16px gap',
+    /const EXPORT_IMAGE_HEADER_LABEL_FONT_SIZE = 26;/,
+    'records export should define the header label font size',
   );
   assert.match(
     exporterJs,
-    /const EXPORT_IMAGE_HEADER_TOP = EXPORT_IMAGE_SUBTITLE_Y \+ \(EXPORT_IMAGE_SUBTITLE_FONT_SIZE \/ 2\) \+ 24;/,
-    'records export header should start after the subtitle size plus the required 24px gap',
+    /const EXPORT_IMAGE_HEADER_UNIT_FONT_SIZE = 20;/,
+    'records export should define the header unit font size',
+  );
+  assert.match(
+    exporterJs,
+    /const EXPORT_IMAGE_SUBTITLE_Y = EXPORT_IMAGE_TITLE_BOTTOM_Y \+ 20 \+ \(EXPORT_IMAGE_SUBTITLE_FONT_SIZE \/ 2\);/,
+    'records export subtitle position should be derived from the title bottom plus the required 20px gap',
+  );
+  assert.match(
+    exporterJs,
+    /const EXPORT_IMAGE_HEADER_LABEL_Y = EXPORT_IMAGE_SUBTITLE_BOTTOM_Y \+ 30 \+ \(EXPORT_IMAGE_HEADER_LABEL_FONT_SIZE \/ 2\);/,
+    'records export first header line should start after the subtitle bottom plus the required 30px gap',
+  );
+  assert.match(
+    exporterJs,
+    /const EXPORT_IMAGE_HEADER_UNIT_Y = EXPORT_IMAGE_HEADER_LABEL_Y \+ \(EXPORT_IMAGE_HEADER_LABEL_FONT_SIZE \/ 2\) \+ 6 \+ \(EXPORT_IMAGE_HEADER_UNIT_FONT_SIZE \/ 2\);/,
+    'records export second header line should keep a 6px gap under the header labels',
   );
   assert.match(
     exporterJs,
@@ -39,6 +55,37 @@ function verifyE1RecordsExportLayout() {
     /暂无数据|Math\.max\(1,\s*Number\(recordCount\)\s*\|\|\s*0\)/,
     'records export should not fabricate empty placeholder rows',
   );
+  assert.match(
+    exporterJs,
+    /label:\s*'测量时间',\s*unit:\s*''[\s\S]*widthRatio:\s*0\.38[\s\S]*label:\s*'高压',\s*unit:\s*'\(mmHg\)'[\s\S]*widthRatio:\s*0\.2[\s\S]*label:\s*'低压',\s*unit:\s*'\(mmHg\)'[\s\S]*widthRatio:\s*0\.2[\s\S]*label:\s*'心率',\s*unit:\s*'\(bpm\)'[\s\S]*widthRatio:\s*0\.22/i,
+    'records export columns should use the two-line labels and 38/20/20/22 width split',
+  );
+  assert.match(
+    exporterJs,
+    /ctx\.fillStyle = '#F8FAFC';[\s\S]*fillRect\(tableLeft,\s*headerTop,\s*tableWidth,\s*EXPORT_IMAGE_HEADER_ROW_HEIGHT\);/,
+    'records export header background should cover the two-line header block',
+  );
+  assert.match(
+    exporterJs,
+    /ctx\.font = `bold \$\{EXPORT_IMAGE_HEADER_LABEL_FONT_SIZE\}px sans-serif`;/,
+    'records export should draw the first header line with 26px bold text',
+  );
+  assert.match(
+    exporterJs,
+    /ctx\.font = `\$\{EXPORT_IMAGE_HEADER_UNIT_FONT_SIZE\}px sans-serif`;/,
+    'records export should draw the second header line with 20px unit text',
+  );
+  assert.strictEqual(
+    typeof exportHelpers.getRecordsExportLayoutMetrics,
+    'function',
+    'records export helper should expose layout metrics for coordinate verification',
+  );
+
+  const metrics = exportHelpers.getRecordsExportLayoutMetrics();
+  console.log('[verify-e-final-fixes] export layout y metrics', metrics);
+  assert.ok(metrics.subtitleY > metrics.titleY, 'subtitle should render below the title');
+  assert.ok(metrics.headerLabelY > metrics.subtitleY, 'header labels should render below the subtitle');
+  assert.ok(metrics.headerUnitY > metrics.headerLabelY, 'header units should render below the header labels');
 }
 
 function verifyE2RelationshipDefaults() {
