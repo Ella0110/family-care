@@ -6,14 +6,17 @@
 }
 
 .invite-section {
-  padding: 32rpx;
+  padding: 40rpx;
+  border-radius: 32rpx;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
 }
 
 .invite-section__title {
-  font-size: 34rpx;
-  font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: 20rpx;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #94a3b8;
+  margin-bottom: 24rpx;
+  line-height: 1.5;
 }
 
 .invite-section__hint,
@@ -22,25 +25,40 @@
 .invite-generated__hint,
 .invite-generated__preview-subtitle {
   font-size: 26rpx;
-  color: var(--color-text-secondary);
+  color: #94a3b8;
+  line-height: 1.6;
+}
+
+.invite-profile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
 }
 
 .invite-profile-item {
   display: flex;
+  align-items: center;
   gap: 20rpx;
-  padding: 24rpx 0;
-  border-top: 1rpx solid rgba(15, 23, 42, 0.08);
-}
-
-.invite-profile-item:first-of-type {
-  border-top: none;
-  padding-top: 0;
+  padding: 24rpx;
+  border-radius: 24rpx;
+  background: #ffffff;
+  border: 2rpx solid #e2e8f0;
+  transition: all 0.2s ease;
 }
 
 .invite-profile-item__check {
-  font-size: 34rpx;
-  color: var(--color-primary);
-  line-height: 1.2;
+  width: 40rpx;
+  min-width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  border: 2rpx solid #cbd5e1;
+  color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .invite-profile-item__content {
@@ -49,33 +67,53 @@
 }
 
 .invite-profile-item__label {
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: 600;
-  color: var(--color-text);
+  color: #0f172a;
   margin-bottom: 8rpx;
+  line-height: 1.5;
+}
+
+.invite-profile-item--active {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.invite-profile-item--active .invite-profile-item__check {
+  background: #3478f6;
+  border-color: #3478f6;
+  color: #ffffff;
 }
 
 .invite-role-selector {
   display: flex;
+  flex-wrap: wrap;
   gap: 16rpx;
   margin-bottom: 20rpx;
 }
 
 .invite-role-selector__option {
   flex: 1;
-  padding: 20rpx 16rpx;
-  border-radius: 999rpx;
-  border: 2rpx solid rgba(37, 99, 235, 0.2);
-  font-size: 28rpx;
+  min-height: 96rpx;
+  min-width: 220rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 24rpx;
+  font-size: 30rpx;
+  font-weight: 600;
   text-align: center;
-  color: var(--color-primary);
-  background: #ffffff;
+  color: #64748b;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.4;
+  box-sizing: border-box;
 }
 
 .invite-role-selector__option--active {
-  background: rgba(37, 99, 235, 0.1);
-  border-color: var(--color-primary);
-  font-weight: 600;
+  background: #3478f6;
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(49, 130, 247, 0.2);
 }
 
 .invite-message {
@@ -83,6 +121,11 @@
   min-height: 160rpx;
   font-size: 30rpx;
   line-height: 1.6;
+  padding: 24rpx;
+  box-sizing: border-box;
+  border-radius: 16rpx;
+  border: 2rpx solid #e2e8f0;
+  background: #f8fafc;
 }
 
 .invite-inviter {
@@ -110,7 +153,7 @@
   height: 120rpx;
   border-radius: 50%;
   overflow: hidden;
-  background: rgba(37, 99, 235, 0.08);
+  background: #eff6ff;
 }
 
 .invite-inviter__summary-copy {
@@ -119,16 +162,17 @@
 }
 
 .invite-inviter__summary-name {
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: 600;
-  color: var(--color-text);
+  color: #0f172a;
   margin-bottom: 8rpx;
+  line-height: 1.5;
 }
 
 .invite-inviter__summary-action,
 .invite-inviter__editor-action {
-  font-size: 28rpx;
-  color: var(--color-primary);
+  font-size: 30rpx;
+  color: #3478f6;
   font-weight: 600;
 }
 
@@ -145,8 +189,8 @@
   margin: 0;
   padding: 0;
   border-radius: 50%;
-  background: rgba(37, 99, 235, 0.08);
-  color: var(--color-primary);
+  background: #eff6ff;
+  color: #3478f6;
   font-size: 24rpx;
   display: flex;
   align-items: center;
@@ -174,19 +218,21 @@
 }
 
 .invite-inviter__avatar-placeholder--initial {
-  font-size: 40rpx;
+  font-size: 36rpx;
   font-weight: 700;
 }
 
 .invite-inviter__nickname {
   flex: 1;
-  min-height: 88rpx;
-  padding: 0 24rpx;
-  border-radius: 24rpx;
-  border: 2rpx solid rgba(15, 23, 42, 0.08);
+  min-height: 96rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx;
+  border: 2rpx solid #e2e8f0;
   font-size: 30rpx;
-  color: var(--color-text);
-  background: #ffffff;
+  color: #0f172a;
+  background: #f8fafc;
+  line-height: 1.5;
+  box-sizing: border-box;
 }
 
 .invite-page__button,
@@ -196,23 +242,43 @@
 
 .invite-page__secondary,
 .invite-generated__secondary {
-  min-height: 88rpx;
+  min-height: 96rpx;
+  border-radius: 24rpx;
+  padding: 24rpx 32rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  line-height: 1.4;
+  box-sizing: border-box;
+}
+
+.invite-page__secondary {
+  background: transparent;
+  color: #94a3b8;
+  border: none;
+}
+
+.invite-page__secondary::after {
+  border: none;
 }
 
 .invite-generated {
-  padding: 32rpx;
+  padding: 40rpx;
+  border-radius: 32rpx;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
 }
 
 .invite-generated__title {
-  font-size: 40rpx;
+  font-size: 36rpx;
   font-weight: 700;
-  color: var(--color-text);
+  color: #0f172a;
+  line-height: 1.35;
 }
 
 .invite-generated__preview {
-  padding: 28rpx;
+  padding: 32rpx;
   border-radius: 24rpx;
-  background: rgba(37, 99, 235, 0.08);
+  background: #f8fafc;
+  border: 2rpx solid #e2e8f0;
 }
 
 .invite-generated__preview-header {
@@ -227,7 +293,7 @@
   height: 88rpx;
   border-radius: 50%;
   overflow: hidden;
-  background: rgba(148, 163, 184, 0.2);
+  background: #dbeafe;
 }
 
 .invite-generated__preview-avatar-image,
@@ -240,9 +306,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 34rpx;
+  font-size: 36rpx;
   font-weight: 700;
-  color: var(--color-text-secondary);
+  color: #475569;
 }
 
 .invite-generated__preview-copy {
@@ -251,8 +317,19 @@
 }
 
 .invite-generated__preview-title {
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: 600;
-  color: var(--color-text);
+  color: #0f172a;
   margin-bottom: 8rpx;
+  line-height: 1.5;
+}
+
+.invite-generated__button {
+  box-shadow: 0 8px 24px rgba(49, 130, 247, 0.2);
+}
+
+.invite-generated__secondary {
+  background: #ffffff;
+  color: #3478f6;
+  border: 2rpx solid #3478f6;
 }

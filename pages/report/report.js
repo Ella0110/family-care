@@ -3,7 +3,7 @@ const { callSilent } = require('../../services/request');
 const medicationService = require('../../services/medication-service');
 const { store } = require('../../store/index');
 const { getErrorMessage } = require('../../utils/error-messages');
-const { DEFAULT_FONT_SCALE, normalizeFontScale } = require('../../utils/font-scale');
+const { DEFAULT_FONT_SCALE, normalizeFontScale, syncFontData } = require('../../utils/font-scale');
 const {
   REPORT_DISCLAIMER,
   getSinceForDays,
@@ -175,6 +175,7 @@ function showSystemPermissionHint() {
 Page({
   data: {
     fontScale: DEFAULT_FONT_SCALE,
+    fs: {},
     profileId: '',
     periodOptions: buildPeriodOptions(NaN),
     selectedDays: 7,
@@ -254,9 +255,7 @@ Page({
   },
 
   syncFontScale() {
-    this.setData({
-      fontScale: getCurrentFontScale(),
-    });
+    syncFontData.call(this);
   },
 
   async fetchReportRecords(profileId, options = {}) {

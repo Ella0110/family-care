@@ -2,7 +2,7 @@ const { store } = require('../../store/index');
 const invitationService = require('../../services/invitation-service');
 const userService = require('../../services/user-service');
 const { getErrorMessage } = require('../../utils/error-messages');
-const { DEFAULT_FONT_SCALE, normalizeFontScale } = require('../../utils/font-scale');
+const { DEFAULT_FONT_SCALE, normalizeFontScale, syncFontData } = require('../../utils/font-scale');
 const {
   INVITATION_MAX_PROFILE_SELECTION,
   buildInvitableProfiles,
@@ -47,6 +47,7 @@ function getCurrentFontScale() {
 Page({
   data: {
     fontScale: DEFAULT_FONT_SCALE,
+    fs: {},
     profileId: '',
     invitableProfiles: [],
     selectedProfileIds: [],
@@ -86,9 +87,7 @@ Page({
   },
 
   syncFontScale() {
-    this.setData({
-      fontScale: getCurrentFontScale(),
-    });
+    syncFontData.call(this);
   },
 
   syncInviterProfileState() {

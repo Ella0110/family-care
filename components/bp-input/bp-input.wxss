@@ -24,7 +24,7 @@
 .bp-input__control {
   height: 84rpx;
   color: #111827;
-  font-size: calc(56rpx * var(--font-scale));
+  font-size: 56rpx;
   font-weight: 800;
   line-height: 84rpx;
   text-align: center;
@@ -32,20 +32,20 @@
 
 .bp-input__placeholder {
   color: #9ca3af;
-  font-size: calc(40rpx * var(--font-scale));
+  font-size: 40rpx;
   font-weight: 600;
 }
 
 .bp-input__label {
   margin-top: 8rpx;
   color: #4b5563;
-  font-size: calc(26rpx * var(--font-scale));
+  font-size: 26rpx;
   text-align: center;
 }
 
 .bp-input__slash {
   color: #1d4ed8;
-  font-size: calc(56rpx * var(--font-scale));
+  font-size: 56rpx;
   font-weight: 800;
 }
 
@@ -54,5 +54,5 @@
   right: 4rpx;
   bottom: 0;
   color: #6b7280;
-  font-size: calc(28rpx * var(--font-scale));
+  font-size: 28rpx;
 }

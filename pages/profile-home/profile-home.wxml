@@ -1,11 +1,11 @@
-<view class="page page-root profile-home-page" style="--font-scale: {{fontScale}};">
+<view class="page page-root profile-home-page">
   <view wx:if="{{pageReady}}">
     <view wx:if="{{profiles.length > 0}}" class="profile-home__topbar">
-      <view class="profile-home__title" bindtap="handleOpenProfileSwitcher">
+      <view class="profile-home__title" bindtap="handleOpenProfileSwitcher" style="font-size:{{fs.title}}">
         用户档案
-        <text wx:if="{{hasProfile}}" class="profile-home__arrow">▼</text>
+        <text wx:if="{{hasProfile}}" class="profile-home__arrow" style="font-size:{{fs.caption}}">▼</text>
       </view>
-      <view class="profile-home__settings" bindtap="handleOpenUserSettings">设置</view>
+      <view class="profile-home__settings" bindtap="handleOpenUserSettings" style="font-size:{{fs.secondary}}">设置</view>
     </view>
 
     <view wx:if="{{!hasProfile}}" class="profile-home__empty">
@@ -13,51 +13,51 @@
     </view>
 
     <view wx:elif="{{errorText}}" class="card profile-home__state">
-      <view class="profile-home__state-title">暂时无法加载</view>
-      <view class="profile-home__state-text">{{errorText}}</view>
+      <view class="profile-home__state-title" style="font-size:{{fs.title}}">暂时无法加载</view>
+      <view class="profile-home__state-text" style="font-size:{{fs.secondary}}">{{errorText}}</view>
     </view>
 
     <view wx:else class="profile-home__content">
       <view class="card profile-home__hero">
         <view class="profile-home__hero-top">
-          <view class="profile-home__avatar">{{profileInitial}}</view>
+          <view class="profile-home__avatar" style="font-size:{{fs.title}}">{{profileInitial}}</view>
           <view class="profile-home__hero-body">
             <view class="profile-home__hero-name-row">
-              <view class="profile-home__hero-name">{{profileName}}</view>
-              <view wx:if="{{profileAgeText}}" class="profile-home__hero-age">{{profileAgeText}}</view>
+              <view class="profile-home__hero-name" style="font-size:{{fs.title}}">{{profileName}}</view>
+              <view wx:if="{{profileAgeText}}" class="profile-home__hero-age" style="font-size:{{fs.caption}}">{{profileAgeText}}</view>
             </view>
-            <view wx:if="{{profileBirthYearText}}" class="profile-home__hero-birth">{{profileBirthYearText}}</view>
+            <view wx:if="{{profileBirthYearText}}" class="profile-home__hero-birth" style="font-size:{{fs.secondary}}">{{profileBirthYearText}}</view>
           </view>
-          <view wx:if="{{canEditCurrentProfile}}" class="profile-home__edit" bindtap="handleEditProfile">编辑 ></view>
+          <view wx:if="{{canEditCurrentProfile}}" class="profile-home__edit" style="font-size:{{fs.secondary}}" bindtap="handleEditProfile">编辑 ></view>
         </view>
 
         <view class="profile-home__overview">
-          <!-- <view class="profile-home__overview-title">健康概览</view> -->
+          <!-- <view class="profile-home__overview-title" style="font-size:{{fs.label}}">健康概览</view> -->
 
           <view class="profile-home__overview-row">
-            <view class="profile-home__overview-label">当前血压</view>
-            <view class="profile-home__overview-value {{latestRecordDisplay && latestRecordDisplay.isAbnormal ? 'profile-home__overview-value--danger' : ''}}">
+            <view class="profile-home__overview-label" style="font-size:{{fs.label}}">当前血压</view>
+            <view class="profile-home__overview-value {{latestRecordDisplay && latestRecordDisplay.isAbnormal ? 'profile-home__overview-value--danger' : ''}}" style="font-size:{{fs.body}}">
               {{latestRecordDisplay ? latestRecordDisplay.bpText : '暂无记录'}}
             </view>
           </view>
 
           <view class="profile-home__overview-row">
-            <view class="profile-home__overview-label">当前心率</view>
-            <view class="profile-home__overview-value">{{latestRecordDisplay ? latestRecordDisplay.heartRateText : '--'}}</view>
+            <view class="profile-home__overview-label" style="font-size:{{fs.label}}">当前心率</view>
+            <view class="profile-home__overview-value" style="font-size:{{fs.body}}">{{latestRecordDisplay ? latestRecordDisplay.heartRateText : '--'}}</view>
           </view>
 
           <view wx:if="{{hasMedicationSummary}}" class="profile-home__overview-row">
-            <view class="profile-home__overview-label">长期用药</view>
-            <view class="profile-home__overview-value">{{medicationText}}</view>
+            <view class="profile-home__overview-label" style="font-size:{{fs.label}}">长期用药</view>
+            <view class="profile-home__overview-value" style="font-size:{{fs.body}}">{{medicationText}}</view>
           </view>
 
           <view wx:if="{{emergencyText}}" class="profile-home__overview-row">
-            <view class="profile-home__overview-label">紧急联系人</view>
-            <view class="profile-home__overview-value">{{emergencyText}}</view>
+            <view class="profile-home__overview-label" style="font-size:{{fs.label}}">紧急联系人</view>
+            <view class="profile-home__overview-value" style="font-size:{{fs.body}}">{{emergencyText}}</view>
           </view>
         </view>
       </view>
-      <view class="profile-home__section-title">成员管理（{{memberCount}}/10）</view>
+      <view class="profile-home__section-title" style="font-size:{{fs.label}}">成员管理（{{memberCount}}/10）</view>
       <view class="card profile-home__members">
         <scroll-view scroll-x class="profile-home__members-scroll">
           <view class="profile-home__members-list">
@@ -68,12 +68,12 @@
               data-relationship-id="{{item.relationshipId}}"
               bindtap="handleMemberTap"
             >
-              <view wx:if="{{item.avatarUrl}}" class="profile-home__member-avatar profile-home__member-avatar--image">
+              <view wx:if="{{item.avatarUrl}}" class="profile-home__member-avatar profile-home__member-avatar--image" style="font-size:{{fs.body}}">
                 <image class="profile-home__member-avatar-image" src="{{item.avatarUrl}}" mode="aspectFill" />
               </view>
-              <view wx:else class="profile-home__member-avatar">{{item.avatarFallback}}</view>
-              <view class="profile-home__member-name">{{item.displayName}}</view>
-              <view class="profile-home__member-role">{{item.roleLabel}}</view>
+              <view wx:else class="profile-home__member-avatar" style="font-size:{{fs.body}}">{{item.avatarFallback}}</view>
+              <view class="profile-home__member-name" style="font-size:{{fs.secondary}}">{{item.displayName}}</view>
+              <view class="profile-home__member-role" style="font-size:{{fs.caption}}">{{item.roleLabel}}</view>
             </view>
 
             <view
@@ -81,14 +81,14 @@
               class="profile-home__member profile-home__member--invite"
               bindtap="handleCreateInvitation"
             >
-              <view class="profile-home__member-avatar profile-home__member-avatar--invite">+</view>
-              <view class="profile-home__member-name">邀请</view>
+              <view class="profile-home__member-avatar profile-home__member-avatar--invite" style="font-size:{{fs.body}}">+</view>
+              <view class="profile-home__member-name" style="font-size:{{fs.secondary}}">邀请</view>
             </view>
           </view>
         </scroll-view>
       </view>
       <view class="profile-home__section-head">
-          <view class="profile-home__section-title">功能</view>
+          <view class="profile-home__section-title" style="font-size:{{fs.label}}">功能</view>
     </view>
       <view class="profile-home__shortcut-grid">
         <view
@@ -97,30 +97,30 @@
         >
           <view class="profile-home__shortcut-icon profile-home__shortcut-icon--report">📄</view>
           <view class="profile-home__shortcut-body">
-            <view class="profile-home__shortcut-title">生成就诊报告</view>
-            <view class="profile-home__shortcut-subtitle">选择时间段，导出专业报表</view>
+            <view class="profile-home__shortcut-title" style="font-size:{{fs.body}}">生成就诊报告</view>
+            <view class="profile-home__shortcut-subtitle" style="font-size:{{fs.secondary}}">选择时间段，导出专业报表</view>
           </view>
-          <view class="profile-home__shortcut-arrow">›</view>
+          <view class="profile-home__shortcut-arrow" style="font-size:{{fs.title}}">›</view>
         </view>
 
         <view class="card profile-home__shortcut" bindtap="handleOpenMedicationManagement">
           <view class="profile-home__shortcut-icon profile-home__shortcut-icon--medication">💊</view>
           <view class="profile-home__shortcut-body">
-            <view class="profile-home__shortcut-title">药物管理</view>
-            <view class="profile-home__shortcut-subtitle">{{medicationShortcutText}}</view>
+            <view class="profile-home__shortcut-title" style="font-size:{{fs.body}}">药物管理</view>
+            <view class="profile-home__shortcut-subtitle" style="font-size:{{fs.secondary}}">{{medicationShortcutText}}</view>
           </view>
-          <view class="profile-home__shortcut-arrow">›</view>
+          <view class="profile-home__shortcut-arrow" style="font-size:{{fs.title}}">›</view>
         </view>
       </view>
 
-      <view class="profile-home__section-title">快捷设置</view>
+      <view class="profile-home__section-title" style="font-size:{{fs.label}}">快捷设置</view>
       <view class="profile-home__settings-stack">
 
         <view class="card profile-home__settings-card">
           <view class="profile-home__setting-row">
             <view class="profile-home__setting-main">
-              <view class="profile-home__setting-title">异常血压通知</view>
-              <view class="profile-home__setting-subtitle">血压异常时推送提醒</view>
+              <view class="profile-home__setting-title" style="font-size:{{fs.body}}">异常血压通知</view>
+              <view class="profile-home__setting-subtitle" style="font-size:{{fs.secondary}}">血压异常时推送提醒</view>
             </view>
             <switch
               checked="{{activeRelationshipSubscribeAlerts}}"
@@ -132,7 +132,7 @@
         <view class="card profile-home__settings-card">
           <view class="profile-home__setting-row">
             <view class="profile-home__setting-main">
-              <view class="profile-home__setting-title">字体大小</view>
+              <view class="profile-home__setting-title" style="font-size:{{fs.body}}">字体大小</view>
             </view>
             <view class="profile-home__font-scale-control">
               <view
@@ -141,7 +141,7 @@
                 class="profile-home__font-scale-pill {{selectedFontScale === item.value ? 'profile-home__font-scale-pill--active' : ''}}"
                 data-scale="{{item.value}}"
                 bindtap="handleSelectFontScale"
-              >
+               style="font-size:{{fs.secondary}}">
                 {{item.label}}
               </view>
             </view>
@@ -150,18 +150,18 @@
       </view>
       <block wx:if="{{canManageCurrentProfile}}">
         <view class="profile-home__section-head">
-          <view class="profile-home__section-title">其他</view>
+          <view class="profile-home__section-title" style="font-size:{{fs.label}}">其他</view>
         </view>
         <view class="card profile-home__danger" bindtap="handleDeleteProfile">
-          <view class="profile-home__danger-icon">⚠</view>
+          <view class="profile-home__danger-icon" style="font-size:{{fs.title}}">⚠</view>
           <view class="profile-home__danger-main">
-            <view class="profile-home__danger-title">删除档案</view>
-            <view class="profile-home__danger-subtitle">删除后所有记录无法恢复</view>
+            <view class="profile-home__danger-title" style="font-size:{{fs.body}}">删除档案</view>
+            <view class="profile-home__danger-subtitle" style="font-size:{{fs.caption}}">删除后所有记录无法恢复</view>
           </view>
         </view>
       </block>
 
-      <!-- <view class="profile-home__footer-link" bindtap="handleOpenProfileSwitcher">查看全部档案</view> -->
+      <!-- <view class="profile-home__footer-link" bindtap="handleOpenProfileSwitcher" style="font-size:{{fs.body}}">查看全部档案</view> -->
     </view>
   </view>
 

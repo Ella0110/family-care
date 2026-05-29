@@ -8,6 +8,7 @@ function read(relativePath) {
 
 function verifyD1EmptyGuideGlassCard() {
   const wxss = read('components/profile-empty-guide/profile-empty-guide.wxss');
+  const wxml = read('components/profile-empty-guide/profile-empty-guide.wxml');
 
   assert.match(
     wxss,
@@ -47,8 +48,14 @@ function verifyD1EmptyGuideGlassCard() {
 
   assert.match(
     wxss,
-    /\.profile-empty-guide__subtitle[\s\S]*font-size:\s*calc\(28rpx \* var\(--font-scale\)\);/i,
-    'empty-profile guide subtitle should use the shared size',
+    /\.profile-empty-guide__subtitle[\s\S]*font-size:\s*26rpx;/i,
+    'empty-profile guide subtitle should keep a readable fallback font size',
+  );
+
+  assert.match(
+    wxml,
+    /class="profile-empty-guide__subtitle"[^>]*style="font-size:\{\{fs\.secondary\}\}"/,
+    'empty-profile guide subtitle should bind to JS-precomputed font sizes',
   );
 
   assert.match(

@@ -1,4 +1,5 @@
 const { getChinaDateString, isHistoricalMedication } = require('../../utils/medication');
+const { syncFontData } = require('../../utils/font-scale');
 
 Component({
   properties: {
@@ -13,6 +14,7 @@ Component({
   },
 
   data: {
+    fs: {},
     isHistorical: false,
     subtitle: '',
   },
@@ -27,6 +29,18 @@ Component({
         isHistorical: isHistoricalMedication(medication, getChinaDateString()),
         subtitle,
       });
+    },
+  },
+
+  lifetimes: {
+    attached() {
+      syncFontData.call(this);
+    },
+  },
+
+  pageLifetimes: {
+    show() {
+      syncFontData.call(this);
     },
   },
 

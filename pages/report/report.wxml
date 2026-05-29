@@ -1,4 +1,4 @@
-<view class="page page-root report-page" style="--font-scale: {{fontScale}};">
+<view class="page page-root report-page">
   <view class="card report-tabs">
     <view
       wx:for="{{periodOptions}}"
@@ -6,44 +6,44 @@
       class="report-tabs__item {{selectedDays === item.days ? 'report-tabs__item--active' : ''}} {{!item.enabled ? 'report-tabs__item--disabled' : ''}}"
       data-days="{{item.days}}"
       bindtap="handleSelectPeriod"
-    >
+     style="font-size:{{fs.body}}">
       {{item.label}}
     </view>
   </view>
 
   <view wx:if="{{errorText}}" class="card report-state">
-    <view class="report-state__title">暂时无法生成报告</view>
-    <view class="report-state__text">{{errorText}}</view>
+    <view class="report-state__title" style="font-size:{{fs.title}}">暂时无法生成报告</view>
+    <view class="report-state__text" style="font-size:{{fs.body}}">{{errorText}}</view>
   </view>
 
   <view wx:elif="{{isLoading}}" class="card report-state">
-    <view class="report-state__title">正在生成报告</view>
-    <view class="report-state__text">请稍候，正在读取该时间范围内的血压、心率和用药数据。</view>
+    <view class="report-state__title" style="font-size:{{fs.title}}">正在生成报告</view>
+    <view class="report-state__text" style="font-size:{{fs.body}}">请稍候，正在读取该时间范围内的血压、心率和用药数据。</view>
   </view>
 
   <view wx:else class="report-content">
     <view class="report-section report-section--header">
-      <view class="report-header__title">血压心率就诊报告</view>
-      <view class="report-header__time">生成于 {{generatedAtText}}</view>
+      <view class="report-header__title" style="font-size:{{fs.title}}">血压心率就诊报告</view>
+      <view class="report-header__time" style="font-size:{{fs.caption}}">生成于 {{generatedAtText}}</view>
     </view>
 
     <view class="report-section report-section--patient">
-      <view class="report-section__eyebrow report-section__eyebrow--patient">患者档案</view>
+      <view class="report-section__eyebrow report-section__eyebrow--patient" style="font-size:{{fs.label}}">患者档案</view>
       <view class="report-profile__grid">
         <view class="report-profile__item">
-          <view class="report-profile__label">患者姓名</view>
-          <view class="report-profile__value privacy-target">{{patientNameText}}</view>
+          <view class="report-profile__label" style="font-size:{{fs.label}}">患者姓名</view>
+          <view class="report-profile__value privacy-target" style="font-size:{{fs.body}}">{{patientNameText}}</view>
         </view>
         <view class="report-profile__item">
-          <view class="report-profile__label">主要用药</view>
-          <view class="report-profile__value">{{medicationText}}</view>
+          <view class="report-profile__label" style="font-size:{{fs.label}}">主要用药</view>
+          <view class="report-profile__value" style="font-size:{{fs.body}}">{{medicationText}}</view>
         </view>
         <view class="report-profile__item report-profile__item--full">
-          <view class="report-profile__label">紧急联系人</view>
-          <view class="report-profile__value privacy-target">
+          <view class="report-profile__label" style="font-size:{{fs.label}}">紧急联系人</view>
+          <view class="report-profile__value privacy-target" style="font-size:{{fs.body}}">
             <text>{{emergencyNameText}}</text>
             <text wx:if="{{emergencyNameText && emergencyPhoneText}}"> · </text>
-            <text wx:if="{{emergencyPhoneText}}" class="report-profile__value--emergency">{{emergencyPhoneText}}</text>
+            <text wx:if="{{emergencyPhoneText}}" class="report-profile__value--emergency" style="font-size:{{fs.body}}">{{emergencyPhoneText}}</text>
           </view>
         </view>
       </view>
@@ -51,57 +51,57 @@
 
     <view wx:if="{{banner}}" class="report-section">
       <view class="report-alert report-alert--{{banner.type}}">
-        <view class="report-alert__title">{{banner.title}}</view>
-        <view class="report-alert__text">{{banner.text}}</view>
+        <view class="report-alert__title" style="font-size:{{fs.body}}">{{banner.title}}</view>
+        <view class="report-alert__text" style="font-size:{{fs.secondary}}">{{banner.text}}</view>
       </view>
     </view>
 
     <view wx:if="{{hasRecords}}" class="report-section report-section--summary">
-      <view class="report-section__eyebrow report-section__eyebrow--patient">数据统计摘要</view>
+      <view class="report-section__eyebrow report-section__eyebrow--patient" style="font-size:{{fs.label}}">数据统计摘要</view>
       <view class="report-summary">
         <view
           wx:for="{{summaryCards}}"
           wx:key="key"
           class="report-summary__item"
         >
-          <view class="report-summary__label">{{item.label}}</view>
-          <view class="report-summary__value {{item.accentClassName}}">
+          <view class="report-summary__label" style="font-size:{{fs.label}}">{{item.label}}</view>
+          <view class="report-summary__value {{item.accentClassName}}" style="font-size:{{fs.title}}">
             {{item.value}}
           </view>
-          <view class="report-summary__unit">{{item.unit}}</view>
+          <view class="report-summary__unit" style="font-size:{{fs.label}}">{{item.unit}}</view>
         </view>
       </view>
     </view>
 
-    <view wx:if="{{!hasRecords}}" class="report-section report-empty">
+    <view wx:if="{{!hasRecords}}" class="report-section report-empty" style="font-size:{{fs.body}}">
       该时间段内暂无测量记录
     </view>
 
     <view wx:if="{{hasRecords}}" class="report-section report-section--chart">
       <view class="report-section__heading-row">
-        <view class="report-section__eyebrow">血压趋势图</view>
-        <view class="report-section__unit">单位：mmHg</view>
+        <view class="report-section__eyebrow" style="font-size:{{fs.label}}">血压趋势图</view>
+        <view class="report-section__unit" style="font-size:{{fs.caption}}">单位：mmHg</view>
       </view>
       <canvas id="reportBpChart" type="2d" class="report-chart-card__canvas"></canvas>
     </view>
 
     <view wx:if="{{hasRecords && hasHeartRateData}}" class="report-section report-section--chart">
       <view class="report-section__heading-row">
-        <view class="report-section__eyebrow">心率变化图</view>
-        <view class="report-section__unit">单位：bpm</view>
+        <view class="report-section__eyebrow" style="font-size:{{fs.label}}">心率变化图</view>
+        <view class="report-section__unit" style="font-size:{{fs.caption}}">单位：bpm</view>
       </view>
       <canvas id="reportHeartRateChart" type="2d" class="report-chart-card__canvas"></canvas>
     </view>
 
     <view wx:elif="{{hasRecords}}" class="report-section report-section--chart">
       <view class="report-section__heading-row">
-        <view class="report-section__eyebrow">心率变化图</view>
+        <view class="report-section__eyebrow" style="font-size:{{fs.label}}">心率变化图</view>
       </view>
-      <view class="report-chart-card__empty">暂无心率数据</view>
+      <view class="report-chart-card__empty" style="font-size:{{fs.secondary}}">暂无心率数据</view>
     </view>
 
     <view wx:if="{{hasRecords}}" class="report-section report-alert-list">
-      <view class="report-section__eyebrow">最近异常明细</view>
+      <view class="report-section__eyebrow" style="font-size:{{fs.label}}">最近异常明细</view>
 
       <view wx:if="{{recentAlerts.length > 0}}">
         <view
@@ -110,28 +110,28 @@
           class="report-alert-list__item"
         >
           <view class="report-alert-list__left">
-            <view class="report-alert-list__time">{{item.measuredAtText}}</view>
-            <view class="report-alert-list__tags">{{item.alertText}}</view>
+            <view class="report-alert-list__time" style="font-size:{{fs.body}}">{{item.measuredAtText}}</view>
+            <view class="report-alert-list__tags" style="font-size:{{fs.label}}">{{item.alertText}}</view>
           </view>
           <view class="report-alert-list__right">
-            <view class="report-alert-list__bp">{{item.bloodPressureText}}</view>
-            <view wx:if="{{item.heartRateText}}" class="report-alert-list__heart">{{item.heartRateText}}</view>
+            <view class="report-alert-list__bp" style="font-size:{{fs.title}}">{{item.bloodPressureText}}</view>
+            <view wx:if="{{item.heartRateText}}" class="report-alert-list__heart" style="font-size:{{fs.secondary}}">{{item.heartRateText}}</view>
           </view>
         </view>
       </view>
 
-      <view wx:else class="report-alert-list__empty">该时间段内无异常记录</view>
+      <view wx:else class="report-alert-list__empty" style="font-size:{{fs.secondary}}">该时间段内无异常记录</view>
     </view>
 
     <view class="report-section report-section--disclaimer">
-      <view class="report-disclaimer__text">{{disclaimer}}</view>
+      <view class="report-disclaimer__text" style="font-size:{{fs.caption}}">{{disclaimer}}</view>
     </view>
   </view>
 
   <view class="report-actions">
     <view class="report-actions__privacy">
-      <view class="report-actions__privacy-title">隐藏敏感信息</view>
-      <view class="report-actions__privacy-text">导出图片中显示为 ***</view>
+      <view class="report-actions__privacy-title" style="font-size:{{fs.body}}">隐藏敏感信息</view>
+      <view class="report-actions__privacy-text" style="font-size:{{fs.caption}}">导出图片中显示为 ***</view>
     </view>
     <switch checked="{{hideSensitiveInfo}}" bindchange="handleTogglePrivacy" />
     <button
@@ -139,7 +139,7 @@
       bindtap="handleSaveReport"
       loading="{{isExporting}}"
       disabled="{{isExporting || isLoading || errorText}}"
-    >
+      style="font-size:{{fs.button}}">
       保存报告图片
     </button>
   </view>
@@ -154,15 +154,15 @@
   <view wx:if="{{showPermissionModal}}" class="report-permission-modal">
     <view class="report-permission-modal__mask"></view>
     <view class="report-permission-modal__panel card">
-      <view class="report-permission-modal__title">无法保存图片</view>
-      <view class="report-permission-modal__subtitle">需要开启“相册写入”权限</view>
-      <view class="report-permission-modal__step">步骤 1：点击下方“去设置”按钮</view>
-      <view class="report-permission-modal__step">步骤 2：将“添加到相册”设为允许</view>
+      <view class="report-permission-modal__title" style="font-size:{{fs.title}}">无法保存图片</view>
+      <view class="report-permission-modal__subtitle" style="font-size:{{fs.body}}">需要开启“相册写入”权限</view>
+      <view class="report-permission-modal__step" style="font-size:{{fs.label}}">步骤 1：点击下方“去设置”按钮</view>
+      <view class="report-permission-modal__step" style="font-size:{{fs.label}}">步骤 2：将“添加到相册”设为允许</view>
       <view class="report-permission-modal__actions">
-        <button class="btn-primary report-permission-modal__button" bindtap="handleOpenPermissionSetting">
+        <button class="btn-primary report-permission-modal__button" style="font-size:{{fs.button}}" bindtap="handleOpenPermissionSetting">
           去设置
         </button>
-        <button class="btn-secondary report-permission-modal__button" bindtap="handleClosePermissionModal">
+        <button class="btn-secondary report-permission-modal__button" style="font-size:{{fs.button}}" bindtap="handleClosePermissionModal">
           暂不下载
         </button>
       </view>

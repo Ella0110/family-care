@@ -1,24 +1,26 @@
-<view class="page page-root" style="--font-scale: {{fontScale}};">
+<view class="page page-root">
   <view wx:if="{{!isGenerated}}" class="invite-page">
     <view class="card invite-section">
-      <view class="invite-section__title">选择要分享的档案</view>
-      <view
-        wx:for="{{invitableProfiles}}"
-        wx:key="profile._id"
-        class="invite-profile-item"
-        data-profile-id="{{item.profile._id}}"
-        bindtap="onToggleProfile"
-      >
-        <view class="invite-profile-item__check">{{item.checked ? '☑' : '☐'}}</view>
-        <view class="invite-profile-item__content">
-          <view class="invite-profile-item__label">{{item.label}}</view>
-          <view class="invite-profile-item__summary">{{item.latestSummary}}</view>
+      <view class="invite-section__title" style="font-size:{{fs.label}}">选择要分享的档案</view>
+      <view class="invite-profile-list">
+        <view
+          wx:for="{{invitableProfiles}}"
+          wx:key="profile._id"
+          class="invite-profile-item {{item.checked ? 'invite-profile-item--active' : ''}}"
+          data-profile-id="{{item.profile._id}}"
+          bindtap="onToggleProfile"
+        >
+          <view class="invite-profile-item__check" style="font-size:{{fs.label}}">{{item.checked ? '✓' : ''}}</view>
+          <view class="invite-profile-item__content">
+            <view class="invite-profile-item__label" style="font-size:{{fs.body}}">{{item.label}}</view>
+            <view class="invite-profile-item__summary">{{item.latestSummary}}</view>
+          </view>
         </view>
       </view>
     </view>
 
     <view class="card invite-section">
-      <view class="invite-section__title">对方可以做什么</view>
+      <view class="invite-section__title" style="font-size:{{fs.label}}">对方可以做什么</view>
       <view class="invite-role-selector">
         <view
           wx:for="{{roleOptions}}"
@@ -26,7 +28,7 @@
           class="invite-role-selector__option {{defaultRole === item.value ? 'invite-role-selector__option--active' : ''}}"
           data-role="{{item.value}}"
           bindtap="onRoleChange"
-        >
+         style="font-size:{{fs.body}}">
           {{item.label}}
         </view>
       </view>
@@ -34,19 +36,20 @@
     </view>
 
     <view class="card invite-section">
-      <view class="invite-section__title">想说点什么（可选）</view>
+      <view class="invite-section__title" style="font-size:{{fs.label}}">想说点什么（可选）</view>
       <textarea
         class="invite-message"
         value="{{message}}"
         maxlength="50"
-        placeholder="请输入邀请留言"
+        placeholder="想对家人说的话，会一起显示在邀请卡片里"
         bindinput="onMessageInput"
+        style="font-size:{{fs.body}}"
       />
       <view class="invite-section__count">{{message.length}} / 50</view>
     </view>
 
     <view class="card invite-section">
-      <view class="invite-section__title">邀请人信息</view>
+      <view class="invite-section__title" style="font-size:{{fs.label}}">邀请人信息</view>
       <view wx:if="{{hasInviterProfile && !isEditingInviterProfile}}" class="invite-inviter invite-inviter--summary">
         <view class="invite-inviter__summary-main">
           <view class="invite-inviter__summary-avatar">
@@ -56,12 +59,12 @@
               src="{{currentInviterProfile.avatarUrl}}"
               mode="aspectFill"
             />
-            <view wx:else class="invite-inviter__avatar-placeholder invite-inviter__avatar-placeholder--initial">
+            <view wx:else class="invite-inviter__avatar-placeholder invite-inviter__avatar-placeholder--initial" style="font-size:{{fs.title}}">
               {{currentInviterInitial}}
             </view>
           </view>
           <view class="invite-inviter__summary-copy">
-            <view class="invite-inviter__summary-name">{{currentInviterProfile.nickname}}</view>
+            <view class="invite-inviter__summary-name" style="font-size:{{fs.body}}">{{currentInviterProfile.nickname}}</view>
             <view class="invite-section__hint">邀请卡片会显示这个昵称。头像可选，不选时会用昵称首字作为默认头像。</view>
           </view>
         </view>
@@ -75,14 +78,14 @@
             class="invite-inviter__avatar-button"
             open-type="chooseAvatar"
             bindchooseavatar="onChooseInviterAvatar"
-          >
+           style="font-size:{{fs.label}}">
             <image
               wx:if="{{inviterProfileDraft.avatarUrl}}"
               class="invite-inviter__avatar-image"
               src="{{inviterProfileDraft.avatarUrl}}"
               mode="aspectFill"
             />
-            <view wx:else class="invite-inviter__avatar-placeholder invite-inviter__avatar-placeholder--initial">
+            <view wx:else class="invite-inviter__avatar-placeholder invite-inviter__avatar-placeholder--initial" style="font-size:{{fs.title}}">
               {{inviterProfileDraftInitial}}
             </view>
           </button>
@@ -93,10 +96,11 @@
             placeholder="请输入你的昵称"
             value="{{inviterProfileDraft.nickname}}"
             bindinput="onInviterNicknameInput"
+            style="font-size:{{fs.body}}"
           />
         </view>
         <view wx:if="{{hasInviterProfile}}" class="invite-inviter__editor-actions">
-          <view class="invite-inviter__editor-action" bindtap="handleCancelInviterProfileEdit">取消修改</view>
+          <view class="invite-inviter__editor-action" bindtap="handleCancelInviterProfileEdit" style="font-size:{{fs.button}}">取消修改</view>
         </view>
       </view>
     </view>
@@ -109,11 +113,11 @@
     >
       生成邀请卡片
     </button>
-    <button class="btn-secondary invite-page__secondary" bindtap="handleCancel">取消</button>
+    <button class="invite-page__secondary" bindtap="handleCancel" style="font-size:{{fs.button}}">取消</button>
   </view>
 
   <view wx:else class="card invite-generated">
-    <view class="invite-generated__title">✓ 邀请已生成</view>
+    <view class="invite-generated__title" style="font-size:{{fs.title}}">邀请已生成</view>
     <view class="invite-generated__preview">
       <view class="invite-generated__preview-header">
         <view class="invite-generated__preview-avatar">
@@ -123,17 +127,17 @@
             src="{{generatedInviterDisplay.avatarUrl}}"
             mode="aspectFill"
           />
-          <view wx:else class="invite-generated__preview-avatar-fallback">
+          <view wx:else class="invite-generated__preview-avatar-fallback" style="font-size:{{fs.title}}">
             {{generatedInviterDisplay ? generatedInviterDisplay.initial : '家'}}
           </view>
         </view>
         <view class="invite-generated__preview-copy">
-          <view class="invite-generated__preview-title">{{shareCardTitle}}</view>
-          <view class="invite-generated__preview-subtitle">{{generatedProfileSummary}}</view>
+          <view class="invite-generated__preview-title" style="font-size:{{fs.body}}">{{shareCardTitle}}</view>
+          <view class="invite-generated__preview-subtitle" style="font-size:{{fs.secondary}}">{{generatedProfileSummary}}</view>
         </view>
       </view>
     </view>
-    <view class="invite-generated__hint">⏰ 7 天内有效，仅限 1 人接受</view>
+    <view class="invite-generated__hint">7 天内有效，仅限 1 人接受</view>
     <button
       class="btn-primary invite-generated__button"
       open-type="share"
@@ -141,7 +145,7 @@
     >
       立即分享给家人
     </button>
-    <button class="btn-secondary invite-generated__secondary" bindtap="handleCopyInvitationLink">
+    <button class="invite-generated__secondary" bindtap="handleCopyInvitationLink" style="font-size:{{fs.button}}">
       复制邀请链接
     </button>
   </view>

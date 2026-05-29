@@ -46,8 +46,9 @@
 
 .profile-edit-panel__title {
     color: #0f172a;
-    font-size: 34rpx;
+    font-size: 36rpx;
     font-weight: 700;
+    line-height: 1.35;
 }
 
 .profile-edit-panel__close {
@@ -60,7 +61,7 @@
     align-items: center;
     justify-content: center;
     color: #94a3b8;
-    font-size: 44rpx;
+    font-size: 36rpx;
     line-height: 1;
 }
 
@@ -75,8 +76,9 @@
 
 .profile-edit-panel__label {
     color: #334155;
-    font-size: 28rpx;
+    font-size: 30rpx;
     font-weight: 700;
+    line-height: 1.5;
 }
 
 .profile-edit-panel__input,
@@ -86,13 +88,14 @@
     width: 100%;
     min-height: 88rpx;
     margin-top: 16rpx;
-    padding: 0 24rpx;
+    padding: 20rpx 24rpx;
     box-sizing: border-box;
     border-radius: 16rpx;
     border: 2rpx solid #e2e8f0;
     background: #f8fafc;
     color: #0f172a;
     font-size: 30rpx;
+    line-height: 1.5;
 }
 
 .profile-edit-panel__picker {
@@ -105,6 +108,7 @@
 
 .profile-edit-panel__gender-row {
     display: flex;
+    flex-wrap: wrap;
     gap: 16rpx;
     margin-top: 16rpx;
 }
@@ -116,14 +120,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 24rpx;
+    padding: 16rpx 24rpx;
     box-sizing: border-box;
     border-radius: 16rpx;
     border: none;
     background: #f1f5f9;
     color: #475569;
-    font-size: 28rpx;
+    font-size: 30rpx;
     font-weight: 600;
+    line-height: 1.4;
 }
 
 .profile-edit-panel__gender-option.is-active {
@@ -146,6 +151,7 @@
 .profile-edit-panel__save {
     width: 100%;
     min-height: 96rpx;
+    padding: 24rpx 32rpx;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -155,8 +161,9 @@
     color: #ffffff;
     font-size: 32rpx;
     font-weight: 600;
-    line-height: 1.2;
+    line-height: 1.4;
     text-align: center;
+    box-sizing: border-box;
 }
 
 .profile-edit-panel__save::after {

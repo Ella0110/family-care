@@ -4,15 +4,16 @@
 
 .threshold-card__title {
   color: #111827;
-  font-size: 34rpx;
+  font-size: 36rpx;
   font-weight: 800;
+  line-height: 1.35;
 }
 
 .threshold-card__help,
 .threshold-card__info-text {
   margin-top: 16rpx;
   color: #4b5563;
-  font-size: 28rpx;
+  font-size: 30rpx;
   line-height: 1.6;
 }
 
@@ -20,6 +21,7 @@
   color: #1e3a8a;
   font-size: 30rpx;
   font-weight: 700;
+  line-height: 1.5;
 }
 
 .threshold-stepper {
@@ -32,15 +34,16 @@
 
 .threshold-stepper__button {
   width: 88rpx;
-  height: 88rpx;
+  min-height: 88rpx;
   margin: 0;
-  padding: 0;
+  padding: 20rpx;
   border-radius: 999rpx;
   background: #dbeafe;
   color: #1d4ed8;
-  font-size: 44rpx;
+  font-size: 36rpx;
   font-weight: 700;
-  line-height: 88rpx;
+  line-height: 1.2;
+  box-sizing: border-box;
 }
 
 .threshold-stepper__button::after {
@@ -58,7 +61,7 @@
 .threshold-error {
   margin-top: 24rpx;
   color: #b42318;
-  font-size: 28rpx;
+  font-size: 30rpx;
   line-height: 1.5;
 }
 

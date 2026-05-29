@@ -140,7 +140,7 @@ function verifyC1CreatePageStructure() {
   );
   assert.match(
     wxss,
-    /\.form-input[\s\S]*min-height:\s*96rpx;[\s\S]*background:\s*#f8fafc;[\s\S]*border-radius:\s*16rpx;[\s\S]*font-size:\s*32rpx;/i,
+    /\.form-input[\s\S]*min-height:\s*96rpx;[\s\S]*background:\s*#f8fafc;[\s\S]*border-radius:\s*16rpx;[\s\S]*font-size:\s*(?:32rpx|var\(--fs-body\));/i,
     'create profile inputs should use the shared filled-input style',
   );
   assert.match(

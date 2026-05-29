@@ -1,6 +1,7 @@
 const { store } = require("../../store/index");
 const memberService = require("../../services/member-service");
 const { getErrorMessage } = require("../../utils/error-messages");
+const { syncFontData } = require('../../utils/font-scale');
 const { canManage, isOwner } = require("../../utils/permission-helpers");
 
 const ROLE_LABELS = {
@@ -64,6 +65,7 @@ Component({
     },
 
     data: {
+        fs: {},
         panelMember: null,
         showConfirmDialog: false,
         confirmTitle: "",
@@ -81,6 +83,7 @@ Component({
     observers: {
         show(visible) {
             if (visible) {
+                syncFontData.call(this);
                 this.hydrateMember(this.data.member);
             } else {
                 this.resetTransientState();
@@ -101,8 +104,17 @@ Component({
     },
 
     lifetimes: {
+        attached() {
+            syncFontData.call(this);
+        },
         detached() {
             this.clearTimers();
+        },
+    },
+
+    pageLifetimes: {
+        show() {
+            syncFontData.call(this);
         },
     },
 

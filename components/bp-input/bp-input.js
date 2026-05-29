@@ -1,3 +1,5 @@
+const { syncFontData } = require('../../utils/font-scale');
+
 Component({
   properties: {
     systolic: {
@@ -17,7 +19,20 @@ Component({
   },
 
   data: {
+    fs: {},
     focusedField: '',
+  },
+
+  lifetimes: {
+    attached() {
+      syncFontData.call(this);
+    },
+  },
+
+  pageLifetimes: {
+    show() {
+      syncFontData.call(this);
+    },
   },
 
   methods: {

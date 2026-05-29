@@ -1,25 +1,25 @@
 <view class="page members-page">
   <view class="members-header">
-    <view class="members-header__back" bindtap="handleBack">返回</view>
+    <view class="members-header__back" bindtap="handleBack" style="font-size:{{fs.body}}">返回</view>
     <view class="members-header__text">
-      <view class="members-header__title">{{pageTitle}}</view>
-      <view class="members-header__subtitle">{{profileName}}</view>
+      <view class="members-header__title" style="font-size:{{fs.title}}">{{pageTitle}}</view>
+      <view class="members-header__subtitle" style="font-size:{{fs.caption}}">{{profileName}}</view>
     </view>
   </view>
 
   <view wx:if="{{isLoading}}" class="card members-state">
-    正在读取成员...
+    <view class="members-state__text" style="font-size:{{fs.secondary}}">正在读取成员...</view>
   </view>
 
   <view wx:elif="{{errorText}}" class="card members-state">
-    <view class="members-state__title">暂时无法加载</view>
-    <view class="members-state__text">{{errorText}}</view>
+    <view class="members-state__title" style="font-size:{{fs.title}}">暂时无法加载</view>
+    <view class="members-state__text" style="font-size:{{fs.secondary}}">{{errorText}}</view>
   </view>
 
   <view wx:elif="{{isTransferMode}}" class="members-transfer">
     <view class="card members-transfer__intro">
-      <view class="members-transfer__title">转让后，你将变为“共同记录”</view>
-      <view class="members-transfer__text">转让后将无法继续管理档案设置。</view>
+      <view class="members-transfer__title" style="font-size:{{fs.title}}">转让后，你将变为“共同记录”</view>
+      <view class="members-transfer__text" style="font-size:{{fs.secondary}}">转让后将无法继续管理档案设置。</view>
     </view>
 
     <view class="card members-list">
@@ -30,15 +30,15 @@
         data-user-id="{{item.user._id}}"
         bindtap="handleSelectTransferCandidate"
       >
-        <view class="member-row__choice">{{selectedNewOwnerUserId === item.user._id ? '●' : '○'}}</view>
+        <view class="member-row__choice" style="font-size:{{fs.body}}">{{selectedNewOwnerUserId === item.user._id ? '●' : '○'}}</view>
         <view wx:if="{{item.user.avatarUrl}}" class="member-row__avatar member-row__avatar--image">
           <image class="member-row__avatar-image" src="{{item.user.avatarUrl}}" mode="aspectFill" />
         </view>
-        <view wx:else class="member-row__avatar">{{item.avatarFallback}}</view>
+        <view wx:else class="member-row__avatar" style="font-size:{{fs.body}}">{{item.avatarFallback}}</view>
         <view class="member-row__body">
           <view class="member-row__top">
-            <view class="member-row__name">{{item.user.nickname || '未命名'}}</view>
-            <view class="member-row__badge">{{item.roleLabel}}</view>
+            <view class="member-row__name" style="font-size:{{fs.body}}">{{item.user.nickname || '未命名'}}</view>
+            <view class="member-row__badge" style="font-size:{{fs.caption}}">{{item.roleLabel}}</view>
           </view>
         </view>
       </view>
@@ -50,10 +50,11 @@
         bindtap="handleConfirmTransfer"
         loading="{{isSubmitting}}"
         disabled="{{!selectedNewOwnerUserId || isSubmitting}}"
+        style="font-size:{{fs.button}}"
       >
         确认转让
       </button>
-      <button class="btn-secondary members-actions__button" bindtap="handleCancelTransferMode" disabled="{{isSubmitting}}">
+      <button class="btn-secondary members-actions__button" bindtap="handleCancelTransferMode" disabled="{{isSubmitting}}" style="font-size:{{fs.button}}">
         取消
       </button>
     </view>
@@ -69,16 +70,16 @@
         <view wx:if="{{item.user.avatarUrl}}" class="member-row__avatar member-row__avatar--image">
           <image class="member-row__avatar-image" src="{{item.user.avatarUrl}}" mode="aspectFill" />
         </view>
-        <view wx:else class="member-row__avatar">{{item.avatarFallback}}</view>
+        <view wx:else class="member-row__avatar" style="font-size:{{fs.body}}">{{item.avatarFallback}}</view>
 
         <view class="member-row__body">
           <view class="member-row__top">
-            <view class="member-row__name">
+            <view class="member-row__name" style="font-size:{{fs.body}}">
               {{item.user.nickname || '未命名'}}<text wx:if="{{item.isSelf}}">（你）</text>
             </view>
-            <view class="member-row__badge">{{item.roleLabel}}</view>
+            <view class="member-row__badge" style="font-size:{{fs.caption}}">{{item.roleLabel}}</view>
           </view>
-          <view class="member-row__meta">{{item.joinedText}}</view>
+          <view class="member-row__meta" style="font-size:{{fs.secondary}}">{{item.joinedText}}</view>
         </view>
 
         <view
@@ -86,20 +87,21 @@
           class="member-row__menu"
           data-relationship-id="{{item.relationship._id}}"
           bindtap="handleOpenMemberActions"
-        >
+         style="font-size:{{fs.title}}">
           ⋯
         </view>
       </view>
     </view>
 
     <view wx:if="{{canManageMembers}}" class="members-actions">
-      <button class="btn-primary members-actions__button" bindtap="handleInviteNewMember">
+      <button class="btn-primary members-actions__button" bindtap="handleInviteNewMember" style="font-size:{{fs.button}}">
         + 邀请新成员
       </button>
       <button
         wx:if="{{members.length >= 2}}"
         class="btn-secondary members-actions__button"
         bindtap="handleOpenTransferMode"
+        style="font-size:{{fs.button}}"
       >
         转让管理员
       </button>
@@ -109,32 +111,32 @@
   <view wx:if="{{isRoleDialogVisible}}" class="members-role-dialog">
     <view class="members-role-dialog__mask" bindtap="handleCloseRoleDialog"></view>
     <view class="members-role-dialog__panel card">
-      <view class="members-role-dialog__title">为「{{roleDialogMemberName}}」调整角色</view>
-      <view class="members-role-dialog__option members-role-dialog__option--disabled">
-        <view>管理员</view>
-        <view class="members-role-dialog__hint">暂不支持，请使用“转让管理员”</view>
+      <view class="members-role-dialog__title" style="font-size:{{fs.title}}">为「{{roleDialogMemberName}}」调整角色</view>
+      <view class="members-role-dialog__option members-role-dialog__option--disabled" style="font-size:{{fs.body}}">
+        <view style="font-size:{{fs.body}}">管理员</view>
+        <view class="members-role-dialog__hint" style="font-size:{{fs.caption}}">暂不支持，请使用“转让管理员”</view>
       </view>
       <view
-        class="members-role-dialog__option {{roleDialogSelection === 'collaborator' ? 'is-active' : ''}}"
+       class="members-role-dialog__option {{roleDialogSelection === 'collaborator' ? 'is-active' : ''}}"
         data-role="collaborator"
         bindtap="handleSelectRoleOption"
-      >
-        <view class="members-role-dialog__radio">{{roleDialogSelection === 'collaborator' ? '●' : '○'}}</view>
-        <view>共同记录</view>
+       style="font-size:{{fs.body}}">
+        <view class="members-role-dialog__radio" style="font-size:{{fs.body}}">{{roleDialogSelection === 'collaborator' ? '●' : '○'}}</view>
+        <view style="font-size:{{fs.body}}">共同记录</view>
       </view>
       <view
-        class="members-role-dialog__option {{roleDialogSelection === 'viewer' ? 'is-active' : ''}}"
+       class="members-role-dialog__option {{roleDialogSelection === 'viewer' ? 'is-active' : ''}}"
         data-role="viewer"
         bindtap="handleSelectRoleOption"
-      >
-        <view class="members-role-dialog__radio">{{roleDialogSelection === 'viewer' ? '●' : '○'}}</view>
-        <view>仅查看</view>
+       style="font-size:{{fs.body}}">
+        <view class="members-role-dialog__radio" style="font-size:{{fs.body}}">{{roleDialogSelection === 'viewer' ? '●' : '○'}}</view>
+        <view style="font-size:{{fs.body}}">仅查看</view>
       </view>
       <view class="members-role-dialog__actions">
-        <button class="btn-primary members-role-dialog__button" bindtap="handleConfirmRoleUpdate" loading="{{isSubmitting}}" disabled="{{isSubmitting}}">
+        <button class="btn-primary members-role-dialog__button" bindtap="handleConfirmRoleUpdate" loading="{{isSubmitting}}" disabled="{{isSubmitting}}" style="font-size:{{fs.button}}">
           确认调整
         </button>
-        <button class="btn-secondary members-role-dialog__button" bindtap="handleCloseRoleDialog" disabled="{{isSubmitting}}">
+        <button class="btn-secondary members-role-dialog__button" bindtap="handleCloseRoleDialog" disabled="{{isSubmitting}}" style="font-size:{{fs.button}}">
           取消
         </button>
       </view>

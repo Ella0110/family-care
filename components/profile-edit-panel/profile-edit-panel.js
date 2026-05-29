@@ -1,6 +1,7 @@
 const { store } = require("../../store/index");
 const profileService = require("../../services/profile-service");
 const { getErrorMessage } = require("../../utils/error-messages");
+const { syncFontData } = require('../../utils/font-scale');
 const { findProfileById } = require("../../utils/profile-store");
 
 const PHONE_PATTERN = /^1\d{10}$/;
@@ -103,6 +104,7 @@ Component({
     },
 
     data: {
+        fs: {},
         genderOptions: GENDER_OPTIONS,
         isSaving: false,
         errorText: "",
@@ -116,6 +118,7 @@ Component({
             });
 
             if (visible) {
+                syncFontData.call(this);
                 this.hydrateForm(this.data.profileId || this.properties.profileId);
                 return;
             }
@@ -129,6 +132,18 @@ Component({
             }
 
             this.hydrateForm(profileId);
+        },
+    },
+
+    lifetimes: {
+        attached() {
+            syncFontData.call(this);
+        },
+    },
+
+    pageLifetimes: {
+        show() {
+            syncFontData.call(this);
         },
     },
 

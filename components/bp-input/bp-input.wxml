@@ -11,11 +11,12 @@
       bindinput="onSystolicInput"
       bindfocus="onFocus"
       bindblur="onBlur"
+      style="font-size:{{fs.hero}}"
     />
-    <view class="bp-input__label">收缩压</view>
+    <view class="bp-input__label" style="font-size:{{fs.secondary}}">收缩压</view>
   </view>
 
-  <view class="bp-input__slash">/</view>
+  <view class="bp-input__slash" style="font-size:{{fs.hero}}">/</view>
 
   <view class="bp-input__field {{focusedField === 'diastolic' ? 'bp-input__field--focus' : ''}}">
     <input
@@ -29,9 +30,10 @@
       bindinput="onDiastolicInput"
       bindfocus="onFocus"
       bindblur="onBlur"
+      style="font-size:{{fs.hero}}"
     />
-    <view class="bp-input__label">舒张压</view>
+    <view class="bp-input__label" style="font-size:{{fs.secondary}}">舒张压</view>
   </view>
 
-  <view class="bp-input__unit">mmHg</view>
+  <view class="bp-input__unit" style="font-size:{{fs.body}}">mmHg</view>
 </view>

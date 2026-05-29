@@ -1,6 +1,7 @@
 const { store } = require('../../store/index');
 const profileService = require('../../services/profile-service');
 const { getErrorMessage } = require('../../utils/error-messages');
+const { DEFAULT_FONT_SCALE, normalizeFontScale, syncFontData } = require('../../utils/font-scale');
 const { isOwner } = require('../../utils/permission-helpers');
 const {
   DEFAULT_BP_THRESHOLD,
@@ -36,8 +37,15 @@ function goBackOrHome() {
   });
 }
 
+function getCurrentFontScale() {
+  const app = typeof getApp === 'function' ? getApp() : null;
+  return normalizeFontScale(app && app.globalData ? app.globalData.fontScale : DEFAULT_FONT_SCALE);
+}
+
 Page({
   data: {
+    fontScale: DEFAULT_FONT_SCALE,
+    fs: {},
     profileId: '',
     profileName: '当前档案',
     systolicThreshold: DEFAULT_BP_THRESHOLD.systolic,
@@ -51,6 +59,7 @@ Page({
   },
 
   onLoad(options = {}) {
+    this.syncFontScale();
     const profileId = options.profileId || '';
     if (profileId && !isOwner(store.getState(), profileId)) {
       showToast('你没有权限编辑档案');
@@ -68,6 +77,14 @@ Page({
       diastolicThreshold: threshold.diastolic,
       errorText: profile ? '' : '档案不存在',
     });
+  },
+
+  onShow() {
+    this.syncFontScale();
+  },
+
+  syncFontScale() {
+    syncFontData.call(this);
   },
 
   validateThresholds() {

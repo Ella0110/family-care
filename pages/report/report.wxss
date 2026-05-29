@@ -23,7 +23,7 @@
   border-radius: 999rpx;
   background: #f8fafc;
   color: #64748b;
-  font-size: calc(28rpx * var(--font-scale));
+  font-size: 28rpx;
   font-weight: 700;
   line-height: 72rpx;
   text-align: center;
@@ -51,7 +51,7 @@
 .report-state__title,
 .report-header__title {
   color: #111827;
-  font-size: calc(36rpx * var(--font-scale));
+  font-size: 36rpx;
   font-weight: 800;
   line-height: 1.35;
 }
@@ -60,7 +60,7 @@
 .report-header__time {
   margin-top: 12rpx;
   color: #6b7280;
-  font-size: calc(24rpx * var(--font-scale));
+  font-size: 24rpx;
   line-height: 1.7;
 }
 
@@ -91,7 +91,7 @@
 
 .report-section__eyebrow {
   color: #94a3b8;
-  font-size: calc(24rpx * var(--font-scale));
+  font-size: 24rpx;
   font-weight: 800;
   line-height: 1.5;
   letter-spacing: 4rpx;
@@ -99,7 +99,7 @@
 
 .report-section__eyebrow--patient {
   color: #3478f6;
-  font-size: calc(24rpx * var(--font-scale));
+  font-size: 24rpx;
   font-weight: 700;
   letter-spacing: 2rpx;
 }
@@ -113,7 +113,7 @@
 
 .report-section__unit {
   color: #cbd5e1;
-  font-size: calc(22rpx * var(--font-scale));
+  font-size: 22rpx;
   font-weight: 700;
   flex-shrink: 0;
 }
@@ -135,7 +135,7 @@
 
 .report-profile__label {
   color: #94a3b8;
-  font-size: calc(24rpx * var(--font-scale));
+  font-size: 24rpx;
   font-weight: 700;
   letter-spacing: 2rpx;
   line-height: 1.5;
@@ -144,7 +144,7 @@
 .report-profile__value {
   margin-top: 12rpx;
   color: #0f172a;
-  font-size: calc(30rpx * var(--font-scale));
+  font-size: 30rpx;
   font-weight: 700;
   line-height: 1.6;
   word-break: break-all;
@@ -172,7 +172,7 @@
 
 .report-alert__title {
   color: #991b1b;
-  font-size: calc(32rpx * var(--font-scale));
+  font-size: 32rpx;
   font-weight: 800;
   line-height: 1.4;
 }
@@ -184,7 +184,7 @@
 .report-alert__text {
   margin-top: 10rpx;
   color: #7f1d1d;
-  font-size: calc(26rpx * var(--font-scale));
+  font-size: 26rpx;
   line-height: 1.7;
 }
 
@@ -210,14 +210,14 @@
 
 .report-summary__label {
   color: #6b7280;
-  font-size: calc(24rpx * var(--font-scale));
+  font-size: 24rpx;
   line-height: 1.5;
 }
 
 .report-summary__value {
   margin-top: 18rpx;
   color: #111827;
-  font-size: calc(48rpx * var(--font-scale));
+  font-size: 48rpx;
   font-weight: 800;
   line-height: 1.15;
 }
@@ -233,14 +233,14 @@
 .report-summary__unit {
   margin-top: 10rpx;
   color: #6b7280;
-  font-size: calc(24rpx * var(--font-scale));
+  font-size: 24rpx;
 }
 
 .report-empty,
 .report-chart-card__empty,
 .report-alert-list__empty {
   color: #6b7280;
-  font-size: calc(28rpx * var(--font-scale));
+  font-size: 28rpx;
   line-height: 1.7;
   text-align: center;
 }
@@ -281,20 +281,20 @@
 
 .report-alert-list__time {
   color: #111827;
-  font-size: calc(28rpx * var(--font-scale));
+  font-size: 28rpx;
   font-weight: 700;
 }
 
 .report-alert-list__tags {
   margin-top: 8rpx;
   color: #b42318;
-  font-size: calc(24rpx * var(--font-scale));
+  font-size: 24rpx;
   line-height: 1.6;
 }
 
 .report-alert-list__bp {
   color: #111827;
-  font-size: calc(34rpx * var(--font-scale));
+  font-size: 34rpx;
   font-weight: 800;
   line-height: 1.2;
 }
@@ -302,12 +302,12 @@
 .report-alert-list__heart {
   margin-top: 8rpx;
   color: #6b7280;
-  font-size: calc(24rpx * var(--font-scale));
+  font-size: 24rpx;
 }
 
 .report-disclaimer__text {
   color: #94a3b8;
-  font-size: calc(22rpx * var(--font-scale));
+  font-size: 22rpx;
   line-height: 1.8;
 }
 
@@ -333,7 +333,7 @@
 
 .report-actions__privacy-title {
   color: #111827;
-  font-size: calc(28rpx * var(--font-scale));
+  font-size: 28rpx;
   font-weight: 700;
   line-height: 1.4;
 }
@@ -341,7 +341,7 @@
 .report-actions__privacy-text {
   margin-top: 6rpx;
   color: #6b7280;
-  font-size: calc(22rpx * var(--font-scale));
+  font-size: 22rpx;
   line-height: 1.5;
 }
 
@@ -350,7 +350,7 @@
   min-width: 260rpx;
   min-height: 84rpx;
   margin: 0;
-  font-size: calc(28rpx * var(--font-scale));
+  font-size: 28rpx;
 }
 
 .report-export-canvas {
@@ -383,7 +383,7 @@
 
 .report-permission-modal__title {
   color: #111827;
-  font-size: calc(38rpx * var(--font-scale));
+  font-size: 38rpx;
   font-weight: 800;
   line-height: 1.35;
 }
@@ -391,14 +391,14 @@
 .report-permission-modal__subtitle {
   margin-top: 12rpx;
   color: #4b5563;
-  font-size: calc(30rpx * var(--font-scale));
+  font-size: 30rpx;
   line-height: 1.6;
 }
 
 .report-permission-modal__step {
   margin-top: 16rpx;
   color: #6b7280;
-  font-size: calc(28rpx * var(--font-scale));
+  font-size: 28rpx;
   line-height: 1.6;
 }
 

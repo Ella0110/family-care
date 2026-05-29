@@ -1,3 +1,5 @@
+const { syncFontData } = require('../../utils/font-scale');
+
 Component({
   properties: {
     show: {
@@ -18,11 +20,31 @@ Component({
     },
   },
 
+  data: {
+    fs: {},
+  },
+
   observers: {
     show(visible) {
+      if (visible) {
+        syncFontData.call(this);
+      }
+
       this.triggerEvent('visibilitychange', {
         visible: visible === true,
       });
+    },
+  },
+
+  lifetimes: {
+    attached() {
+      syncFontData.call(this);
+    },
+  },
+
+  pageLifetimes: {
+    show() {
+      syncFontData.call(this);
     },
   },
 

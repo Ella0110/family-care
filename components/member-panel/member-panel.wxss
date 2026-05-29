@@ -68,15 +68,17 @@
 }
 
 .member-panel__name {
-    font-size: 32rpx;
+    font-size: 30rpx;
     font-weight: 700;
     color: #1e293b;
+    line-height: 1.5;
 }
 
 .member-panel__role {
     margin-top: 8rpx;
-    font-size: 24rpx;
+    font-size: 22rpx;
     color: #94a3b8;
+    line-height: 1.5;
 }
 
 .member-panel__section,
@@ -105,9 +107,10 @@
 }
 
 .member-panel__row-title {
-    font-size: 28rpx;
+    font-size: 30rpx;
     font-weight: 600;
     color: #1e293b;
+    line-height: 1.5;
 }
 
 .member-panel__row-subtitle {
@@ -126,7 +129,7 @@
     margin-top: 16rpx;
     padding: 28rpx 0;
     text-align: center;
-    font-size: 28rpx;
+    font-size: 30rpx;
     font-weight: 600;
     color: #ef4444;
 }
@@ -134,7 +137,7 @@
 .member-panel__cancel {
     padding-top: 16rpx;
     text-align: center;
-    font-size: 28rpx;
+    font-size: 30rpx;
     color: #94a3b8;
 }
 
@@ -225,6 +228,7 @@
     font-size: 36rpx;
     font-weight: 700;
     color: #1e293b;
+    line-height: 1.35;
 }
 
 .member-panel__dialog-subtitle {
@@ -238,14 +242,16 @@
 .member-panel__dialog-confirm {
     width: 100%;
     margin-top: 40rpx;
-    padding: 28rpx;
+    min-height: 96rpx;
+    padding: 24rpx 32rpx;
     border: none;
     border-radius: 24rpx;
     background: #ef4444;
     color: #ffffff;
-    font-size: 30rpx;
+    font-size: 32rpx;
     font-weight: 600;
-    line-height: 1.2;
+    line-height: 1.4;
+    box-sizing: border-box;
 }
 
 .member-panel__dialog-confirm.is-primary {
@@ -259,7 +265,7 @@
 .member-panel__dialog-cancel {
     margin-top: 24rpx;
     text-align: center;
-    font-size: 28rpx;
+    font-size: 30rpx;
     color: #94a3b8;
 }
 

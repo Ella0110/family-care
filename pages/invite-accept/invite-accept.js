@@ -1,7 +1,7 @@
 const { store } = require('../../store/index');
 const invitationService = require('../../services/invitation-service');
 const { getErrorMessage } = require('../../utils/error-messages');
-const { DEFAULT_FONT_SCALE, normalizeFontScale } = require('../../utils/font-scale');
+const { DEFAULT_FONT_SCALE, normalizeFontScale, syncFontData } = require('../../utils/font-scale');
 const {
   buildInvitationPermissionSummary,
   buildInvitationExpiryText,
@@ -45,6 +45,7 @@ function buildInvitationDisplay(invitation) {
 Page({
   data: {
     fontScale: DEFAULT_FONT_SCALE,
+    fs: {},
     token: '',
     viewState: 'loading',
     invitation: null,
@@ -91,9 +92,7 @@ Page({
   },
 
   syncFontScale() {
-    this.setData({
-      fontScale: getCurrentFontScale(),
-    });
+    syncFontData.call(this);
   },
 
   syncLoginState() {

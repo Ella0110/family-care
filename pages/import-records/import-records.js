@@ -1,7 +1,7 @@
 const { store } = require('../../store/index');
 const recordService = require('../../services/record-service');
 const { getErrorMessage } = require('../../utils/error-messages');
-const { DEFAULT_FONT_SCALE, normalizeFontScale } = require('../../utils/font-scale');
+const { DEFAULT_FONT_SCALE, normalizeFontScale, syncFontData } = require('../../utils/font-scale');
 const { canWrite } = require('../../utils/permission-helpers');
 const { parseCSV, formatEast8DateYMD, formatEast8TimeHM, normalizeDate } = require('../../utils/csv-helpers');
 
@@ -253,6 +253,7 @@ function goBackToRecords(profileId) {
 Page({
   data: {
     fontScale: DEFAULT_FONT_SCALE,
+    fs: {},
     profileId: '',
     csvText: '',
     isParsing: false,
@@ -307,9 +308,7 @@ Page({
   },
 
   syncFontScale() {
-    this.setData({
-      fontScale: getCurrentFontScale(),
-    });
+    syncFontData.call(this);
   },
 
   cancelScheduledParse() {

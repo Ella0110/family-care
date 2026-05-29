@@ -1,6 +1,7 @@
 const { store } = require('../../store/index');
 const profileService = require('../../services/profile-service');
 const { getErrorMessage } = require('../../utils/error-messages');
+const { DEFAULT_FONT_SCALE, normalizeFontScale, syncFontData } = require('../../utils/font-scale');
 const { isOwner } = require('../../utils/permission-helpers');
 
 const RELATION_OPTIONS = ['父亲', '母亲', '爷爷', '奶奶', '外公', '外婆', '我自己', '其他'];
@@ -18,6 +19,11 @@ const ALLOWED_RETURN_TABS = new Set([
   '/pages/data/data',
   '/pages/profile-home/profile-home',
 ]);
+
+function getCurrentFontScale() {
+  const app = typeof getApp === 'function' ? getApp() : null;
+  return normalizeFontScale(app && app.globalData ? app.globalData.fontScale : DEFAULT_FONT_SCALE);
+}
 
 function showToast(title, duration = 1500) {
   wx.showToast({
@@ -163,6 +169,8 @@ function getEmergencyContactValidationMessage(name, phone) {
 
 Page({
   data: {
+    fontScale: DEFAULT_FONT_SCALE,
+    fs: {},
     mode: 'create',
     profileId: '',
     returnTab: DEFAULT_RETURN_TAB,
@@ -194,6 +202,7 @@ Page({
   },
 
   onLoad(options = {}) {
+    this.syncFontScale();
     const mode = options.mode === 'edit' ? 'edit' : 'create';
     const profileId = options.profileId || '';
     const returnTab = normalizeReturnTab(options.returnTab);
@@ -222,11 +231,19 @@ Page({
     this.refreshCompletionProgress();
   },
 
+  onShow() {
+    this.syncFontScale();
+  },
+
   onUnload() {
     if (this.navigateAfterSaveTimer) {
       clearTimeout(this.navigateAfterSaveTimer);
       this.navigateAfterSaveTimer = null;
     }
+  },
+
+  syncFontScale() {
+    syncFontData.call(this);
   },
 
   loadProfileForEdit(profileId) {

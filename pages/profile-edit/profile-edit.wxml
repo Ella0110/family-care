@@ -1,13 +1,13 @@
 <view class="page profile-edit-page">
   <view class="profile-edit__header">
-    <view class="profile-edit__title">{{pageTitle}}</view>
-    <view class="profile-edit__subtitle">{{pageSubtitle}}</view>
+    <view class="profile-edit__title" style="font-size:{{fs.title}}">{{pageTitle}}</view>
+    <view class="profile-edit__subtitle" style="font-size:{{fs.secondary}}">{{pageSubtitle}}</view>
   </view>
 
   <block wx:if="{{!isEditMode}}">
     <view class="card profile-edit__form profile-edit__form--create">
       <view class="form-item">
-        <view class="form-label">姓名 <text class="form-required">*</text></view>
+        <view class="form-label" style="font-size:{{fs.body}}">姓名 <text class="form-required">*</text></view>
         <input
           class="form-input"
           value="{{form.name}}"
@@ -16,11 +16,12 @@
           placeholder-class="form-placeholder"
           focus="{{true}}"
           bindinput="onNameInput"
+          style="font-size:{{fs.body}}"
         />
       </view>
 
       <view class="form-item">
-        <view class="form-label">与你的关系</view>
+        <view class="form-label" style="font-size:{{fs.body}}">与你的关系</view>
         <picker mode="selector" range="{{relationOptions}}" value="{{relationIndex}}" bindchange="onRelationChange">
           <view class="form-picker {{relationPickerText ? '' : 'form-picker--empty'}}">
             {{relationPickerText || '请选择关系'}}
@@ -34,6 +35,7 @@
             placeholder="请填写具体关系，如：弟弟、奶奶等"
             placeholder-class="form-placeholder"
             bindinput="onRelationCustomInput"
+            style="font-size:{{fs.body}}"
           />
         </view>
       </view>
@@ -45,14 +47,14 @@
         loading="{{isSaving}}"
         disabled="{{isSaving}}"
         bindtap="handleSubmit"
-      >
+       style="font-size:{{fs.button}}">
         {{saveButtonText}}
       </button>
       <button
         class="profile-edit__button profile-edit__button--ghost"
         disabled="{{isSaving}}"
         bindtap="handleCancel"
-      >
+       style="font-size:{{fs.button}}">
         取消
       </button>
     </view>
@@ -60,7 +62,7 @@
 
   <view wx:else class="card profile-edit__form">
       <view class="form-item">
-        <view class="form-label">姓名 <text class="form-required">*</text></view>
+        <view class="form-label" style="font-size:{{fs.body}}">姓名 <text class="form-required">*</text></view>
         <input
           class="form-input form-input--name"
           value="{{form.name}}"
@@ -68,11 +70,12 @@
           placeholder="例如：爸爸"
           placeholder-class="form-placeholder"
           bindinput="onNameInput"
+          style="font-size:{{fs.body}}"
         />
       </view>
 
       <view class="form-item">
-        <view class="form-label">性别</view>
+        <view class="form-label" style="font-size:{{fs.body}}">性别</view>
         <view class="gender-options">
           <view
             wx:for="{{genderOptions}}"
@@ -80,14 +83,14 @@
             class="gender-option {{form.gender === item.value ? 'gender-option--active' : ''}}"
             data-value="{{item.value}}"
             bindtap="onGenderTap"
-          >
+           style="font-size:{{fs.body}}">
             {{item.label}}
           </view>
         </view>
       </view>
 
       <view class="form-item">
-        <view class="form-label">出生日期</view>
+        <view class="form-label" style="font-size:{{fs.body}}">出生日期</view>
         <picker mode="date" value="{{form.birthDate}}" bindchange="onBirthDateChange">
           <view class="form-picker {{form.birthDate ? '' : 'form-picker--empty'}}">
             {{form.birthDate || '请选择出生日期'}}
@@ -96,7 +99,7 @@
       </view>
 
       <view class="form-item">
-        <view class="form-label">紧急联系人</view>
+        <view class="form-label" style="font-size:{{fs.body}}">紧急联系人</view>
         <input
           class="form-input"
           value="{{form.emergencyContactName}}"
@@ -104,6 +107,7 @@
           placeholder="联系人姓名（选填）"
           placeholder-class="form-placeholder"
           bindinput="onEmergencyContactNameInput"
+          style="font-size:{{fs.body}}"
         />
         <input
           class="form-input form-input--spaced"
@@ -113,11 +117,12 @@
           placeholder="手机号（选填）"
           placeholder-class="form-placeholder"
           bindinput="onEmergencyContactPhoneInput"
+          style="font-size:{{fs.body}}"
         />
       </view>
 
       <view class="form-item">
-        <view class="form-label">是否长期服药</view>
+        <view class="form-label" style="font-size:{{fs.body}}">是否长期服药</view>
         <view class="gender-options">
           <view
             wx:for="{{longTermMedicationOptions}}"
@@ -125,14 +130,14 @@
             class="gender-option {{form.longTermMedication === item.value ? 'gender-option--active' : ''}}"
             data-value="{{item.value}}"
             bindtap="onLongTermMedicationTap"
-          >
+           style="font-size:{{fs.body}}">
             {{item.label}}
           </view>
         </view>
       </view>
 
       <view class="form-item">
-        <view class="form-label">备注</view>
+        <view class="form-label" style="font-size:{{fs.body}}">备注</view>
         <textarea
           class="form-textarea"
           value="{{form.note}}"
@@ -141,16 +146,16 @@
           placeholder-class="form-placeholder"
           bindinput="onNoteInput"
         />
-        <view class="form-help">最多 200 个字</view>
+        <view class="form-help" style="font-size:{{fs.caption}}">最多 200 个字</view>
       </view>
 
       <view class="form-item profile-edit__progress">
-        <view class="profile-edit__progress-title">{{completionSummary}}</view>
+        <view class="profile-edit__progress-title" style="font-size:{{fs.body}}">{{completionSummary}}</view>
         <view
           wx:for="{{completionItems}}"
           wx:key="label"
           class="profile-edit__progress-item {{item.completed ? 'is-completed' : ''}}"
-        >
+         style="font-size:{{fs.secondary}}">
           {{item.mark}} {{item.label}}
         </view>
       </view>
@@ -162,14 +167,14 @@
       loading="{{isSaving}}"
       disabled="{{isSaving}}"
       bindtap="handleSubmit"
-    >
+     style="font-size:{{fs.button}}">
       {{saveButtonText}}
     </button>
     <button
       class="btn-secondary profile-edit__button"
       disabled="{{isSaving}}"
       bindtap="handleCancel"
-    >
+     style="font-size:{{fs.button}}">
       取消
     </button>
   </view>

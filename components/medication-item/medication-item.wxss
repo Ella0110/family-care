@@ -20,7 +20,7 @@
 .medication-item__title {
   flex: 1;
   color: #111827;
-  font-size: calc(32rpx * var(--font-scale));
+  font-size: 32rpx;
   font-weight: 700;
   line-height: 1.45;
 }
@@ -32,14 +32,14 @@
   border-radius: 999rpx;
   background: #f3f4f6;
   color: #6b7280;
-  font-size: calc(24rpx * var(--font-scale));
+  font-size: 24rpx;
   line-height: 48rpx;
 }
 
 .medication-item__subtitle {
   margin-top: 10rpx;
   color: #4b5563;
-  font-size: calc(28rpx * var(--font-scale));
+  font-size: 28rpx;
   line-height: 1.5;
 }
 
@@ -48,7 +48,7 @@
   margin-top: 10rpx;
   overflow: hidden;
   color: #6b7280;
-  font-size: calc(26rpx * var(--font-scale));
+  font-size: 26rpx;
   line-height: 1.5;
   text-overflow: ellipsis;
   -webkit-box-orient: vertical;

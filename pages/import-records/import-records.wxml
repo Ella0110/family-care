@@ -1,4 +1,4 @@
-<view class="page page-root import-page" style="--font-scale: {{fontScale}};">
+<view class="page page-root import-page">
   <view class="card import-card">
     <view class="import-textarea__wrap">
       <textarea
@@ -9,7 +9,7 @@
         disabled="{{isImporting}}"
         bindinput="handleInput"
         bindblur="handleInputBlur"
-      ></textarea>
+       style="font-size:{{fs.secondary}}"></textarea>
 
       <view
         wx:if="{{csvText.length > 0}}"
@@ -21,46 +21,46 @@
     </view>
 
     <view wx:if="{{parseStatusText}}" class="import-parse-status import-parse-status--{{parseStatusTone}}">
-      <text wx:if="{{parseStatusTone === 'success'}}" class="import-parse-status__icon">✓</text>
-      <text wx:elif="{{parseStatusTone === 'warning'}}" class="import-parse-status__icon import-parse-status__icon--warning">!</text>
-      <text class="import-parse-status__text">{{parseStatusText}}</text>
+      <text wx:if="{{parseStatusTone === 'success'}}" class="import-parse-status__icon" style="font-size:{{fs.label}}">✓</text>
+      <text wx:elif="{{parseStatusTone === 'warning'}}" class="import-parse-status__icon import-parse-status__icon--warning" style="font-size:{{fs.label}}">!</text>
+      <text class="import-parse-status__text" style="font-size:{{fs.secondary}}">{{parseStatusText}}</text>
     </view>
   </view>
 
   <view wx:if="{{hasPreview}}" class="card import-card">
     <view wx:if="{{preview.validCount > 0}}" class="import-preview__section">
-      <view class="import-preview__section-title import-preview__section-title--success">有效记录</view>
+      <view class="import-preview__section-title import-preview__section-title--success" style="font-size:{{fs.body}}">有效记录</view>
       <view class="import-preview__list">
         <view
           wx:for="{{preview.validRecords}}"
           wx:key="_raw"
           class="import-preview__item import-preview__item--success"
         >
-          <view class="import-preview__main">{{item.dateText}} {{item.timeText}}</view>
-          <view class="import-preview__sub">{{item.valueText}}</view>
+          <view class="import-preview__main" style="font-size:{{fs.secondary}}">{{item.dateText}} {{item.timeText}}</view>
+          <view class="import-preview__sub" style="font-size:{{fs.label}}">{{item.valueText}}</view>
         </view>
       </view>
     </view>
 
     <view wx:if="{{preview.errorCount > 0}}" class="import-preview__section">
-      <view class="import-preview__section-title import-preview__section-title--error">错误行</view>
+      <view class="import-preview__section-title import-preview__section-title--error" style="font-size:{{fs.body}}">错误行</view>
       <view class="import-preview__list">
         <view
           wx:for="{{preview.errors}}"
           wx:key="line"
           class="import-preview__item import-preview__item--error"
         >
-          <view class="import-preview__main">第 {{item.line}} 行：{{item.reason}}</view>
-          <view class="import-preview__sub">{{item.text}}</view>
+          <view class="import-preview__main" style="font-size:{{fs.secondary}}">第 {{item.line}} 行：{{item.reason}}</view>
+          <view class="import-preview__sub" style="font-size:{{fs.label}}">{{item.text}}</view>
         </view>
       </view>
     </view>
   </view>
 
   <view wx:if="{{hasImportResult}}" class="card import-card">
-    <view class="import-result__title">{{importResultText}}</view>
-    <view wx:if="{{importProgressText}}" class="import-result__text">{{importProgressText}}</view>
-    <button class="btn-primary import-result__button" bindtap="handleBackToRecords">
+    <view class="import-result__title" style="font-size:{{fs.body}}">{{importResultText}}</view>
+    <view wx:if="{{importProgressText}}" class="import-result__text" style="font-size:{{fs.secondary}}">{{importProgressText}}</view>
+    <button class="btn-primary import-result__button" style="font-size:{{fs.button}}" bindtap="handleBackToRecords">
       返回记录列表
     </button>
   </view>
@@ -71,9 +71,10 @@
       bindtap="handleImport"
       loading="{{isImporting}}"
       disabled="{{isImporting || isParsing || !preview.validCount}}"
+      style="font-size:{{fs.button}}"
     >
       确认导入 {{preview.validCount || 0}} 条记录
     </button>
-    <view wx:if="{{importProgressText}}" class="import-footer__text">{{importProgressText}}</view>
+    <view wx:if="{{importProgressText}}" class="import-footer__text" style="font-size:{{fs.secondary}}">{{importProgressText}}</view>
   </view>
 </view>

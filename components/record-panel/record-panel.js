@@ -1,4 +1,5 @@
 const { getErrorMessage } = require("../../utils/error-messages");
+const { syncFontData } = require('../../utils/font-scale');
 const {
     MAX_FUTURE_SKEW_MS,
     MIN_MEASURED_AT_MS,
@@ -240,6 +241,7 @@ Component({
     },
 
     data: {
+        fs: {},
         keypadKeys: KEYPAD_KEYS,
         activeField: "systolic",
         isEditMode: false,
@@ -280,6 +282,7 @@ Component({
                 return;
             }
 
+            syncFontData.call(this);
             this.hydrateForm(getSourceRecord(this.properties));
         },
 
@@ -291,8 +294,17 @@ Component({
     },
 
     lifetimes: {
+        attached() {
+            syncFontData.call(this);
+        },
         detached() {
             this.clearTransientTimers();
+        },
+    },
+
+    pageLifetimes: {
+        show() {
+            syncFontData.call(this);
         },
     },
 

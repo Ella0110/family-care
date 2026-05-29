@@ -1,18 +1,18 @@
 <view class="page medication-list-page">
   <view wx:if="{{errorText}}" class="card medication-list__state">
-    <view class="medication-list__state-title">暂时无法加载用药记录</view>
+    <view class="medication-list__state-title" style="font-size:{{fs.title}}">暂时无法加载用药记录</view>
     <view class="medication-list__state-text">{{errorText}}</view>
     <button class="btn-secondary medication-list__retry" bindtap="handleRetry">重新加载</button>
   </view>
 
   <view wx:elif="{{isLoading && !hasLoadedOnce}}" class="card medication-list__state">
-    <view class="medication-list__state-title">正在读取用药...</view>
+    <view class="medication-list__state-title" style="font-size:{{fs.title}}">正在读取用药...</view>
     <view class="medication-list__state-text">稍等一下，马上就好。</view>
   </view>
 
   <block wx:elif="{{hasAnyMedication}}">
     <view wx:if="{{activeMedications.length}}" class="medication-list__section">
-      <view class="medication-list__section-title">当前用药</view>
+      <view class="medication-list__section-title" style="font-size:{{fs.label}}">当前用药</view>
       <view class="medication-list__cards">
         <view
           wx:for="{{activeMedications}}"
@@ -24,7 +24,7 @@
             class="medication-card-swipe__delete"
             data-id="{{item._id}}"
             bindtap="handleDeleteMedication"
-          >
+           style="font-size:{{fs.button}}">
             删除
           </view>
           <view
@@ -40,18 +40,18 @@
             bindtouchcancel="handleCardTouchEnd"
           >
             <view class="medication-card__content">
-              <view class="medication-card__title">{{item.drug}}</view>
+              <view class="medication-card__title" style="font-size:{{fs.body}}">{{item.drug}}</view>
               <view class="medication-card__meta">{{item.summaryText}}</view>
-              <view class="medication-card__timing">{{item.timingText}}</view>
+              <view class="medication-card__timing" style="font-size:{{fs.secondary}}">{{item.timingText}}</view>
             </view>
-            <view wx:if="{{canWriteCurrentProfile}}" class="medication-card__arrow">›</view>
+            <view wx:if="{{canWriteCurrentProfile}}" class="medication-card__arrow" style="font-size:{{fs.title}}">›</view>
           </view>
         </view>
       </view>
     </view>
 
     <view wx:if="{{historicalMedications.length}}" class="medication-list__section">
-      <view class="medication-list__section-title">历史用药</view>
+      <view class="medication-list__section-title" style="font-size:{{fs.label}}">历史用药</view>
       <view class="medication-list__cards">
         <view
           wx:for="{{historicalMedications}}"
@@ -63,7 +63,7 @@
             class="medication-card-swipe__delete"
             data-id="{{item._id}}"
             bindtap="handleDeleteMedication"
-          >
+           style="font-size:{{fs.button}}">
             删除
           </view>
           <view
@@ -79,11 +79,11 @@
             bindtouchcancel="handleCardTouchEnd"
           >
             <view class="medication-card__content">
-              <view class="medication-card__title">{{item.drug}}</view>
+              <view class="medication-card__title" style="font-size:{{fs.body}}">{{item.drug}}</view>
               <view class="medication-card__meta">{{item.summaryText}}</view>
-              <view class="medication-card__timing">{{item.timingText}}</view>
+              <view class="medication-card__timing" style="font-size:{{fs.secondary}}">{{item.timingText}}</view>
             </view>
-            <view wx:if="{{canWriteCurrentProfile}}" class="medication-card__arrow">›</view>
+            <view wx:if="{{canWriteCurrentProfile}}" class="medication-card__arrow" style="font-size:{{fs.title}}">›</view>
           </view>
         </view>
       </view>
@@ -91,8 +91,8 @@
   </block>
 
   <view wx:else class="card medication-empty">
-    <view class="medication-empty__title">暂无用药记录</view>
-    <view class="medication-empty__text">把家人正在服用的药物记下来，后续查看和回顾都会更清晰。</view>
+    <view class="medication-empty__title" style="font-size:{{fs.title}}">暂无用药记录</view>
+    <view class="medication-empty__text" style="font-size:{{fs.secondary}}">把家人正在服用的药物记下来，后续查看和回顾都会更清晰。</view>
     <button
       wx:if="{{canWriteCurrentProfile}}"
       class="btn-primary medication-empty__button"
@@ -103,6 +103,6 @@
   </view>
 
   <view wx:if="{{canWriteCurrentProfile && hasAnyMedication}}" class="medication-list__footer">
-    <button class="btn-primary medication-list__footer-button" bindtap="handleCreateMedication">添加用药</button>
+    <button class="btn-primary medication-list__footer-button" bindtap="handleCreateMedication" style="font-size:{{fs.button}}">添加用药</button>
   </view>
 </view>

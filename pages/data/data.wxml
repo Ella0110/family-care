@@ -1,19 +1,53 @@
-<view class="page page-root data-page" style="--font-scale: {{fontScale}};">
+<view class="page page-root data-page">
   <view wx:if="{{pageReady}}">
-    <view wx:if="{{hasProfile}}" class="data-profile-entry" bindtap="handleOpenProfileSwitcher">
-      <view class="data-profile-entry__dot"></view>
-      <text class="data-profile-entry__text">{{profileTitle}}</text>
-      <text class="data-profile-entry__arrow">▼</text>
+    <view wx:if="{{showInitialProfileSelector}}" class="data-profile-selector">
+      <view class="data-profile-selector__header">
+        <view class="data-profile-selector__title" style="font-size:{{fs.title}}">选择要查看的档案</view>
+        <view class="data-profile-selector__text" style="font-size:{{fs.secondary}}">首次进入时先选一个，之后可在顶部随时切换。</view>
+      </view>
+
+      <view wx:if="{{isProfileSelectionLoading}}" class="data-profile-selector__loading" style="font-size:{{fs.label}}">
+        正在准备档案信息...
+      </view>
+
+      <view class="data-profile-selector__list">
+        <view
+          wx:for="{{profileSelectionCards}}"
+          wx:key="_id"
+          class="card data-profile-selector__card"
+          data-profile-id="{{item._id}}"
+          bindtap="handleSelectInitialProfile"
+        >
+          <view class="data-profile-selector__card-top">
+            <view class="data-profile-selector__avatar" style="font-size:{{fs.title}}">{{item.avatarText}}</view>
+            <view class="data-profile-selector__main">
+              <view class="data-profile-selector__name-row">
+                <view class="data-profile-selector__name" style="font-size:{{fs.title}}">{{item.nameText}}</view>
+                <view wx:if="{{item.isCurrent}}" class="data-profile-selector__badge" style="font-size:{{fs.caption}}">当前</view>
+              </view>
+              <view class="data-profile-selector__relation" style="font-size:{{fs.secondary}}">{{item.relationText}}</view>
+            </view>
+          </view>
+          <view class="data-profile-selector__metric" style="font-size:{{fs.title}}">{{item.latestValueText}}</view>
+          <view class="data-profile-selector__time" style="font-size:{{fs.caption}}">{{item.latestMeasuredAtText}}</view>
+        </view>
+      </view>
     </view>
 
-    <view wx:if="{{!hasProfile}}" class="data-empty">
+    <view wx:elif="{{hasProfile}}" class="data-profile-entry" bindtap="handleOpenProfileSwitcher">
+      <view class="data-profile-entry__dot"></view>
+      <text class="data-profile-entry__text" style="font-size:{{fs.title}}">{{profileTitle}}</text>
+      <text class="data-profile-entry__arrow" style="font-size:{{fs.caption}}">▼</text>
+    </view>
+
+    <view wx:if="{{!showInitialProfileSelector && !hasProfile}}" class="data-empty">
       <profile-empty-guide bind:create="handleCreateProfile" />
     </view>
 
-    <view wx:else>
+    <view wx:elif="{{!showInitialProfileSelector}}">
       <view wx:if="{{errorText}}" class="card data-state">
-        <view class="data-state__title">暂时无法加载数据</view>
-        <view class="data-state__text">{{errorText}}</view>
+        <view class="data-state__title" style="font-size:{{fs.title}}">暂时无法加载数据</view>
+        <view class="data-state__text" style="font-size:{{fs.secondary}}">{{errorText}}</view>
       </view>
 
       <view wx:else>
@@ -22,30 +56,30 @@
           <view wx:if="{{latestRecordDisplay}}" class="data-latest__content">
             <view class="data-latest__status {{latestRecordDisplay.statusClassName}}">
               <view class="data-latest__status-dot"></view>
-              <text>{{latestRecordDisplay.statusText}}</text>
+              <text style="font-size:{{fs.secondary}}">{{latestRecordDisplay.statusText}}</text>
             </view>
 
             <view class="data-latest__numbers">
-              <text class="data-latest__systolic {{latestRecordDisplay.systolicClassName}}">{{latestRecordDisplay.systolicText}}</text>
-              <text class="data-latest__separator">/</text>
-              <text class="data-latest__diastolic {{latestRecordDisplay.diastolicClassName}}">{{latestRecordDisplay.diastolicText}}</text>
-              <text class="data-latest__unit">mmHg</text>
+              <text class="data-latest__systolic {{latestRecordDisplay.systolicClassName}}" style="font-size:{{fs.hero}}">{{latestRecordDisplay.systolicText}}</text>
+              <text class="data-latest__separator" style="font-size:{{fs.title}}">/</text>
+              <text class="data-latest__diastolic {{latestRecordDisplay.diastolicClassName}}" style="font-size:{{fs.hero}}">{{latestRecordDisplay.diastolicText}}</text>
+              <text class="data-latest__unit" style="font-size:{{fs.caption}}">mmHg</text>
             </view>
 
             <view class="data-latest__divider"></view>
 
             <view class="data-latest__meta">
               <view class="data-latest__meta-group">
-                <text class="data-latest__meta-label">最近心率</text>
-                <text class="data-latest__meta-value data-latest__meta-hr {{latestRecordDisplay.heartRateClassName}}">{{latestRecordDisplay.heartRateText}}</text>
+                <text class="data-latest__meta-label" style="font-size:{{fs.label}}">最近心率</text>
+                <text class="data-latest__meta-value data-latest__meta-hr {{latestRecordDisplay.heartRateClassName}}" style="font-size:{{fs.body}}">{{latestRecordDisplay.heartRateText}}</text>
               </view>
               <view class="data-latest__meta-group">
-                <text class="data-latest__meta-label">测量时间</text>
-                <text class="data-latest__meta-value">{{latestRecordDisplay.measuredAtText}}</text>
+                <text class="data-latest__meta-label" style="font-size:{{fs.label}}">测量时间</text>
+                <text class="data-latest__meta-value" style="font-size:{{fs.body}}">{{latestRecordDisplay.measuredAtText}}</text>
               </view>
             </view>
 
-            <view wx:if="{{latestRecordDisplay.recorderText}}" class="data-latest__recorder">
+            <view wx:if="{{latestRecordDisplay.recorderText}}" class="data-latest__recorder" style="font-size:{{fs.caption}}">
               {{latestRecordDisplay.recorderText}}
             </view>
           </view>
@@ -57,10 +91,10 @@
                   <image class="data-latest__empty-heart" src="/assets/data-empty-heart.svg" mode="aspectFit" />
                 </view>
               </view>
-              <view class="data-latest__empty-title">开启你的健康记录</view>
-              <view class="data-latest__empty-text">每天定时测量并记录，我们将为你生成专业的健康趋势分析。</view>
-              <button class="data-latest__empty-button" bindtap="handleOpenRecordPanel">记录血压</button>
-              <view class="data-latest__empty-import" bindtap="handleImportRecords">已有数据？导入历史记录</view>
+              <view class="data-latest__empty-title" style="font-size:{{fs.title}}">开启你的健康记录</view>
+              <view class="data-latest__empty-text" style="font-size:{{fs.secondary}}">每天定时测量并记录，我们将为你生成专业的健康趋势分析。</view>
+              <button class="data-latest__empty-button" style="font-size:{{fs.button}}" bindtap="handleOpenRecordPanel">记录血压</button>
+              <view class="data-latest__empty-import" style="font-size:{{fs.secondary}}" bindtap="handleImportRecords">已有数据？导入历史记录</view>
             </view>
           </view>
         </view>
@@ -83,9 +117,10 @@
                 class="da-tab {{selectedDays === item.days ? 'da-tab--active' : ''}} {{!item.enabled ? 'da-tab--disabled' : ''}}"
                 data-days="{{item.days}}"
                 bindtap="handleSelectPeriod"
+              style="font-size:{{fs.secondary}}"
               >{{item.label}}</view>
             </view>
-            <view class="da-allrecords" bindtap="handleViewAllRecords">全部记录 ></view>
+            <view class="da-allrecords" style="font-size:{{fs.secondary}}" bindtap="handleViewAllRecords">全部记录 ></view>
           </view>
 
           <view wx:if="{{hasRangeRecords}}">
@@ -94,11 +129,11 @@
             <!-- 第三行：血压数据 ? + ↓ 下载图表 -->
             <view class="da-row da-row--section-header">
               <view class="da-section-title-group">
-                <text class="da-section-title">血压趋势 (mmHg)</text>
+                <text class="da-section-title" style="font-size:{{fs.body}}">血压趋势 (mmHg)</text>
                 <!-- <text class="da-section-help">?</text> -->
               </view>
               <view class="da-download" bindtap="handleExportBloodPressureChart">
-                <text class="da-download-arrow">↓</text>
+                <text class="da-download-arrow" style="font-size:{{fs.caption}}">↓</text>
                 <!-- <text class="da-download-text">下载图表</text> -->
               </view>
             </view>
@@ -106,16 +141,16 @@
             <!-- 第四行：统计摘要 -->
             <view class="da-summary">
               <view class="da-summary__item">
-                <view class="da-summary__value da-summary__value--normal">{{rangeSummary.normalCount}}</view>
-                <view class="da-summary__label">已达标(次)</view>
+                <view class="da-summary__value da-summary__value--normal" style="font-size:{{fs.title}}">{{rangeSummary.normalCount}}</view>
+                <view class="da-summary__label" style="font-size:{{fs.caption}}">已达标(次)</view>
               </view>
               <view class="da-summary__item">
-                <view class="da-summary__value da-summary__value--danger">{{rangeSummary.abnormalCount}}</view>
-                <view class="da-summary__label">不达标(次)</view>
+                <view class="da-summary__value da-summary__value--danger" style="font-size:{{fs.title}}">{{rangeSummary.abnormalCount}}</view>
+                <view class="da-summary__label" style="font-size:{{fs.caption}}">不达标(次)</view>
               </view>
               <view class="da-summary__item">
-                <view class="da-summary__value">{{rangeSummary.averageText}}</view>
-                <view class="da-summary__label">均值(mmHg)</view>
+                <view class="da-summary__value" style="font-size:{{fs.title}}">{{rangeSummary.averageText}}</view>
+                <view class="da-summary__label" style="font-size:{{fs.caption}}">均值(mmHg)</view>
               </view>
             </view>
 
@@ -126,11 +161,11 @@
               <view class="da-legend__item">
                 <!-- <view class="da-legend__line da-legend__line--systolic"></view> -->
                 <view class="da-legend__dot"></view>
-                <text>血压偏高</text>
+                <text style="font-size:{{fs.caption}}">血压偏高</text>
               </view>
               <view class="da-legend__item">
                 <view class="da-legend__dot_normal"></view>
-                <text>血压正常</text>
+                <text style="font-size:{{fs.caption}}">血压正常</text>
               </view>
               <!-- <view class="da-legend__item">
                 <view class="da-legend__dot"></view>
@@ -143,27 +178,27 @@
 
             <view class="da-row da-row--section-header">
               <view class="da-section-title-group">
-                <text class="da-section-title">心率趋势 (bpm)</text>
+                <text class="da-section-title" style="font-size:{{fs.body}}">心率趋势 (bpm)</text>
                 <!-- <text class="da-section-help">?</text> -->
               </view>
               <view class="da-download" bindtap="handleExportHeartRateChart">
-                <text class="da-download-arrow">↓</text>
+                <text class="da-download-arrow" style="font-size:{{fs.caption}}">↓</text>
                 <!-- <text class="da-download-text">下载图表</text> -->
               </view>
             </view>
 
             <view class="da-summary">
               <view class="da-summary__item">
-                <view class="da-summary__value da-summary__value--normal">{{heartRateSummary.normalCount}}</view>
-                <view class="da-summary__label">已达标(次)</view>
+                <view class="da-summary__value da-summary__value--normal" style="font-size:{{fs.title}}">{{heartRateSummary.normalCount}}</view>
+                <view class="da-summary__label" style="font-size:{{fs.caption}}">已达标(次)</view>
               </view>
               <view class="da-summary__item">
-                <view class="da-summary__value da-summary__value--danger">{{heartRateSummary.abnormalCount}}</view>
-                <view class="da-summary__label">不达标(次)</view>
+                <view class="da-summary__value da-summary__value--danger" style="font-size:{{fs.title}}">{{heartRateSummary.abnormalCount}}</view>
+                <view class="da-summary__label" style="font-size:{{fs.caption}}">不达标(次)</view>
               </view>
               <view class="da-summary__item">
-                <view class="da-summary__value">{{heartRateSummary.averageText}}</view>
-                <view class="da-summary__label">均值(bpm)</view>
+                <view class="da-summary__value" style="font-size:{{fs.title}}">{{heartRateSummary.averageText}}</view>
+                <view class="da-summary__label" style="font-size:{{fs.caption}}">均值(bpm)</view>
               </view>
             </view>
 
@@ -173,19 +208,19 @@
               <view class="da-legend__item">
                 <!-- <view class="da-legend__line da-legend__line--hr"></view> -->
                 <view class="da-legend__dot"></view>
-                <text>心率偏高</text>
+                <text style="font-size:{{fs.caption}}">心率偏高</text>
               </view>
               <view class="da-legend__item">
                 <view class="da-legend__dot_normal"></view>
-                <text>正常心率</text>
+                <text style="font-size:{{fs.caption}}">正常心率</text>
               </view>
             </view>
 
-            <view wx:if="{{!hasHeartRateData}}" class="da-empty">暂无心率数据</view>
+            <view wx:if="{{!hasHeartRateData}}" class="da-empty" style="font-size:{{fs.secondary}}">暂无心率数据</view>
 
           </view>
 
-          <view wx:else class="da-empty">
+          <view wx:else class="da-empty" style="font-size:{{fs.secondary}}">
             当前时间范围内暂无趋势数据
           </view>
         </view>
@@ -223,13 +258,13 @@
   <view wx:if="{{showPermissionModal}}" class="data-permission-modal">
     <view class="data-permission-modal__mask"></view>
     <view class="data-permission-modal__panel">
-      <view class="data-permission-modal__title">无法保存图片</view>
-      <view class="data-permission-modal__subtitle">需要开启"相册写入"权限</view>
-      <view class="data-permission-modal__step">步骤 1：点击下方"去设置"按钮</view>
-      <view class="data-permission-modal__step">步骤 2：将"添加到相册"设为允许</view>
+      <view class="data-permission-modal__title" style="font-size:{{fs.title}}">无法保存图片</view>
+      <view class="data-permission-modal__subtitle" style="font-size:{{fs.body}}">需要开启"相册写入"权限</view>
+      <view class="data-permission-modal__step" style="font-size:{{fs.secondary}}">步骤 1：点击下方"去设置"按钮</view>
+      <view class="data-permission-modal__step" style="font-size:{{fs.secondary}}">步骤 2：将"添加到相册"设为允许</view>
       <view class="data-permission-modal__actions">
-        <button class="btn-primary data-permission-modal__button" bindtap="handleOpenPermissionSetting">去设置</button>
-        <button class="btn-secondary data-permission-modal__button" bindtap="handleClosePermissionModal">暂不下载</button>
+        <button class="btn-primary data-permission-modal__button" style="font-size:{{fs.button}}" bindtap="handleOpenPermissionSetting">去设置</button>
+        <button class="btn-secondary data-permission-modal__button" style="font-size:{{fs.button}}" bindtap="handleClosePermissionModal">暂不下载</button>
       </view>
     </view>
   </view>

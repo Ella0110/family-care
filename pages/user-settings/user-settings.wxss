@@ -19,7 +19,7 @@
 .settings-group__title {
   margin: 0 0 16rpx;
   color: #94a3b8;
-  font-size: calc(24rpx * var(--font-scale));
+  font-size: 24rpx;
   font-weight: 600;
   letter-spacing: 0.05em;
 }
@@ -53,7 +53,7 @@
   flex-shrink: 0;
   background: #3182f7;
   color: #ffffff;
-  font-size: calc(32rpx * var(--font-scale));
+  font-size: 32rpx;
   font-weight: 800;
   overflow: hidden;
 }
@@ -81,20 +81,20 @@
 
 .settings-profile__headline {
   color: #1e293b;
-  font-size: calc(28rpx * var(--font-scale));
+  font-size: 28rpx;
   font-weight: 600;
 }
 
 .settings-profile__link {
   color: #3182f7;
-  font-size: calc(28rpx * var(--font-scale));
+  font-size: 28rpx;
   font-weight: 600;
 }
 
 .settings-profile__hint {
   margin-top: 8rpx;
   color: #94a3b8;
-  font-size: calc(22rpx * var(--font-scale));
+  font-size: 22rpx;
 }
 
 .settings-notify-row {
@@ -111,7 +111,7 @@
 .settings-notify-row__title,
 .settings-font-row__title {
   color: #1e293b;
-  font-size: calc(28rpx * var(--font-scale));
+  font-size: 28rpx;
   font-weight: 600;
 }
 
@@ -119,13 +119,13 @@
 .settings-link-row__desc {
   margin-top: 4rpx;
   color: #94a3b8;
-  font-size: calc(22rpx * var(--font-scale));
+  font-size: 22rpx;
 }
 
 .settings-notify-row__meta {
   margin-top: 8rpx;
   color: #cbd5e1;
-  font-size: calc(20rpx * var(--font-scale));
+  font-size: 20rpx;
 }
 
 .settings-link-row {
@@ -143,7 +143,7 @@
 
 .settings-link-row__title {
   color: #1e293b;
-  font-size: calc(28rpx * var(--font-scale));
+  font-size: 28rpx;
   font-weight: 600;
 }
 
@@ -156,13 +156,13 @@
 
 .settings-link-row__value {
   color: #64748b;
-  font-size: calc(28rpx * var(--font-scale));
+  font-size: 28rpx;
   font-weight: 600;
 }
 
 .settings-link-row__arrow {
   color: #cbd5e1;
-  font-size: calc(28rpx * var(--font-scale));
+  font-size: 28rpx;
   font-weight: 600;
 }
 
@@ -172,7 +172,7 @@
 
 .settings-stepper-block__title {
   color: #1e293b;
-  font-size: calc(28rpx * var(--font-scale));
+  font-size: 28rpx;
   font-weight: 600;
 }
 
@@ -194,7 +194,7 @@
   flex: 1;
   min-width: 0;
   color: #94a3b8;
-  font-size: calc(22rpx * var(--font-scale));
+  font-size: 22rpx;
   font-weight: 600;
 }
 
@@ -220,7 +220,7 @@
   justify-content: center;
   color: #64748b;
   background: transparent;
-  font-size: calc(28rpx * var(--font-scale));
+  font-size: 28rpx;
   font-weight: 700;
   box-sizing: border-box;
 }
@@ -244,7 +244,7 @@
   min-width: 72rpx;
   text-align: center;
   color: #1e293b;
-  font-size: calc(36rpx * var(--font-scale));
+  font-size: 36rpx;
   font-weight: 700;
 }
 
@@ -263,7 +263,7 @@
 
 .settings-reference-grid__label {
   color: #94a3b8;
-  font-size: calc(24rpx * var(--font-scale));
+  font-size: 24rpx;
   font-weight: 600;
   text-align: center;
 }
@@ -271,6 +271,7 @@
 .font-scale-control {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 4rpx;
   padding: 4rpx;
   background: #f1f5f9;
@@ -287,7 +288,7 @@
   justify-content: center;
   color: #94a3b8;
   background: transparent;
-  font-size: calc(24rpx * var(--font-scale));
+  font-size: 24rpx;
   font-weight: 600;
   box-sizing: border-box;
 }
@@ -300,19 +301,19 @@
 
 .settings-about__name {
   color: #1e293b;
-  font-size: calc(28rpx * var(--font-scale));
+  font-size: 28rpx;
   font-weight: 700;
 }
 
 .settings-about__version {
   margin-top: 12rpx;
   color: #94a3b8;
-  font-size: calc(22rpx * var(--font-scale));
+  font-size: 22rpx;
 }
 
 .settings-empty-hint {
   color: #94a3b8;
-  font-size: calc(24rpx * var(--font-scale));
+  font-size: 24rpx;
   line-height: 1.7;
 }
 
@@ -353,13 +354,13 @@
 
 .settings-sheet__title {
   color: #1e293b;
-  font-size: calc(34rpx * var(--font-scale));
+  font-size: 34rpx;
   font-weight: 700;
 }
 
 .settings-sheet__close {
   color: #3182f7;
-  font-size: calc(26rpx * var(--font-scale));
+  font-size: 26rpx;
   font-weight: 600;
 }
 
@@ -367,7 +368,7 @@
   padding: 56rpx 16rpx 24rpx;
   text-align: center;
   color: #64748b;
-  font-size: calc(26rpx * var(--font-scale));
+  font-size: 26rpx;
 }
 
 .settings-sheet__state--error {
@@ -377,7 +378,7 @@
 .settings-sheet__retry {
   margin-top: 18rpx;
   color: #3182f7;
-  font-size: calc(26rpx * var(--font-scale));
+  font-size: 26rpx;
   font-weight: 600;
 }
 
@@ -416,7 +417,7 @@
   flex-shrink: 0;
   background: #e2e8f0;
   color: #64748b;
-  font-size: calc(32rpx * var(--font-scale));
+  font-size: 32rpx;
   font-weight: 700;
   overflow: hidden;
 }
@@ -437,12 +438,12 @@
 
 .settings-sheet__member-name {
   color: #1e293b;
-  font-size: calc(28rpx * var(--font-scale));
+  font-size: 28rpx;
   font-weight: 600;
 }
 
 .settings-sheet__member-role {
   margin-top: 8rpx;
   color: #94a3b8;
-  font-size: calc(22rpx * var(--font-scale));
+  font-size: 22rpx;
 }

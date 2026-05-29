@@ -1,6 +1,7 @@
 const { store } = require('../../store/index');
 const memberService = require('../../services/member-service');
 const { getErrorMessage } = require('../../utils/error-messages');
+const { DEFAULT_FONT_SCALE, normalizeFontScale, syncFontData } = require('../../utils/font-scale');
 const { getCurrentRelationship, canManage, isOwner } = require('../../utils/permission-helpers');
 
 const STALE_THRESHOLD = 30 * 1000;
@@ -16,6 +17,11 @@ const ROLE_ORDER = {
   collaborator: 1,
   viewer: 2,
 };
+
+function getCurrentFontScale() {
+  const app = typeof getApp === 'function' ? getApp() : null;
+  return normalizeFontScale(app && app.globalData ? app.globalData.fontScale : DEFAULT_FONT_SCALE);
+}
 
 function formatDate(value) {
   const date = value instanceof Date ? value : new Date(value);
@@ -89,6 +95,8 @@ function buildTransferCandidates(members) {
 
 Page({
   data: {
+    fontScale: DEFAULT_FONT_SCALE,
+    fs: {},
     profileId: '',
     profileName: '当前档案',
     pageTitle: '档案成员',
@@ -108,6 +116,7 @@ Page({
   },
 
   onLoad(options = {}) {
+    this.syncFontScale();
     const profileId = options.profileId || '';
     const profile = findProfile(profileId);
     const isTransferMode = options.mode === 'transfer';
@@ -122,6 +131,7 @@ Page({
   },
 
   onShow() {
+    this.syncFontScale();
     this.refreshPermissionState();
     if (!this.ensureProfileAccess()) {
       return;
@@ -146,6 +156,10 @@ Page({
     if (store.isStale('members', this.data.profileId, STALE_THRESHOLD) || !(this.data.members || []).length) {
       this.loadMembers();
     }
+  },
+
+  syncFontScale() {
+    syncFontData.call(this);
   },
 
   refreshPermissionState() {

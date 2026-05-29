@@ -22,14 +22,14 @@
 
 .profile-edit-label {
   color: #0f172a;
-  font-size: calc(28rpx * var(--font-scale));
+  font-size: 28rpx;
   font-weight: 700;
 }
 
 .profile-edit-hint {
   margin-top: 10rpx;
   color: #94a3b8;
-  font-size: calc(24rpx * var(--font-scale));
+  font-size: 24rpx;
   line-height: 1.6;
 }
 
@@ -49,7 +49,7 @@
   justify-content: center;
   background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
   color: #0f172a;
-  font-size: calc(40rpx * var(--font-scale));
+  font-size: 40rpx;
   font-weight: 700;
   overflow: hidden;
   flex-shrink: 0;
@@ -69,20 +69,22 @@
   padding: 0 28rpx;
   min-height: 80rpx;
   border-radius: 24rpx;
-  font-size: calc(28rpx * var(--font-scale));
+  font-size: 28rpx;
+  line-height: 1.4;
 }
 
 .profile-edit-input {
   width: 100%;
   min-height: 96rpx;
   margin-top: 20rpx;
-  padding: 0 24rpx;
+  padding: 20rpx 24rpx;
   box-sizing: border-box;
   background: #f8fafc;
   border-radius: 16rpx;
   border: 2rpx solid #e2e8f0;
   color: #0f172a;
-  font-size: calc(30rpx * var(--font-scale));
+  font-size: 30rpx;
+  line-height: 1.5;
 }
 
 .profile-edit-input::placeholder {
@@ -92,7 +94,7 @@
 .profile-edit-error {
   margin-top: 24rpx;
   color: #ef4444;
-  font-size: calc(26rpx * var(--font-scale));
+  font-size: 26rpx;
   line-height: 1.6;
 }
 
@@ -101,7 +103,11 @@
   margin-top: 40rpx;
   border-radius: 24rpx;
   background: #3478f6;
-  font-size: calc(32rpx * var(--font-scale));
+  font-size: 32rpx;
+  min-height: 96rpx;
+  padding: 24rpx 32rpx;
+  line-height: 1.4;
+  box-sizing: border-box;
 }
 
 .profile-edit-cancel {
@@ -110,5 +116,9 @@
   border-radius: 24rpx;
   border-color: #3478f6;
   color: #3478f6;
-  font-size: calc(32rpx * var(--font-scale));
+  font-size: 32rpx;
+  min-height: 96rpx;
+  padding: 24rpx 32rpx;
+  line-height: 1.4;
+  box-sizing: border-box;
 }

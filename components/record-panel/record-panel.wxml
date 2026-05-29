@@ -4,28 +4,29 @@
   <view wx:if="{{feedbackToastVisible}}" class="record-panel__overlay-layer">
     <view class="record-panel__feedback-mask"></view>
     <view class="record-panel__feedback-card">
-      <view class="record-panel__feedback-icon {{feedbackToastTone === 'danger' ? 'is-danger' : ''}}">
+      <view class="record-panel__feedback-icon {{feedbackToastTone === 'danger' ? 'is-danger' : ''}}" style="font-size:{{fs.title}}">
         {{feedbackToastIconText}}
       </view>
-      <view class="record-panel__feedback-title">{{feedbackToastTitle}}</view>
+      <view class="record-panel__feedback-title" style="font-size:{{fs.title}}">{{feedbackToastTitle}}</view>
     </view>
   </view>
 
   <view wx:if="{{showDeleteConfirm}}" class="record-panel__overlay-layer">
     <view class="record-panel__dialog-mask" bindtap="handleDeleteDialogMaskTap"></view>
     <view class="record-panel__dialog" catchtap="noop">
-      <view class="record-panel__dialog-icon">🗑</view>
-      <view class="record-panel__dialog-title">确定删除此记录？</view>
-      <view class="record-panel__dialog-subtitle">删除后数据将无法恢复，并会影响您的健康趋势分析。</view>
+      <view class="record-panel__dialog-icon" style="font-size:{{fs.title}}">🗑</view>
+      <view class="record-panel__dialog-title" style="font-size:{{fs.title}}">确定删除此记录？</view>
+      <view class="record-panel__dialog-subtitle" style="font-size:{{fs.label}}">删除后数据将无法恢复，并会影响您的健康趋势分析。</view>
       <button
         class="record-panel__dialog-confirm"
+        style="font-size:{{fs.button}}"
         bindtap="handleDeleteConfirm"
         loading="{{isDeleting}}"
         disabled="{{isDeleting}}"
       >
         确定删除
       </button>
-      <view class="record-panel__dialog-cancel" bindtap="handleDeleteCancel">取消</view>
+      <view class="record-panel__dialog-cancel" style="font-size:{{fs.body}}" bindtap="handleDeleteCancel">取消</view>
     </view>
   </view>
 
@@ -33,8 +34,8 @@
     <view class="record-panel__grabber"></view>
 
     <view class="record-panel__header">
-      <view class="record-panel__title">{{panelTitle}}</view>
-      <view class="record-panel__close" bindtap="handleClose">×</view>
+      <view class="record-panel__title" style="font-size:{{fs.title}}">{{panelTitle}}</view>
+      <view class="record-panel__close" style="font-size:{{fs.title}}" bindtap="handleClose">×</view>
     </view>
 
     <view class="record-panel__metrics">
@@ -43,8 +44,8 @@
         data-field="systolic"
         bindtap="handleFieldTap"
       >
-        <view class="record-panel__metric-label {{activeField === 'systolic' ? 'is-active' : ''}} {{fieldErrors.systolic ? 'is-error' : ''}}">收缩压</view>
-        <view class="record-panel__metric-value {{!form.systolic ? 'is-placeholder' : ''}} {{fieldErrors.systolic ? 'is-error' : ''}}">
+        <view class="record-panel__metric-label {{activeField === 'systolic' ? 'is-active' : ''}} {{fieldErrors.systolic ? 'is-error' : ''}}" style="font-size:{{fs.caption}}">收缩压</view>
+        <view class="record-panel__metric-value {{!form.systolic ? 'is-placeholder' : ''}} {{fieldErrors.systolic ? 'is-error' : ''}}" style="font-size:{{fs.hero}}">
           {{form.systolic || '--'}}
         </view>
         <view wx:if="{{activeField === 'systolic'}}" class="record-panel__metric-line"></view>
@@ -55,8 +56,8 @@
         data-field="diastolic"
         bindtap="handleFieldTap"
       >
-        <view class="record-panel__metric-label {{activeField === 'diastolic' ? 'is-active' : ''}} {{fieldErrors.diastolic ? 'is-error' : ''}}">舒张压</view>
-        <view class="record-panel__metric-value {{!form.diastolic ? 'is-placeholder' : ''}} {{fieldErrors.diastolic ? 'is-error' : ''}}">
+        <view class="record-panel__metric-label {{activeField === 'diastolic' ? 'is-active' : ''}} {{fieldErrors.diastolic ? 'is-error' : ''}}" style="font-size:{{fs.caption}}">舒张压</view>
+        <view class="record-panel__metric-value {{!form.diastolic ? 'is-placeholder' : ''}} {{fieldErrors.diastolic ? 'is-error' : ''}}" style="font-size:{{fs.hero}}">
           {{form.diastolic || '--'}}
         </view>
         <view wx:if="{{activeField === 'diastolic'}}" class="record-panel__metric-line"></view>
@@ -67,8 +68,8 @@
         data-field="heartRate"
         bindtap="handleFieldTap"
       >
-        <view class="record-panel__metric-label {{activeField === 'heartRate' ? 'is-active' : ''}} {{fieldErrors.heartRate ? 'is-error' : ''}}">心率</view>
-        <view class="record-panel__metric-value {{!form.heartRate ? 'is-placeholder' : ''}} {{fieldErrors.heartRate ? 'is-error' : ''}}">
+        <view class="record-panel__metric-label {{activeField === 'heartRate' ? 'is-active' : ''}} {{fieldErrors.heartRate ? 'is-error' : ''}}" style="font-size:{{fs.caption}}">心率</view>
+        <view class="record-panel__metric-value {{!form.heartRate ? 'is-placeholder' : ''}} {{fieldErrors.heartRate ? 'is-error' : ''}}" style="font-size:{{fs.hero}}">
           {{form.heartRate || '--'}}
         </view>
         <view wx:if="{{activeField === 'heartRate'}}" class="record-panel__metric-line"></view>
@@ -76,7 +77,7 @@
     </view>
 
     <view class="record-panel__time-row {{fieldErrors.measuredAt ? 'is-error' : ''}}">
-      <view class="record-panel__time-label">测量时间</view>
+      <view class="record-panel__time-label" style="font-size:{{fs.body}}">测量时间</view>
       <view class="record-panel__time-actions">
         <picker
           mode="date"
@@ -85,7 +86,7 @@
           end="{{maxMeasuredDate}}"
           bindchange="onMeasuredDateChange"
         >
-          <view class="record-panel__time-value {{fieldErrors.measuredAt ? 'is-error' : ''}}">
+          <view class="record-panel__time-value {{fieldErrors.measuredAt ? 'is-error' : ''}}" style="font-size:{{fs.body}}">
             {{measuredDateLabel}}
           </view>
         </picker>
@@ -94,17 +95,17 @@
           value="{{form.measuredTime}}"
           bindchange="onMeasuredTimeChange"
         >
-          <view class="record-panel__time-value {{fieldErrors.measuredAt ? 'is-error' : ''}}">
+          <view class="record-panel__time-value {{fieldErrors.measuredAt ? 'is-error' : ''}}" style="font-size:{{fs.body}}">
             {{form.measuredTime}}
           </view>
         </picker>
-        <text class="record-panel__time-arrow">></text>
+        <text class="record-panel__time-arrow" style="font-size:{{fs.body}}">></text>
       </view>
     </view>
 
     <view wx:if="{{errorText}}" class="record-panel__error-banner">
-      <text class="record-panel__error-icon">!</text>
-      <text class="record-panel__error-text">{{errorText}}</text>
+      <text class="record-panel__error-icon" style="font-size:{{fs.label}}">!</text>
+      <text class="record-panel__error-text" style="font-size:{{fs.label}}">{{errorText}}</text>
     </view>
 
     <view class="record-panel__keypad">
@@ -112,6 +113,7 @@
         wx:for="{{keypadKeys}}"
         wx:key="value"
         class="record-panel__key {{item.action !== 'digit' ? 'record-panel__key--action' : ''}} {{item.action === 'backspace' ? 'record-panel__key--backspace' : ''}}"
+        style="font-size:{{item.action === 'digit' ? fs.title : fs.body}}"
         data-action="{{item.action}}"
         data-value="{{item.value}}"
         bindtap="handleKeyTap"
@@ -123,6 +125,7 @@
     <view class="record-panel__actions">
       <button
         class="record-panel__save"
+        style="font-size:{{fs.button}}"
         bindtap="handleSave"
         loading="{{isSaving}}"
         disabled="{{isSaving || isDeleting || feedbackToastVisible || showDeleteConfirm}}"
@@ -133,6 +136,7 @@
       <view
         wx:if="{{isEditMode}}"
         class="record-panel__delete"
+        style="font-size:{{fs.body}}"
         bindtap="handleDelete"
       >
         删除记录

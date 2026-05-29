@@ -5,13 +5,13 @@
     <view class="profile-edit-panel__grabber"></view>
 
     <view class="profile-edit-panel__header">
-      <view class="profile-edit-panel__title">编辑档案</view>
-      <view class="profile-edit-panel__close" bindtap="handleCloseTap">×</view>
+      <view class="profile-edit-panel__title" style="font-size:{{fs.title}}">编辑档案</view>
+      <view class="profile-edit-panel__close" bindtap="handleCloseTap" style="font-size:{{fs.title}}">×</view>
     </view>
 
     <view class="profile-edit-panel__content">
       <view class="profile-edit-panel__field">
-        <view class="profile-edit-panel__label">姓名</view>
+        <view class="profile-edit-panel__label" style="font-size:{{fs.body}}">姓名</view>
         <input
           class="profile-edit-panel__input"
           maxlength="20"
@@ -22,7 +22,7 @@
       </view>
 
       <view class="profile-edit-panel__field">
-        <view class="profile-edit-panel__label">性别</view>
+        <view class="profile-edit-panel__label" style="font-size:{{fs.body}}">性别</view>
         <view class="profile-edit-panel__gender-row">
           <view
             wx:for="{{genderOptions}}"
@@ -30,23 +30,23 @@
             class="profile-edit-panel__gender-option {{form.gender === item.value ? 'is-active' : ''}}"
             data-value="{{item.value}}"
             bindtap="onGenderTap"
-          >
+           style="font-size:{{fs.body}}">
             {{item.label}}
           </view>
         </view>
       </view>
 
       <view class="profile-edit-panel__field">
-        <view class="profile-edit-panel__label">出生日期</view>
+        <view class="profile-edit-panel__label" style="font-size:{{fs.body}}">出生日期</view>
         <picker mode="date" value="{{form.birthDate}}" start="1900-01-01" end="2099-12-31" bindchange="onBirthDateChange">
-          <view class="profile-edit-panel__picker {{form.birthDate ? 'is-filled' : ''}}">
+          <view class="profile-edit-panel__picker {{form.birthDate ? 'is-filled' : ''}}" style="font-size:{{fs.body}}">
             {{form.birthDate || '请选择出生日期'}}
           </view>
         </picker>
       </view>
 
       <view class="profile-edit-panel__field">
-        <view class="profile-edit-panel__label">紧急联系人姓名</view>
+        <view class="profile-edit-panel__label" style="font-size:{{fs.body}}">紧急联系人姓名</view>
         <input
           class="profile-edit-panel__input"
           maxlength="20"
@@ -57,7 +57,7 @@
       </view>
 
       <view class="profile-edit-panel__field">
-        <view class="profile-edit-panel__label">紧急联系人电话</view>
+        <view class="profile-edit-panel__label" style="font-size:{{fs.body}}">紧急联系人电话</view>
         <input
           class="profile-edit-panel__input"
           type="number"
@@ -68,7 +68,7 @@
         />
       </view>
 
-      <view wx:if="{{errorText}}" class="profile-edit-panel__error">{{errorText}}</view>
+      <view wx:if="{{errorText}}" class="profile-edit-panel__error" style="font-size:{{fs.secondary}}">{{errorText}}</view>
 
       <view class="profile-edit-panel__footer">
       <button
@@ -76,7 +76,7 @@
         bindtap="handleSave"
         loading="{{isSaving}}"
         disabled="{{isSaving}}"
-      >
+       style="font-size:{{fs.button}}">
         保存
       </button>
       </view>

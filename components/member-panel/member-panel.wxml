@@ -4,30 +4,31 @@
   <view wx:if="{{feedbackToastVisible}}" class="member-panel__overlay-layer">
     <view class="member-panel__feedback-mask"></view>
     <view class="member-panel__feedback-card">
-      <view class="member-panel__feedback-icon {{feedbackToastTone === 'danger' ? 'is-danger' : ''}} {{feedbackToastTone === 'primary' ? 'is-primary' : ''}}">
+      <view class="member-panel__feedback-icon {{feedbackToastTone === 'danger' ? 'is-danger' : ''}} {{feedbackToastTone === 'primary' ? 'is-primary' : ''}}" style="font-size:{{fs.title}}">
         {{feedbackToastIconText}}
       </view>
-      <view class="member-panel__feedback-title">{{feedbackToastTitle}}</view>
+      <view class="member-panel__feedback-title" style="font-size:{{fs.title}}">{{feedbackToastTitle}}</view>
     </view>
   </view>
 
   <view wx:if="{{showConfirmDialog}}" class="member-panel__overlay-layer">
     <view class="member-panel__dialog-mask" bindtap="handleConfirmDialogMaskTap"></view>
     <view class="member-panel__dialog" catchtap="noop">
-      <view class="member-panel__dialog-icon {{confirmTone === 'primary' ? 'is-primary' : ''}}">
+      <view class="member-panel__dialog-icon {{confirmTone === 'primary' ? 'is-primary' : ''}}" style="font-size:{{fs.title}}">
         {{confirmTone === 'primary' ? '⇄' : '🗑'}}
       </view>
-      <view class="member-panel__dialog-title">{{confirmTitle}}</view>
-      <view class="member-panel__dialog-subtitle">{{confirmDescription}}</view>
+      <view class="member-panel__dialog-title" style="font-size:{{fs.title}}">{{confirmTitle}}</view>
+      <view class="member-panel__dialog-subtitle" style="font-size:{{fs.label}}">{{confirmDescription}}</view>
       <button
         class="member-panel__dialog-confirm {{confirmTone === 'primary' ? 'is-primary' : ''}}"
+        style="font-size:{{fs.button}}"
         bindtap="handleConfirmAction"
         loading="{{isSubmitting}}"
         disabled="{{isSubmitting}}"
       >
         {{confirmButtonText}}
       </button>
-      <view class="member-panel__dialog-cancel" bindtap="handleConfirmCancel">取消</view>
+      <view class="member-panel__dialog-cancel" bindtap="handleConfirmCancel" style="font-size:{{fs.body}}">取消</view>
     </view>
   </view>
 
@@ -35,21 +36,21 @@
     <view class="member-panel__grabber"></view>
 
     <view class="member-panel__hero">
-      <view wx:if="{{panelMember.avatarUrl}}" class="member-panel__avatar member-panel__avatar--image">
+      <view wx:if="{{panelMember.avatarUrl}}" class="member-panel__avatar member-panel__avatar--image" style="font-size:{{fs.body}}">
         <image class="member-panel__avatar-image" src="{{panelMember.avatarUrl}}" mode="aspectFill" />
       </view>
-      <view wx:else class="member-panel__avatar">{{panelMember.avatarFallback}}</view>
+      <view wx:else class="member-panel__avatar" style="font-size:{{fs.body}}">{{panelMember.avatarFallback}}</view>
       <view class="member-panel__hero-body">
-        <view class="member-panel__name">{{panelMember.displayName}}</view>
-        <view class="member-panel__role">当前角色：{{panelMember.roleLabel}}</view>
+        <view class="member-panel__name" style="font-size:{{fs.body}}">{{panelMember.displayName}}</view>
+        <view class="member-panel__role" style="font-size:{{fs.caption}}">当前角色：{{panelMember.roleLabel}}</view>
       </view>
     </view>
 
     <view wx:if="{{panelMember.canAdjustRole}}" class="member-panel__section">
       <view class="member-panel__row">
         <view class="member-panel__row-main">
-          <view class="member-panel__row-title">可录入与编辑</view>
-          <view class="member-panel__row-subtitle">允许他录入、修改和删除血压记录</view>
+          <view class="member-panel__row-title" style="font-size:{{fs.body}}">可录入与编辑</view>
+          <view class="member-panel__row-subtitle" style="font-size:{{fs.caption}}">允许他录入、修改和删除血压记录</view>
         </view>
         <switch
           checked="{{panelMember.canRecord}}"
@@ -66,20 +67,20 @@
       bindtap="handleTransferTap"
     >
       <view class="member-panel__row-main">
-        <view class="member-panel__row-title">转让管理员</view>
-        <view class="member-panel__row-subtitle">将管理员权限转让给此成员</view>
+        <view class="member-panel__row-title" style="font-size:{{fs.body}}">转让管理员</view>
+        <view class="member-panel__row-subtitle" style="font-size:{{fs.caption}}">将管理员权限转让给此成员</view>
       </view>
-      <view class="member-panel__arrow">›</view>
+      <view class="member-panel__arrow" style="font-size:{{fs.title}}">›</view>
     </view>
 
     <view
       wx:if="{{panelMember.canRemoveMember || panelMember.canLeaveProfile}}"
       class="member-panel__danger"
       bindtap="handleDangerTap"
-    >
+     style="font-size:{{fs.body}}">
       {{panelMember.canLeaveProfile ? '退出此档案' : '移除成员'}}
     </view>
 
-    <view class="member-panel__cancel" bindtap="handleCancel">取消</view>
+    <view class="member-panel__cancel" bindtap="handleCancel" style="font-size:{{fs.body}}">取消</view>
   </view>
 </view>

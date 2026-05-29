@@ -19,8 +19,9 @@
 .medication-list__state-title,
 .medication-empty__title {
   color: #0f172a;
-  font-size: 32rpx;
+  font-size: 36rpx;
   font-weight: 800;
+  line-height: 1.35;
 }
 
 .medication-list__state-text,
@@ -45,6 +46,7 @@
   font-size: 24rpx;
   font-weight: 800;
   letter-spacing: 4rpx;
+  line-height: 1.5;
 }
 
 .medication-list__cards {
@@ -72,7 +74,7 @@
   background: #ef4444;
   border-radius: 0 32rpx 32rpx 0;
   color: #ffffff;
-  font-size: 28rpx;
+  font-size: 32rpx;
   font-weight: 700;
 }
 
@@ -95,6 +97,7 @@
   color: #0f172a;
   font-size: 30rpx;
   font-weight: 800;
+  line-height: 1.5;
 }
 
 .medication-card__meta,
@@ -102,11 +105,12 @@
   margin-top: 10rpx;
   color: #64748b;
   font-size: 26rpx;
+  line-height: 1.6;
 }
 
 .medication-card__arrow {
   color: #cbd5e1;
-  font-size: 42rpx;
+  font-size: 36rpx;
   font-weight: 500;
   line-height: 1;
 }
@@ -144,8 +148,12 @@
 .medication-list__footer-button {
   width: 100%;
   min-height: 96rpx;
+  padding: 24rpx 32rpx;
   border-radius: 24rpx;
   box-shadow: 0 14rpx 28rpx rgba(52, 120, 246, 0.18);
+  font-size: 32rpx;
+  line-height: 1.4;
+  box-sizing: border-box;
 }
 
 .medication-list__footer-button::after,

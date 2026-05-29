@@ -1,10 +1,16 @@
 const { store } = require('../../store/index');
 const medicationService = require('../../services/medication-service');
 const { getErrorMessage } = require('../../utils/error-messages');
+const { DEFAULT_FONT_SCALE, normalizeFontScale, syncFontData } = require('../../utils/font-scale');
 const { canWrite } = require('../../utils/permission-helpers');
 
 const DELETE_ACTION_WIDTH_RPX = 148;
 const DELETE_ACTION_THRESHOLD_RPX = 72;
+
+function getCurrentFontScale() {
+  const app = typeof getApp === 'function' ? getApp() : null;
+  return normalizeFontScale(app && app.globalData ? app.globalData.fontScale : DEFAULT_FONT_SCALE);
+}
 
 function buildSwipeStyle(offset = 0) {
   return `transform: translateX(${offset}rpx);`;
@@ -49,6 +55,8 @@ function showConfirmModal(options) {
 
 Page({
   data: {
+    fontScale: DEFAULT_FONT_SCALE,
+    fs: {},
     profileId: '',
     canWriteCurrentProfile: false,
     isLoading: false,
@@ -68,6 +76,7 @@ Page({
   },
 
   onLoad(options = {}) {
+    this.syncFontScale();
     const profileId = options.profileId || store.getState().currentProfileId || '';
     const profile = findProfile(profileId);
 
@@ -85,11 +94,16 @@ Page({
   },
 
   onShow() {
+    this.syncFontScale();
     if (!this.data.profileId) {
       return;
     }
 
     this.loadMedications();
+  },
+
+  syncFontScale() {
+    syncFontData.call(this);
   },
 
   applyMedicationGroups(groups = {}) {

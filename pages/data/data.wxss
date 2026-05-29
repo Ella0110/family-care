@@ -38,6 +38,114 @@ page {
 }
 
 /* ========== 档案切换入口 ========== */
+.data-profile-selector {
+    padding-top: 28rpx;
+}
+
+.data-profile-selector__header {
+    margin-bottom: 24rpx;
+}
+
+.data-profile-selector__title {
+    font-size: 36rpx;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: 1rpx;
+}
+
+.data-profile-selector__text {
+    margin-top: 12rpx;
+    font-size: 26rpx;
+    line-height: 1.6;
+    color: #94a3b8;
+}
+
+.data-profile-selector__loading {
+    margin-bottom: 24rpx;
+    font-size: 24rpx;
+    color: #94a3b8;
+}
+
+.data-profile-selector__list {
+    display: flex;
+    flex-direction: column;
+    gap: 16rpx;
+}
+
+.data-profile-selector__card {
+    padding: 36rpx;
+    border-radius: 32rpx;
+    background: #ffffff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+}
+
+.data-profile-selector__card-top {
+    display: flex;
+    align-items: center;
+    gap: 20rpx;
+}
+
+.data-profile-selector__avatar {
+    width: 88rpx;
+    height: 88rpx;
+    border-radius: 50%;
+    background: #dbeafe;
+    color: #3478f6;
+    font-size: 36rpx;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.data-profile-selector__main {
+    min-width: 0;
+    flex: 1;
+}
+
+.data-profile-selector__name-row {
+    display: flex;
+    align-items: center;
+    gap: 12rpx;
+}
+
+.data-profile-selector__name {
+    font-size: 36rpx;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.data-profile-selector__badge {
+    padding: 6rpx 14rpx;
+    border-radius: 999rpx;
+    background: #eff6ff;
+    color: #3478f6;
+    font-size: 22rpx;
+    font-weight: 700;
+}
+
+.data-profile-selector__relation {
+    margin-top: 8rpx;
+    font-size: 26rpx;
+    color: #94a3b8;
+}
+
+.data-profile-selector__metric {
+    margin-top: 24rpx;
+    font-size: 36rpx;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.35;
+}
+
+.data-profile-selector__time {
+    margin-top: 10rpx;
+    font-size: 22rpx;
+    color: #94a3b8;
+    line-height: 1.5;
+}
+
 .data-profile-entry {
     display: inline-flex;
     align-items: center;
@@ -54,7 +162,7 @@ page {
 }
 
 .data-profile-entry__text {
-    font-size: 38rpx;
+    font-size: 36rpx;
     font-weight: 800;
     color: #0f172a;
     letter-spacing: 1rpx;
@@ -79,7 +187,7 @@ page {
 }
 
 .data-state__title {
-    font-size: 32rpx;
+    font-size: 36rpx;
     font-weight: 700;
     color: #111827;
 }
@@ -88,6 +196,7 @@ page {
     margin-top: 12rpx;
     font-size: 26rpx;
     color: #64748b;
+    line-height: 1.6;
 }
 
 /* ==========================================================
@@ -117,7 +226,7 @@ page {
     gap: 10rpx;
     font-size: 26rpx;
     font-weight: 600;
-    line-height: 1;
+    line-height: 1.4;
 }
 
 .data-latest__status.is-danger {
@@ -140,13 +249,16 @@ page {
 .data-latest__numbers {
     display: flex;
     align-items: baseline;
+    flex-wrap: wrap;
+    column-gap: 12rpx;
+    row-gap: 12rpx;
     margin-top: 24rpx;
     margin-bottom: 56rpx;
     line-height: 1;
 }
 
 .data-latest__systolic {
-    font-size: 3.75rem;
+    font-size: 80rpx;
     font-weight: 800;
     font-family:
         ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
@@ -162,15 +274,14 @@ page {
 }
 
 .data-latest__separator {
-    font-size: 1.875rem;
+    font-size: 36rpx;
     font-weight: 900;
     color: #cbd5e1;
-    margin: 0 12rpx;
-    line-height: 2.25rem;
+    line-height: 1.2;
 }
 
 .data-latest__diastolic {
-    font-size: 3rem;
+    font-size: 80rpx;
     font-weight: 700;
     letter-spacing: -2rpx;
     font-family:
@@ -186,12 +297,12 @@ page {
 }
 
 .data-latest__unit {
-    font-size: 28rpx;
+    font-size: 22rpx;
     font-weight: 900;
     color: #94a3b8;
-    margin-left: 12rpx;
     align-self: flex-end;
     padding-bottom: 12rpx;
+    line-height: 1.4;
 }
 
 .data-latest__divider {
@@ -203,6 +314,7 @@ page {
 .data-latest__meta {
     display: flex;
     align-items: flex-start;
+    flex-wrap: wrap;
     gap: 88rpx;
 }
 
@@ -222,6 +334,7 @@ page {
     font-size: 30rpx;
     font-weight: 700;
     color: #1e293b;
+    line-height: 1.5;
 }
 
 .data-latest__meta-hr {
@@ -234,7 +347,7 @@ page {
 .data-latest__recorder {
     margin-top: 18rpx;
     color: #cbd5e1;
-    font-size: calc(22rpx * var(--font-scale));
+    font-size: 22rpx;
     line-height: 1.4;
 }
 
@@ -288,6 +401,7 @@ page {
     font-size: 36rpx;
     font-weight: 800;
     color: #0f172a;
+    line-height: 1.35;
 }
 
 .data-latest__empty-text {
@@ -302,15 +416,18 @@ page {
     width: 80%;
     min-height: 88rpx;
     margin-top: 40rpx;
+    padding: 24rpx 32rpx;
     border-radius: 24rpx;
     background: #3478f6;
     color: #ffffff;
-    font-size: 30rpx;
+    font-size: 32rpx;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
-    line-height: 1;
+    line-height: 1.4;
+    text-align: center;
+    box-sizing: border-box;
 }
 
 .data-latest__empty-button::after {
@@ -321,6 +438,7 @@ page {
     margin-top: 24rpx;
     font-size: 26rpx;
     color: #3478f6;
+    line-height: 1.5;
 }
 
 @keyframes data-empty-spin {
@@ -368,7 +486,7 @@ page {
 }
 
 .da-title {
-    font-size: 34rpx;
+    font-size: 36rpx;
     font-weight: 800;
     color: #0f172a;
 }
@@ -377,6 +495,7 @@ page {
     font-size: 26rpx;
     font-weight: 600;
     color: #3182f7;
+    line-height: 1.5;
 }
 
 /* 第二行：Tabs */
@@ -387,6 +506,7 @@ page {
 .da-tabs {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     background: #f1f5f9;
     border-radius: 999rpx;
     padding: 4rpx;
@@ -402,6 +522,7 @@ page {
     font-size: 26rpx;
     font-weight: 600;
     transition: all 0.2s;
+    line-height: 1.5;
 }
 
 .da-tab--active {
@@ -429,6 +550,7 @@ page {
     font-size: 30rpx;
     font-weight: 700;
     color: #1e293b;
+    line-height: 1.5;
 }
 
 .da-section-help {
@@ -440,7 +562,7 @@ page {
     border-radius: 50%;
     background: #e2e8f0;
     color: #94a3b8;
-    font-size: 20rpx;
+    font-size: 22rpx;
     font-weight: 700;
 }
 
@@ -451,7 +573,7 @@ page {
 }
 
 .da-download-arrow {
-    font-size: 24rpx;
+    font-size: 22rpx;
     color: #3182f7;
     font-weight: 700;
     display: inline-flex;
@@ -468,7 +590,7 @@ page {
 }
 
 .da-download-text {
-    font-size: 24rpx;
+    font-size: 22rpx;
     color: #3182f7;
     font-weight: 600;
 }
@@ -477,20 +599,22 @@ page {
 .da-summary {
     display: flex;
     align-items: stretch;
+    flex-wrap: wrap;
     gap: 16rpx;
     margin-bottom: 24rpx;
 }
 
 .da-summary__item {
-    flex: 1;
-    padding: 20rpx 16rpx;
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 24rpx 18rpx;
     border-radius: 50rpx;
     background: #f8fafc;
     text-align: center;
 }
 
 .da-summary__value {
-    font-size: 40rpx;
+    font-size: 36rpx;
     font-weight: 800;
     color: #1e293b;
     line-height: 1.2;
@@ -509,6 +633,7 @@ page {
     font-size: 22rpx;
     color: #94a3b8;
     font-weight: 400;
+    line-height: 1.5;
 }
 
 /* --- 图表 --- */
@@ -531,6 +656,7 @@ page {
     margin-bottom: 8rpx;
     color: #64748b;
     font-size: 22rpx;
+    line-height: 1.5;
 }
 
 .da-legend__item {
@@ -588,6 +714,7 @@ page {
     color: #94a3b8;
     font-size: 26rpx;
     margin-top: 16rpx;
+    line-height: 1.6;
 }
 
 /* ==========================================================
@@ -655,7 +782,7 @@ page {
 }
 
 .data-permission-modal__title {
-    font-size: 32rpx;
+    font-size: 36rpx;
     font-weight: 700;
     text-align: center;
     color: #111827;
@@ -665,13 +792,15 @@ page {
     margin-top: 12rpx;
     text-align: center;
     color: #64748b;
-    font-size: 28rpx;
+    font-size: 30rpx;
+    line-height: 1.6;
 }
 
 .data-permission-modal__step {
     margin-top: 16rpx;
     font-size: 26rpx;
     color: #64748b;
+    line-height: 1.6;
 }
 
 .data-permission-modal__actions {

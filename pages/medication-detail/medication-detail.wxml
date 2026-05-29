@@ -1,11 +1,11 @@
 <view class="page medication-detail-page">
   <view wx:if="{{isLoadingMedication}}" class="card medication-detail__state">
-    <view class="medication-detail__state-text">正在读取用药...</view>
+    <view class="medication-detail__state-text" style="font-size:{{fs.body}}">正在读取用药...</view>
   </view>
 
   <view class="card medication-detail__form">
     <view class="form-item">
-      <view class="form-label">药物名称 <text class="form-required">*</text></view>
+      <view class="form-label" style="font-size:{{fs.body}}">药物名称 <text class="form-required">*</text></view>
       <input
         class="form-input"
         value="{{form.drug}}"
@@ -14,11 +14,12 @@
         placeholder-class="form-placeholder"
         disabled="{{isSaving || isDeleting}}"
         bindinput="onDrugInput"
+        style="font-size:{{fs.body}}"
       />
     </view>
 
     <view class="form-item">
-      <view class="form-label">剂量 <text class="form-required">*</text></view>
+      <view class="form-label" style="font-size:{{fs.body}}">剂量 <text class="form-required">*</text></view>
       <input
         class="form-input"
         value="{{form.dose}}"
@@ -27,13 +28,14 @@
         placeholder-class="form-placeholder"
         disabled="{{isSaving || isDeleting}}"
         bindinput="onDoseInput"
+        style="font-size:{{fs.body}}"
       />
     </view>
 
     <view class="form-item">
-      <view class="form-label">频率 <text class="form-required">*</text></view>
+      <view class="form-label" style="font-size:{{fs.body}}">频率 <text class="form-required">*</text></view>
       <picker mode="selector" range="{{frequencyOptions}}" value="{{frequencyIndex}}" bindchange="onFrequencyChange">
-        <view class="picker-field {{frequencyPickerText ? '' : 'is-placeholder'}}">
+        <view class="picker-field {{frequencyPickerText ? '' : 'is-placeholder'}}" style="font-size:{{fs.body}}">
           {{frequencyPickerText || '请选择服用频率'}}
         </view>
       </picker>
@@ -46,11 +48,12 @@
         placeholder-class="form-placeholder"
         disabled="{{isSaving || isDeleting}}"
         bindinput="onFrequencyCustomInput"
+        style="font-size:{{fs.body}}"
       />
     </view>
 
     <view class="form-item">
-      <view class="form-label">服用时间</view>
+      <view class="form-label" style="font-size:{{fs.body}}">服用时间</view>
       <input
         class="form-input"
         value="{{form.timing}}"
@@ -59,37 +62,38 @@
         placeholder-class="form-placeholder"
         disabled="{{isSaving || isDeleting}}"
         bindinput="onTimingInput"
+        style="font-size:{{fs.body}}"
       />
     </view>
 
     <view class="form-item">
-      <view class="form-label">开始日期</view>
+      <view class="form-label" style="font-size:{{fs.body}}">开始日期</view>
       <view class="date-row">
         <picker mode="date" value="{{form.startDate}}" bindchange="onStartDateChange">
-          <view class="picker-field {{form.startDate ? '' : 'is-placeholder'}}">
+          <view class="picker-field {{form.startDate ? '' : 'is-placeholder'}}" style="font-size:{{fs.body}}">
             {{form.startDate || '请选择开始日期'}}
           </view>
         </picker>
-        <view class="date-clear" bindtap="clearStartDate">清空</view>
+        <view class="date-clear" bindtap="clearStartDate" style="font-size:{{fs.secondary}}">清空</view>
       </view>
     </view>
 
     <view class="form-item">
-      <view class="form-label">停药日期</view>
+      <view class="form-label" style="font-size:{{fs.body}}">停药日期</view>
       <view class="date-row">
         <picker mode="date" value="{{form.endDate}}" bindchange="onEndDateChange">
-          <view class="picker-field {{form.endDate ? '' : 'is-placeholder'}}">
+          <view class="picker-field {{form.endDate ? '' : 'is-placeholder'}}" style="font-size:{{fs.body}}">
             {{form.endDate || '请选择停药日期'}}
           </view>
         </picker>
-        <view class="date-clear" bindtap="clearEndDate">清空</view>
+        <view class="date-clear" bindtap="clearEndDate" style="font-size:{{fs.secondary}}">清空</view>
       </view>
-      <view class="form-help">留空表示长期用药</view>
+      <view class="form-help" style="font-size:{{fs.caption}}">留空表示长期用药</view>
     </view>
   </view>
 
   <view class="medication-detail__actions">
-    <view wx:if="{{errorText}}" class="medication-detail__error">{{errorText}}</view>
+    <view wx:if="{{errorText}}" class="medication-detail__error" style="font-size:{{fs.secondary}}">{{errorText}}</view>
     <button
       class="btn-primary medication-detail__button"
       loading="{{isSaving}}"
@@ -104,14 +108,14 @@
       loading="{{isDeleting}}"
       disabled="{{isSaving || isDeleting || isLoadingMedication}}"
       bindtap="handleDelete"
-    >
+     style="font-size:{{fs.body}}">
       删除
     </button>
     <button
       class="medication-detail__cancel"
       disabled="{{isSaving || isDeleting}}"
       bindtap="handleCancel"
-    >
+     style="font-size:{{fs.button}}">
       取消
     </button>
   </view>

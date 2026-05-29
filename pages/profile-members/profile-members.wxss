@@ -10,7 +10,7 @@
 }
 
 .members-header__back {
-  font-size: 28rpx;
+  font-size: 30rpx;
   color: #2457d6;
 }
 
@@ -18,12 +18,14 @@
   font-size: 36rpx;
   font-weight: 700;
   color: #111827;
+  line-height: 1.35;
 }
 
 .members-header__subtitle {
   margin-top: 6rpx;
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: #6b7280;
+  line-height: 1.5;
 }
 
 .members-state,
@@ -34,7 +36,7 @@
 
 .members-state__title,
 .members-transfer__title {
-  font-size: 32rpx;
+  font-size: 36rpx;
   font-weight: 600;
   color: #111827;
 }
@@ -44,6 +46,7 @@
   margin-top: 12rpx;
   font-size: 26rpx;
   color: #6b7280;
+  line-height: 1.6;
 }
 
 .members-content,
@@ -79,9 +82,9 @@
 
 .member-row__choice {
   width: 28rpx;
-  font-size: 28rpx;
+  font-size: 30rpx;
   color: #2457d6;
-  line-height: 72rpx;
+  line-height: 1.5;
 }
 
 .member-row__avatar {
@@ -93,7 +96,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28rpx;
+  font-size: 30rpx;
   font-weight: 600;
   overflow: hidden;
   flex-shrink: 0;
@@ -120,6 +123,7 @@
   font-size: 30rpx;
   font-weight: 600;
   color: #111827;
+  line-height: 1.5;
 }
 
 .member-row__badge {
@@ -129,12 +133,14 @@
   background: #eef4ff;
   color: #2457d6;
   font-size: 22rpx;
+  white-space: nowrap;
 }
 
 .member-row__meta {
   margin-top: 8rpx;
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: #6b7280;
+  line-height: 1.5;
 }
 
 .member-row__alerts {
@@ -146,13 +152,13 @@
 }
 
 .member-row__alerts-label {
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: #4b5563;
 }
 
 .member-row__menu {
   padding: 4rpx 8rpx;
-  font-size: 40rpx;
+  font-size: 36rpx;
   color: #6b7280;
   line-height: 1;
 }
@@ -188,7 +194,7 @@
 }
 
 .members-role-dialog__title {
-  font-size: 32rpx;
+  font-size: 36rpx;
   font-weight: 700;
   color: #111827;
   margin-bottom: 20rpx;
@@ -200,8 +206,9 @@
   gap: 16rpx;
   padding: 18rpx 0;
   border-bottom: 1rpx solid #eef2f7;
-  font-size: 28rpx;
+  font-size: 30rpx;
   color: #111827;
+  line-height: 1.5;
 }
 
 .members-role-dialog__option:last-of-type {
@@ -216,6 +223,7 @@
 .members-role-dialog__hint {
   margin-top: 6rpx;
   font-size: 22rpx;
+  line-height: 1.5;
 }
 
 .members-role-dialog__radio {

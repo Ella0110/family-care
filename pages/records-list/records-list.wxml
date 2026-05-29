@@ -1,5 +1,5 @@
-<view class="page page-root records-page" style="--font-scale: {{fontScale}};">
-  <view wx:if="{{isViewerMode}}" class="records-viewer-tip">
+<view class="page page-root records-page">
+  <view wx:if="{{isViewerMode}}" class="records-viewer-tip" style="font-size:{{fs.label}}">
     当前以查看者身份访问，仅可查看和导出记录
   </view>
 
@@ -12,8 +12,8 @@
     >
       <view class="records-toolbar__month">
         <view class="records-toolbar__month-bar"></view>
-        <text class="records-toolbar__month-text">{{monthLabel}}</text>
-        <text class="records-toolbar__month-arrow">▼</text>
+        <text class="records-toolbar__month-text" style="font-size:{{fs.body}}">{{monthLabel}}</text>
+        <text class="records-toolbar__month-arrow" style="font-size:{{fs.caption}}">▼</text>
       </view>
     </picker>
 
@@ -22,7 +22,7 @@
         class="records-toolbar__export"
         bindtap="handleOpenExportSheet"
         disabled="{{isLoading || !!errorText || isExportingImage || isExportingCsv}}"
-      >
+       style="font-size:{{fs.secondary}}">
         下载 ↓
       </button>
       <button
@@ -30,34 +30,34 @@
         class="records-toolbar__import"
         bindtap="handleImportRecords"
         disabled="{{isExportingImage || isExportingCsv}}"
-      >
+       style="font-size:{{fs.secondary}}">
         导入 ↑
       </button>
     </view>
   </view>
 
   <view wx:if="{{isLoading}}" class="records-state-card">
-    <view class="records-state-card__title">正在加载记录</view>
-    <view class="records-state-card__text">请稍候...</view>
+      <view class="records-state-card__title" style="font-size:{{fs.title}}">正在加载记录</view>
+    <view class="records-state-card__text" style="font-size:{{fs.secondary}}">请稍候...</view>
   </view>
 
   <view wx:elif="{{errorText}}" class="records-state-card">
-    <view class="records-state-card__title">暂时无法加载</view>
-    <view class="records-state-card__text">{{errorText}}</view>
-    <button class="records-state-card__button" bindtap="loadAllRecords">重试</button>
+    <view class="records-state-card__title" style="font-size:{{fs.title}}">暂时无法加载</view>
+    <view class="records-state-card__text" style="font-size:{{fs.secondary}}">{{errorText}}</view>
+    <button class="records-state-card__button" bindtap="loadAllRecords" style="font-size:{{fs.button}}">重试</button>
   </view>
 
   <view wx:elif="{{!hasRecords}}" class="records-state-card">
-    <view class="records-state-card__title">{{monthLabel}} 暂无记录</view>
-    <view class="records-state-card__text">可以切换月份查看历史记录，或导入历史数据。</view>
+    <view class="records-state-card__title" style="font-size:{{fs.title}}">{{monthLabel}} 暂无记录</view>
+    <view class="records-state-card__text" style="font-size:{{fs.secondary}}">可以切换月份查看历史记录，或导入历史数据。</view>
     <view class="records-state-card__actions">
-      <button wx:if="{{canWriteCurrentProfile}}" class="records-state-card__button records-state-card__button--ghost" bindtap="handleImportRecords">导入记录</button>
+      <button wx:if="{{canWriteCurrentProfile}}" class="records-state-card__button records-state-card__button--ghost" bindtap="handleImportRecords" style="font-size:{{fs.button}}">导入记录</button>
     </view>
   </view>
 
   <view wx:else class="records-groups">
     <view wx:for="{{groups}}" wx:key="date" class="records-group" id="{{item.anchorId}}">
-      <view class="records-group__title">{{item.label}}</view>
+      <view class="records-group__title" style="font-size:{{fs.body}}">{{item.label}}</view>
 
       <view class="records-group__card">
         <view
@@ -71,7 +71,7 @@
             class="records-row-swipe__delete"
             data-record-id="{{record._id}}"
             bindtap="handleDeleteActionTap"
-          >
+           style="font-size:{{fs.button}}">
             删除
           </view>
 
@@ -85,20 +85,20 @@
             bindtouchend="handleRowTouchEnd"
             bindtouchcancel="handleRowTouchEnd"
           >
-            <view class="records-row__time">{{record.timeText}}</view>
+            <view class="records-row__time" style="font-size:{{fs.secondary}}">{{record.timeText}}</view>
             <view class="records-row__main">
-              <view class="records-row__value">{{record.valueText}}</view>
-              <view wx:if="{{record.heartRateText}}" class="records-row__heart">{{record.heartRateText}}</view>
-              <view wx:if="{{record.recorderText}}" class="records-row__recorder">{{record.recorderText}}</view>
+              <view class="records-row__value" style="font-size:{{fs.title}}">{{record.valueText}}</view>
+              <view wx:if="{{record.heartRateText}}" class="records-row__heart" style="font-size:{{fs.secondary}}">{{record.heartRateText}}</view>
+              <view wx:if="{{record.recorderText}}" class="records-row__recorder" style="font-size:{{fs.caption}}">{{record.recorderText}}</view>
             </view>
-            <view class="records-row__status {{record.statusClassName}}">{{record.statusText}}</view>
-            <view wx:if="{{!isViewerMode}}" class="records-row__arrow">›</view>
+            <view class="records-row__status {{record.statusClassName}}" style="font-size:{{fs.caption}}">{{record.statusText}}</view>
+            <view wx:if="{{!isViewerMode}}" class="records-row__arrow" style="font-size:{{fs.title}}">›</view>
           </view>
         </view>
       </view>
     </view>
 
-    <view class="records-footer">
+    <view class="records-footer" style="font-size:{{fs.secondary}}">
       <text wx:if="{{hasMore}}">— 该月仅显示前 200 条记录 —</text>
       <text wx:else>— 已加载全部记录 —</text>
     </view>
@@ -125,8 +125,8 @@
     <view class="records-export-sheet__mask" bindtap="handleCloseExportSheet"></view>
     <view class="records-export-sheet__panel">
       <view class="records-export-sheet__handle"></view>
-      <view class="records-export-sheet__title">导出数据</view>
-      <view class="records-export-sheet__subtitle">选择需要导出的时间范围</view>
+      <view class="records-export-sheet__title" style="font-size:{{fs.title}}">导出数据</view>
+      <view class="records-export-sheet__subtitle" style="font-size:{{fs.label}}">选择需要导出的时间范围</view>
 
       <view class="records-export-sheet__ranges">
         <view
@@ -136,8 +136,8 @@
           data-days="{{item}}"
           bindtap="handleSelectExportDays"
         >
-          <view class="records-export-sheet__range-number">{{item}}</view>
-          <view class="records-export-sheet__range-label">天</view>
+          <view class="records-export-sheet__range-number" style="font-size:{{fs.title}}">{{item}}</view>
+          <view class="records-export-sheet__range-label" style="font-size:{{fs.caption}}">天</view>
         </view>
       </view>
 
@@ -147,7 +147,7 @@
           bindtap="handleExportImage"
           loading="{{isExportingImage}}"
           disabled="{{isExportingImage || isExportingCsv}}"
-        >
+         style="font-size:{{fs.button}}">
           导出图片
         </button>
         <button
@@ -155,19 +155,19 @@
           bindtap="handleExportData"
           loading="{{isExportingCsv}}"
           disabled="{{isExportingImage || isExportingCsv}}"
-        >
+         style="font-size:{{fs.button}}">
           导出数据
         </button>
       </view>
 
-      <view class="records-export-sheet__cancel" bindtap="handleCloseExportSheet">取消</view>
+      <view class="records-export-sheet__cancel" bindtap="handleCloseExportSheet" style="font-size:{{fs.body}}">取消</view>
     </view>
   </view>
 
   <view wx:if="{{showExportPreview}}" class="records-export-preview">
     <view class="records-export-preview__header">
-      <view class="records-export-preview__title">导出预览</view>
-      <view class="records-export-preview__subtitle">确认图片内容完整后，再保存到相册。</view>
+      <view class="records-export-preview__title" style="font-size:{{fs.title}}">导出预览</view>
+      <view class="records-export-preview__subtitle" style="font-size:{{fs.label}}">确认图片内容完整后，再保存到相册。</view>
     </view>
     <scroll-view scroll-y class="records-export-preview__scroll">
       <view class="records-export-preview__card">
@@ -183,7 +183,7 @@
         class="records-export-preview__button records-export-preview__button--secondary"
         bindtap="onCancelPreview"
         disabled="{{isExportingImage}}"
-      >
+       style="font-size:{{fs.button}}">
         取消
       </button>
       <button
@@ -191,7 +191,7 @@
         bindtap="onConfirmSave"
         loading="{{isExportingImage}}"
         disabled="{{isExportingImage}}"
-      >
+       style="font-size:{{fs.button}}">
         保存到相册
       </button>
     </view>
@@ -200,15 +200,15 @@
   <view wx:if="{{showPermissionModal}}" class="records-permission-modal">
     <view class="records-permission-modal__mask"></view>
     <view class="records-permission-modal__panel">
-      <view class="records-permission-modal__title">无法保存图片</view>
-      <view class="records-permission-modal__subtitle">需要开启“相册写入”权限</view>
-      <view class="records-permission-modal__step">步骤 1：点击下方“去设置”按钮</view>
-      <view class="records-permission-modal__step">步骤 2：将“添加到相册”设为允许</view>
+      <view class="records-permission-modal__title" style="font-size:{{fs.title}}">无法保存图片</view>
+      <view class="records-permission-modal__subtitle" style="font-size:{{fs.body}}">需要开启“相册写入”权限</view>
+      <view class="records-permission-modal__step" style="font-size:{{fs.label}}">步骤 1：点击下方“去设置”按钮</view>
+      <view class="records-permission-modal__step" style="font-size:{{fs.label}}">步骤 2：将“添加到相册”设为允许</view>
       <view class="records-permission-modal__actions">
-        <button class="records-permission-modal__button records-permission-modal__button--primary" bindtap="handleOpenPermissionSetting">
+        <button class="records-permission-modal__button records-permission-modal__button--primary" bindtap="handleOpenPermissionSetting" style="font-size:{{fs.body}}">
           去设置
         </button>
-        <button class="records-permission-modal__button records-permission-modal__button--secondary" bindtap="handleClosePermissionModal">
+        <button class="records-permission-modal__button records-permission-modal__button--secondary" bindtap="handleClosePermissionModal" style="font-size:{{fs.body}}">
           暂不下载
         </button>
       </view>
@@ -221,8 +221,8 @@
       <view class="records-dialog-layer__icon-wrap">
         <view class="records-dialog-layer__icon">🗑</view>
       </view>
-      <view class="records-dialog-layer__title">确定删除此记录？</view>
-      <view class="records-dialog-layer__text">
+      <view class="records-dialog-layer__title" style="font-size:{{fs.title}}">确定删除此记录？</view>
+      <view class="records-dialog-layer__text" style="font-size:{{fs.label}}">
         删除后数据将无法恢复，并会影响您的健康趋势分析。
       </view>
       <button
@@ -230,10 +230,10 @@
         bindtap="handleDeleteDialogConfirm"
         loading="{{isDeletingRecord}}"
         disabled="{{isDeletingRecord}}"
-      >
+       style="font-size:{{fs.body}}">
         确定删除
       </button>
-      <view class="records-dialog-layer__cancel" bindtap="handleDeleteDialogCancel">取消</view>
+      <view class="records-dialog-layer__cancel" bindtap="handleDeleteDialogCancel" style="font-size:{{fs.body}}">取消</view>
     </view>
   </view>
 
@@ -243,7 +243,7 @@
       <view class="records-feedback-layer__icon-wrap">
         <view class="records-feedback-layer__icon">🗑</view>
       </view>
-      <view class="records-feedback-layer__title">{{feedbackTitle}}</view>
+      <view class="records-feedback-layer__title" style="font-size:{{fs.title}}">{{feedbackTitle}}</view>
     </view>
   </view>
 </view>

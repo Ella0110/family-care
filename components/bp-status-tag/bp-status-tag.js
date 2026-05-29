@@ -1,4 +1,5 @@
 const { getBPStatusDisplay } = require('../../utils/bp-status');
+const { syncFontData } = require('../../utils/font-scale');
 
 Component({
   properties: {
@@ -17,6 +18,7 @@ Component({
   },
 
   data: {
+    fs: {},
     status: getBPStatusDisplay(0, 0),
   },
 
@@ -25,6 +27,18 @@ Component({
       this.setData({
         status: getBPStatusDisplay(systolic, diastolic, referenceLines),
       });
+    },
+  },
+
+  lifetimes: {
+    attached() {
+      syncFontData.call(this);
+    },
+  },
+
+  pageLifetimes: {
+    show() {
+      syncFontData.call(this);
     },
   },
 });

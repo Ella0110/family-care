@@ -12,7 +12,7 @@
         src="{{selectedPath === item.pagePath ? item.selectedIconPath : item.iconPath}}"
         mode="aspectFit"
       />
-      <text class="custom-tab-bar__text">{{item.text}}</text>
+      <text class="custom-tab-bar__text" style="font-size:{{fs.caption}}">{{item.text}}</text>
     </view>
 
     <button

@@ -11,9 +11,9 @@ const {
   DEFAULT_FONT_SCALE,
   FONT_SCALE_OPTIONS,
   FONT_SCALE_LABELS,
-  buildFontScaleStyle,
   isValidFontScale,
   normalizeFontScale,
+  syncFontData,
 } = require('../../utils/font-scale');
 const {
   getCurrentRelationship,
@@ -187,7 +187,7 @@ function showToast(title, icon = 'none') {
 Page({
   data: {
     fontScale: DEFAULT_FONT_SCALE,
-    fontScaleStyle: buildFontScaleStyle(DEFAULT_FONT_SCALE),
+    fs: {},
     selectedFontScale: DEFAULT_FONT_SCALE,
     selectedLabel: getSelectedLabel(DEFAULT_FONT_SCALE),
     fontScaleOptions: FONT_SCALE_OPTIONS.map((value) => ({
@@ -260,9 +260,8 @@ Page({
 
   syncFontScale() {
     const fontScale = getAppFontScale();
+    syncFontData.call(this);
     this.setData({
-      fontScale,
-      fontScaleStyle: buildFontScaleStyle(fontScale),
       selectedFontScale: fontScale,
       selectedLabel: getSelectedLabel(fontScale),
     });
@@ -376,9 +375,8 @@ Page({
       syncStoreUser: true,
     });
 
+    syncFontData.call(this);
     this.setData({
-      fontScale: nextScale,
-      fontScaleStyle: buildFontScaleStyle(nextScale),
       selectedFontScale: nextScale,
       selectedLabel: getSelectedLabel(nextScale),
     });

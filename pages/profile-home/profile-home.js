@@ -16,6 +16,7 @@ const {
     isValidFontScale,
     normalizeFontScale,
     getFontScaleLabel,
+    syncFontData,
 } = require("../../utils/font-scale");
 const { getAppLoginStatus } = require("../../utils/app-login-status");
 const { requestAlertSubscription } = require("../../utils/alert-subscription");
@@ -236,6 +237,7 @@ function buildMemberItems(members, currentUserId) {
 Page({
     data: {
         fontScale: DEFAULT_FONT_SCALE,
+        fs: {},
         pageReady: false,
         _lastProfileId: "",
         hasProfile: false,
@@ -433,8 +435,8 @@ Page({
 
     syncFontScale() {
         const fontScale = getCurrentFontScale();
+        syncFontData.call(this);
         this.setData({
-            fontScale,
             fontScaleLabel: getFontScaleLabel(fontScale),
             selectedFontScale: fontScale,
         });
@@ -449,11 +451,17 @@ Page({
             syncStoreUser: true,
         });
 
+        syncFontData.call(this);
         this.setData({
-            fontScale: nextScale,
             fontScaleLabel: getFontScaleLabel(nextScale),
             selectedFontScale: nextScale,
         });
+
+        const tabBar =
+            typeof this.getTabBar === "function" ? this.getTabBar() : null;
+        if (tabBar && typeof tabBar.setData === "function") {
+            tabBar.setData({ fontScale: nextScale });
+        }
     },
 
     syncProfileMeta() {

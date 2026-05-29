@@ -1,3 +1,5 @@
+const { syncFontData } = require('../../utils/font-scale');
+
 Component({
   properties: {
     icon: {
@@ -15,6 +17,22 @@ Component({
     buttonText: {
       type: String,
       value: '',
+    },
+  },
+
+  data: {
+    fs: {},
+  },
+
+  lifetimes: {
+    attached() {
+      syncFontData.call(this);
+    },
+  },
+
+  pageLifetimes: {
+    show() {
+      syncFontData.call(this);
     },
   },
 

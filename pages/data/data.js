@@ -2,7 +2,7 @@ const { store } = require('../../store/index');
 const recordService = require('../../services/record-service');
 const { callSilent } = require('../../services/request');
 const { getErrorMessage } = require('../../utils/error-messages');
-const { DEFAULT_FONT_SCALE, normalizeFontScale } = require('../../utils/font-scale');
+const { DEFAULT_FONT_SCALE, syncFontData } = require('../../utils/font-scale');
 const { getAppLoginStatus } = require('../../utils/app-login-status');
 const {
   getCurrentRelationship,
@@ -97,10 +97,6 @@ function getThreshold(profile) {
   };
 }
 
-function getCurrentFontScale() {
-  const app = getApp();
-  return normalizeFontScale(app && app.globalData ? app.globalData.fontScale : DEFAULT_FONT_SCALE);
-}
 const getLoginStatus = getAppLoginStatus;
 
 function consumePendingRecordPanelOpen() {
@@ -385,6 +381,34 @@ function buildLatestDisplay(record, profile) {
   };
 }
 
+function getProfileInitial(profile) {
+  const name = String(profile && profile.name || '').trim();
+  return name ? name.slice(0, 1) : '档';
+}
+
+function buildProfileSelectorCard(profile, latestRecord, currentProfileId) {
+  const payload = latestRecord && latestRecord.payload ? latestRecord.payload : {};
+  const systolic = Number(payload.systolic);
+  const diastolic = Number(payload.diastolic);
+  const hasLatestRecord = Number.isFinite(systolic) && Number.isFinite(diastolic);
+
+  return {
+    _id: profile && profile._id ? profile._id : '',
+    avatarText: getProfileInitial(profile),
+    nameText: profile && profile.name ? profile.name : '未命名档案',
+    relationText: profile && profile.relation ? profile.relation : '关系未填写',
+    latestValueText: hasLatestRecord ? `${systolic}/${diastolic} mmHg` : '暂无血压记录',
+    latestMeasuredAtText: hasLatestRecord ? formatMeasuredAt(latestRecord.measuredAt) : '等待首次测量',
+    isCurrent: Boolean(profile && profile._id && profile._id === currentProfileId),
+  };
+}
+
+function buildProfileSelectorCards(profiles, currentProfileId) {
+  return (Array.isArray(profiles) ? profiles : []).map((profile) =>
+    buildProfileSelectorCard(profile, store.getCachedLatestRecord(profile && profile._id), currentProfileId)
+  );
+}
+
 function buildRecorderText(record, options = {}) {
   if (!options.showRecorderLabel || !record) {
     return '';
@@ -435,8 +459,12 @@ function buildChartExportSummaryText(chartType, selectedDays, rangeSummary, hear
 Page({
   data: {
     fontScale: DEFAULT_FONT_SCALE,
+    fs: {},
     pageReady: false,
     _lastProfileId: '',
+    showInitialProfileSelector: false,
+    isProfileSelectionLoading: false,
+    profileSelectionCards: [],
     hasProfile: false,
     profileName: '',
     profileTitle: '来自儿女的关心',
@@ -485,6 +513,7 @@ Page({
     this.chartThreshold = { systolic: 140, diastolic: 90 };
     this.exportTempFilePath = '';
     this.exportChartMeta = null;
+    this.profileSelectorRequestId = 0;
     this.lastSeenProfileId = store.getState().currentProfileId || '';
     this.lastLoginReady = getLoginStatus().isLoginReady;
     this.lastProfileMetaSignature = '';
@@ -492,7 +521,7 @@ Page({
     this.activeLoadPromise = null;
     this.activeRefreshPromise = null;
 
-    this.syncFontScale();
+    syncFontData.call(this);
     this.initSystemInfo();
     this.syncProfileMeta();
 
@@ -511,6 +540,10 @@ Page({
       if (loginJustFinished) {
         this.lastSeenProfileId = nextProfileId;
         this.syncProfileMeta();
+        if (this.shouldShowInitialProfileSelector()) {
+          this.presentInitialProfileSelector();
+          return;
+        }
         this.loadPageData({ force: true, resetReady: true });
         return;
       }
@@ -531,7 +564,7 @@ Page({
     }
 
     this.syncTabBarVisibility();
-    this.syncFontScale();
+    syncFontData.call(this);
     const loginStatus = getLoginStatus();
     this.lastLoginReady = loginStatus.isLoginReady;
 
@@ -541,6 +574,10 @@ Page({
     }
 
     this.syncProfileMeta();
+    if (this.shouldShowInitialProfileSelector()) {
+      this.presentInitialProfileSelector();
+      return;
+    }
     if (this.activeLoadPromise || this.activeRefreshPromise) {
       return;
     }
@@ -597,12 +634,6 @@ Page({
     }
   },
 
-  syncFontScale() {
-    this.setData({
-      fontScale: getCurrentFontScale(),
-    });
-  },
-
   syncProfileMeta() {
     const state = store.getState();
     const profiles = Array.isArray(state.profiles) ? state.profiles.slice() : [];
@@ -645,6 +676,83 @@ Page({
     this.lastProfileMetaSignature = nextSignature;
 
     this.setData(nextMeta);
+  },
+
+  shouldShowInitialProfileSelector() {
+    const app = getApp();
+    const profiles = store.getState().profiles || [];
+
+    if (!app || typeof app.shouldShowProfileSelector !== 'function') {
+      return false;
+    }
+
+    if (profiles.length <= 1) {
+      if (typeof app.dismissProfileSelector === 'function') {
+        app.dismissProfileSelector();
+      }
+      return false;
+    }
+
+    return app.shouldShowProfileSelector() === true;
+  },
+
+  async presentInitialProfileSelector() {
+    const state = store.getState();
+    const profiles = Array.isArray(state.profiles) ? state.profiles.slice() : [];
+    const currentProfileId = state.currentProfileId || '';
+    const app = getApp();
+
+    if (profiles.length <= 1) {
+      if (app && typeof app.dismissProfileSelector === 'function') {
+        app.dismissProfileSelector();
+      }
+      this.setData({
+        showInitialProfileSelector: false,
+        isProfileSelectionLoading: false,
+        profileSelectionCards: [],
+      });
+      return;
+    }
+
+    const requestId = ++this.profileSelectorRequestId;
+    this.setData({
+      pageReady: true,
+      isLoading: false,
+      errorText: '',
+      showInitialProfileSelector: true,
+      isProfileSelectionLoading: true,
+      profileSelectionCards: buildProfileSelectorCards(profiles, currentProfileId),
+    });
+
+    const cards = await Promise.all(
+      profiles.map(async (profile) => {
+        const profileId = profile && profile._id;
+        if (!profileId) {
+          return buildProfileSelectorCard(profile, null, currentProfileId);
+        }
+
+        let latestRecord = store.getCachedLatestRecord(profileId);
+        if (!latestRecord) {
+          try {
+            const latestResult = await recordService.fetchLatestRecord(profileId);
+            latestRecord = latestResult && latestResult.record ? latestResult.record : null;
+          } catch (error) {
+            latestRecord = null;
+          }
+        }
+
+        return buildProfileSelectorCard(profile, latestRecord, currentProfileId);
+      }),
+    );
+
+    if (requestId !== this.profileSelectorRequestId || !this.data.showInitialProfileSelector) {
+      return;
+    }
+
+    this.setData({
+      profileSelectionCards: cards,
+      isProfileSelectionLoading: false,
+    });
   },
 
   setTabBarVisible(visible) {
@@ -1061,6 +1169,37 @@ Page({
 
     store.setCurrentProfileId(profileId);
     this.setData({ showProfileSwitcher: false });
+  },
+
+  handleSelectInitialProfile(event) {
+    const profileId = event.currentTarget.dataset.profileId || '';
+    if (!profileId) {
+      return;
+    }
+
+    const app = getApp();
+    if (app && typeof app.dismissProfileSelector === 'function') {
+      app.dismissProfileSelector();
+    }
+
+    this.profileSelectorRequestId += 1;
+    this.enterPageLoading();
+    this.setData({
+      showInitialProfileSelector: false,
+      isProfileSelectionLoading: false,
+    });
+
+    if (profileId === this.data.currentProfileId) {
+      this.lastSeenProfileId = profileId;
+      this.syncProfileMeta();
+      this.loadPageData({
+        force: true,
+        resetReady: true,
+      });
+      return;
+    }
+
+    store.setCurrentProfileId(profileId);
   },
 
   handleCreateProfile() {

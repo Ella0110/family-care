@@ -1,5 +1,10 @@
 const { store } = require("../store/index");
 const { canWrite } = require("../utils/permission-helpers");
+const {
+  DEFAULT_FONT_SCALE,
+  normalizeFontScale,
+  syncFontData,
+} = require("../utils/font-scale");
 
 // SVG 图标直接内嵌为 base64 data URI，不依赖 PNG 文件，大小由 CSS 完全控制
 const ICON_DATA = {
@@ -36,6 +41,8 @@ Component({
     selectedPath: "pages/data/data",
     canOpenRecord: false,
     show: true,
+    fontScale: DEFAULT_FONT_SCALE,
+    fs: {},
   },
 
   lifetimes: {
@@ -45,6 +52,7 @@ Component({
       this._switchResetTimer = null;
       this._pendingSelectedPath = "";
       this.syncFromStore();
+      this.syncFontScale();
       this.unsubscribe = store.subscribe(() => {
         this.syncFromStore();
       });
@@ -66,6 +74,7 @@ Component({
   pageLifetimes: {
     show() {
       this.syncFromStore();
+      this.syncFontScale();
     },
   },
 
@@ -124,6 +133,18 @@ Component({
 
       this.lastCanOpenRecord = canOpenRecord;
       this.setData({ canOpenRecord });
+    },
+
+    syncFontScale() {
+      const app = typeof getApp === "function" ? getApp() : null;
+      const fontScale = normalizeFontScale(
+        app && app.globalData ? app.globalData.fontScale : DEFAULT_FONT_SCALE,
+      );
+      if (fontScale === this.data.fontScale && this.data.fs && this.data.fs.caption) {
+        return;
+      }
+
+      syncFontData.call(this);
     },
 
     getCurrentRoute() {

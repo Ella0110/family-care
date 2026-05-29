@@ -20,7 +20,7 @@
 .profile-edit__subtitle {
   margin-top: 16rpx;
   color: #94a3b8;
-  font-size: 28rpx;
+  font-size: 26rpx;
   line-height: 1.65;
 }
 
@@ -51,8 +51,9 @@
 .form-label {
   margin-bottom: 16rpx;
   color: #334155;
-  font-size: 28rpx;
+  font-size: 30rpx;
   font-weight: 700;
+  line-height: 1.5;
 }
 
 .form-required {
@@ -65,18 +66,17 @@
   box-sizing: border-box;
   width: 100%;
   min-height: 96rpx;
-  padding: 0 28rpx;
+  padding: 20rpx 28rpx;
   border: 1px solid #e2e8f0;
   border-radius: 16rpx;
   background: #f8fafc;
   color: #0f172a;
-  font-size: 32rpx;
+  font-size: 30rpx;
   line-height: 1.45;
 }
 
 .form-input {
   display: block;
-  height: 96rpx;
 }
 
 .form-input--name {
@@ -105,11 +105,13 @@
 .form-help {
   margin-top: 10rpx;
   color: #94a3b8;
-  font-size: 24rpx;
+  font-size: 22rpx;
+  line-height: 1.5;
 }
 
 .gender-options {
   display: flex;
+  flex-wrap: wrap;
   gap: 16rpx;
 }
 
@@ -119,12 +121,14 @@
   align-items: center;
   justify-content: center;
   min-height: 88rpx;
+  padding: 16rpx 32rpx;
   border-radius: 16rpx;
   border: 1px solid #e2e8f0;
   background: #f8fafc;
   color: #475569;
   font-size: 30rpx;
   font-weight: 700;
+  box-sizing: border-box;
 }
 
 .gender-option--active {
@@ -141,7 +145,7 @@
 
 .profile-edit__progress-title {
   color: #0f172a;
-  font-size: 28rpx;
+  font-size: 30rpx;
   font-weight: 800;
 }
 
@@ -149,6 +153,7 @@
   margin-top: 12rpx;
   color: #64748b;
   font-size: 26rpx;
+  line-height: 1.6;
 }
 
 .profile-edit__progress-item.is-completed {
@@ -166,9 +171,12 @@
 .profile-edit__button {
   width: 100%;
   min-height: 96rpx;
+  padding: 24rpx 32rpx;
   border-radius: 24rpx;
   font-size: 32rpx;
   font-weight: 700;
+  line-height: 1.4;
+  box-sizing: border-box;
 }
 
 .profile-edit__button--create {
@@ -183,7 +191,7 @@
   min-height: 72rpx;
   background: transparent;
   color: #94a3b8;
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 600;
   box-shadow: none;
 }

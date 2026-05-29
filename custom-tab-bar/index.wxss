@@ -38,10 +38,11 @@
 }
 
 .custom-tab-bar__text {
-  font-size: 24rpx;
-  line-height: 32rpx;
+  font-size: 22rpx;
+  line-height: 1.4;
   color: #94A3B8;
   font-weight: 500;
+  text-align: center;
 }
 
 .custom-tab-bar__item.is-active .custom-tab-bar__text {

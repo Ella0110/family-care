@@ -1,26 +1,26 @@
-<view class="page page-root" style="--font-scale: {{fontScale}};">
+<view class="page page-root">
   <view class="profile-edit-card">
     <view class="profile-edit-section profile-edit-section--avatar">
-      <view class="profile-edit-label">头像</view>
-      <view class="profile-edit-hint">用于家人协作时识别你的身份</view>
+      <view class="profile-edit-label" style="font-size:{{fs.body}}">头像</view>
+      <view class="profile-edit-hint" style="font-size:{{fs.label}}">用于家人协作时识别你的身份</view>
       <view class="profile-edit-avatar-row">
-        <view wx:if="{{form.avatarUrl}}" class="profile-edit-avatar profile-edit-avatar--image">
+        <view wx:if="{{form.avatarUrl}}" class="profile-edit-avatar profile-edit-avatar--image" style="font-size:{{fs.title}}">
           <image class="profile-edit-avatar__image" src="{{form.avatarUrl}}" mode="aspectFill" />
         </view>
-        <view wx:else class="profile-edit-avatar">{{form.avatarFallback}}</view>
+        <view wx:else class="profile-edit-avatar" style="font-size:{{fs.title}}">{{form.avatarFallback}}</view>
         <button
           class="btn-secondary profile-edit-avatar__button"
           open-type="chooseAvatar"
           bindchooseavatar="onChooseAvatar"
-        >
+         style="font-size:{{fs.body}}">
           选择头像
         </button>
       </view>
     </view>
 
     <view class="profile-edit-section">
-      <view class="profile-edit-label">昵称</view>
-      <view class="profile-edit-hint">最多 20 个字，用于展示给家人</view>
+      <view class="profile-edit-label" style="font-size:{{fs.body}}">昵称</view>
+      <view class="profile-edit-hint" style="font-size:{{fs.label}}">最多 20 个字，用于展示给家人</view>
       <input
         class="profile-edit-input"
         type="nickname"
@@ -28,20 +28,21 @@
         placeholder="请输入昵称"
         value="{{form.nickname}}"
         bindinput="onNicknameInput"
+        style="font-size:{{fs.body}}"
       />
     </view>
 
-    <view wx:if="{{errorText}}" class="profile-edit-error">{{errorText}}</view>
+    <view wx:if="{{errorText}}" class="profile-edit-error" style="font-size:{{fs.secondary}}">{{errorText}}</view>
 
     <button
       class="btn-primary profile-edit-save"
       bindtap="handleSave"
       loading="{{isSaving}}"
       disabled="{{isSaving}}"
-    >
+     style="font-size:{{fs.button}}">
       保存修改
     </button>
-    <button class="btn-secondary profile-edit-cancel" bindtap="handleBack" disabled="{{isSaving}}">
+    <button class="btn-secondary profile-edit-cancel" bindtap="handleBack" disabled="{{isSaving}}" style="font-size:{{fs.button}}">
       取消
     </button>
   </view>

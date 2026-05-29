@@ -18,7 +18,7 @@
 
 .profile-empty-guide__title {
   color: #0f172a;
-  font-size: calc(36rpx * var(--font-scale));
+  font-size: 36rpx;
   font-weight: 700;
   line-height: 1.4;
 }
@@ -26,7 +26,7 @@
 .profile-empty-guide__subtitle {
   margin-top: 20rpx;
   color: #94a3b8;
-  font-size: calc(28rpx * var(--font-scale));
+  font-size: 26rpx;
   line-height: 1.6;
 }
 
@@ -34,15 +34,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 88rpx;
+  min-height: 88rpx;
+  padding: 24rpx 32rpx;
   margin-top: 48rpx;
   border-radius: 24rpx;
   background: #3478f6;
   box-shadow: 0 8px 24px rgba(49, 130, 247, 0.3);
   color: #ffffff;
-  font-size: calc(32rpx * var(--font-scale));
+  font-size: 32rpx;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.4;
+  box-sizing: border-box;
 }
 
 .profile-empty-guide__button::after {

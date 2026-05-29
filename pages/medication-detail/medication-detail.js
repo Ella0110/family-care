@@ -1,6 +1,7 @@
 const { store } = require('../../store/index');
 const medicationService = require('../../services/medication-service');
 const { getErrorMessage } = require('../../utils/error-messages');
+const { DEFAULT_FONT_SCALE, normalizeFontScale, syncFontData } = require('../../utils/font-scale');
 const { canWrite } = require('../../utils/permission-helpers');
 const {
   OTHER_OPTION,
@@ -57,8 +58,15 @@ function canAccessMedicationEdit(profileId) {
   return canWrite(store.getState(), profileId);
 }
 
+function getCurrentFontScale() {
+  const app = typeof getApp === 'function' ? getApp() : null;
+  return normalizeFontScale(app && app.globalData ? app.globalData.fontScale : DEFAULT_FONT_SCALE);
+}
+
 Page({
   data: {
+    fontScale: DEFAULT_FONT_SCALE,
+    fs: {},
     mode: 'create',
     profileId: '',
     medicationId: '',
@@ -83,6 +91,7 @@ Page({
   },
 
   onLoad(options = {}) {
+    this.syncFontScale();
     const mode = options.mode === 'edit' ? 'edit' : 'create';
     const profileId = options.profileId || '';
     const medicationId = options.medicationId || '';
@@ -117,6 +126,14 @@ Page({
     if (mode === 'edit') {
       this.loadMedicationForEdit();
     }
+  },
+
+  onShow() {
+    this.syncFontScale();
+  },
+
+  syncFontScale() {
+    syncFontData.call(this);
   },
 
   async loadMedicationForEdit() {
