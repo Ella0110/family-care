@@ -23,11 +23,11 @@
 | `pages/user-profile-edit/user-profile-edit` | 待确认（原型清单中无独立个人资料编辑页） | 部分对齐 | 仍是旧式自定义 header 和基础表单卡片，未完全对齐新设置页的分区标题与卡片节奏。 |
 | `pages/user-settings/user-settings` | `design-references/settings-page/settings-page.html`、`design-references/settings-page/测压提醒设置.html` | 已对齐 | 已重构为与数据页/档案页一致的分区标题、卡片、stepper、pill 和半屏面板体系。 |
 
-## 遗留目录
+## 已清理的历史目录
 
 | 页面路径 | 对应原型 | 视觉对齐状态 | 简要说明 |
 | --- | --- | --- | --- |
-| `pages/home/home` | 待确认 | 待确认 | 目录仍在，但已为空且不在 `app.json` 中，不属于当前有效页面。 |
-| `pages/profile-detail/profile-detail` | 待确认 | 待确认 | 目录仍在，但已为空且不在 `app.json` 中，不属于当前有效页面。 |
-| `pages/profile-settings/profile-settings` | `design-references/settings-page/settings-page.html`（历史对应，待确认） | 待确认 | 目录仍在，但已为空且不在 `app.json` 中，不属于当前有效页面。 |
-| `pages/spike-canvas/spike-canvas` | 待确认 | 待确认 | 实验目录，当前无页面文件，也不在 `app.json` 中。 |
+| `pages/home/home` | 待确认 | 不适用 | 历史空目录，已清理，不在 `app.json` 中。 |
+| `pages/profile-detail/profile-detail` | 待确认 | 不适用 | 历史空目录，已清理，不在 `app.json` 中。 |
+| `pages/profile-settings/profile-settings` | `design-references/settings-page/settings-page.html`（历史对应，待确认） | 不适用 | 历史空目录，已清理，不在 `app.json` 中。 |
+| `pages/spike-canvas/spike-canvas` | 待确认 | 不适用 | 实验空目录，已清理，不在 `app.json` 中。 |
