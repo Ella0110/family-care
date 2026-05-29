@@ -1,50 +1,16 @@
 <view class="page page-root data-page">
   <view wx:if="{{pageReady}}">
-    <view wx:if="{{showInitialProfileSelector}}" class="data-profile-selector">
-      <view class="data-profile-selector__header">
-        <view class="data-profile-selector__title" style="font-size:{{fs.title}}">选择要查看的档案</view>
-        <view class="data-profile-selector__text" style="font-size:{{fs.secondary}}">首次进入时先选一个，之后可在顶部随时切换。</view>
-      </view>
-
-      <view wx:if="{{isProfileSelectionLoading}}" class="data-profile-selector__loading" style="font-size:{{fs.label}}">
-        正在准备档案信息...
-      </view>
-
-      <view class="data-profile-selector__list">
-        <view
-          wx:for="{{profileSelectionCards}}"
-          wx:key="_id"
-          class="card data-profile-selector__card"
-          data-profile-id="{{item._id}}"
-          bindtap="handleSelectInitialProfile"
-        >
-          <view class="data-profile-selector__card-top">
-            <view class="data-profile-selector__avatar" style="font-size:{{fs.title}}">{{item.avatarText}}</view>
-            <view class="data-profile-selector__main">
-              <view class="data-profile-selector__name-row">
-                <view class="data-profile-selector__name" style="font-size:{{fs.title}}">{{item.nameText}}</view>
-                <view wx:if="{{item.isCurrent}}" class="data-profile-selector__badge" style="font-size:{{fs.caption}}">当前</view>
-              </view>
-              <view class="data-profile-selector__relation" style="font-size:{{fs.secondary}}">{{item.relationText}}</view>
-            </view>
-          </view>
-          <view class="data-profile-selector__metric" style="font-size:{{fs.title}}">{{item.latestValueText}}</view>
-          <view class="data-profile-selector__time" style="font-size:{{fs.caption}}">{{item.latestMeasuredAtText}}</view>
-        </view>
-      </view>
-    </view>
-
-    <view wx:elif="{{hasProfile}}" class="data-profile-entry" bindtap="handleOpenProfileSwitcher">
+    <view wx:if="{{hasProfile}}" class="data-profile-entry" bindtap="handleOpenProfileSwitcher">
       <view class="data-profile-entry__dot"></view>
       <text class="data-profile-entry__text" style="font-size:{{fs.title}}">{{profileTitle}}</text>
       <text class="data-profile-entry__arrow" style="font-size:{{fs.caption}}">▼</text>
     </view>
 
-    <view wx:if="{{!showInitialProfileSelector && !hasProfile}}" class="data-empty">
+    <view wx:if="{{!hasProfile}}" class="data-empty">
       <profile-empty-guide bind:create="handleCreateProfile" />
     </view>
 
-    <view wx:elif="{{!showInitialProfileSelector}}">
+    <view wx:else>
       <view wx:if="{{errorText}}" class="card data-state">
         <view class="data-state__title" style="font-size:{{fs.title}}">暂时无法加载数据</view>
         <view class="data-state__text" style="font-size:{{fs.secondary}}">{{errorText}}</view>

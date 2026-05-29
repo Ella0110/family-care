@@ -1,0 +1,46 @@
+<view class="profile-selector-page">
+  <view class="profile-selector-page__safe-top" style="height: {{statusBarInsetTop}}px;"></view>
+
+  <view class="profile-selector-page__header">
+    <view class="profile-selector-page__title">选择要查看的档案</view>
+    <view class="profile-selector-page__subtitle">首次进入时先选一个，之后可在顶部随时切换。</view>
+  </view>
+
+  <view wx:if="{{isLoading}}" class="profile-selector-page__loading">正在准备档案信息...</view>
+
+  <view class="profile-selector-page__list">
+    <view
+      wx:for="{{cards}}"
+      wx:key="_id"
+      class="profile-selector-card"
+      data-profile-id="{{item._id}}"
+      bindtap="handleSelectProfile"
+    >
+      <view class="profile-selector-card__top">
+        <view class="profile-selector-card__identity">
+          <view class="profile-selector-card__avatar" style="background: {{item.avatarColor}};">{{item.avatarText}}</view>
+          <view class="profile-selector-card__main">
+            <view class="profile-selector-card__name-row">
+              <view class="profile-selector-card__name">{{item.nameText}}</view>
+              <view wx:if="{{showCurrentBadge && item.isCurrent}}" class="profile-selector-card__current">当前</view>
+            </view>
+            <view class="profile-selector-card__relation">{{item.relationText}}</view>
+          </view>
+        </view>
+        <view class="profile-selector-card__meta">
+          <view class="profile-selector-card__time">{{item.latestMeasuredAtText}}</view>
+          <view class="profile-selector-card__arrow">></view>
+        </view>
+      </view>
+
+      <view class="profile-selector-card__bottom">
+        <view wx:if="{{item.statusText}}" class="profile-selector-card__bp-row">
+          <view class="profile-selector-card__value">{{item.latestValueText}}</view>
+          <view class="profile-selector-card__unit">mmHg</view>
+          <view class="profile-selector-card__status {{item.statusClassName}}">{{item.statusText}}</view>
+        </view>
+        <view wx:else class="profile-selector-card__empty">暂无记录</view>
+      </view>
+    </view>
+  </view>
+</view>

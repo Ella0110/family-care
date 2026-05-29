@@ -882,6 +882,18 @@ Page({
             return;
         }
 
+        const app = getApp();
+        if (app && typeof app.persistLastSelectedProfileId === "function") {
+            app.persistLastSelectedProfileId(profileId);
+        } else {
+            wx.setStorageSync("lastSelectedProfileId", profileId);
+        }
+
+        if (profileId === this.data.currentProfileId) {
+            this.setData({ showProfileSwitcher: false });
+            return;
+        }
+
         store.setCurrentProfileId(profileId);
         this.setData({ showProfileSwitcher: false });
     },

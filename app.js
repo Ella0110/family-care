@@ -16,6 +16,9 @@ const {
 let localConfig = null;
 const GRANTED_USER_PROFILE_STORAGE_KEY = 'grantedUserProfile';
 const CURRENT_PROFILE_STORAGE_KEY = 'currentProfileId';
+const LAST_SELECTED_PROFILE_STORAGE_KEY = 'lastSelectedProfileId';
+const PROFILE_SELECTOR_ROUTE = 'pages/profile-selector/profile-selector';
+const PROFILE_SELECTOR_URL = '/pages/profile-selector/profile-selector';
 
 try {
   localConfig = require('./local.config');
@@ -164,6 +167,44 @@ function readCurrentProfileIdFromStorage() {
   }
 }
 
+function readLastSelectedProfileIdFromStorage() {
+  if (typeof wx === 'undefined' || typeof wx.getStorageSync !== 'function') {
+    return null;
+  }
+
+  try {
+    const profileId = wx.getStorageSync(LAST_SELECTED_PROFILE_STORAGE_KEY);
+    return typeof profileId === 'string' && profileId ? profileId : null;
+  } catch (error) {
+    console.warn('Read last selected profile id from storage failed.', error);
+    return null;
+  }
+}
+
+function persistLastSelectedProfileIdToStorage(profileId) {
+  if (typeof wx === 'undefined' || typeof wx.setStorageSync !== 'function') {
+    return;
+  }
+
+  try {
+    wx.setStorageSync(LAST_SELECTED_PROFILE_STORAGE_KEY, profileId);
+  } catch (error) {
+    console.warn('Persist last selected profile id failed.', error);
+  }
+}
+
+function clearLastSelectedProfileIdFromStorage() {
+  if (typeof wx === 'undefined' || typeof wx.removeStorageSync !== 'function') {
+    return;
+  }
+
+  try {
+    wx.removeStorageSync(LAST_SELECTED_PROFILE_STORAGE_KEY);
+  } catch (error) {
+    console.warn('Clear last selected profile id failed.', error);
+  }
+}
+
 function persistCurrentProfileIdToStorage(profileId) {
   if (typeof wx === 'undefined' || typeof wx.setStorageSync !== 'function') {
     return;
@@ -204,6 +245,26 @@ function pickInitialCurrentProfileId(profiles, preferredProfileId) {
   return validIds[0] || null;
 }
 
+function hasProfileId(profiles, profileId) {
+  if (!profileId) {
+    return false;
+  }
+
+  return (Array.isArray(profiles) ? profiles : []).some(
+    (profile) => profile && profile._id === profileId,
+  );
+}
+
+function getCurrentRoute() {
+  if (typeof getCurrentPages !== 'function') {
+    return '';
+  }
+
+  const pages = getCurrentPages();
+  const currentPage = pages[pages.length - 1];
+  return currentPage && currentPage.route ? currentPage.route : '';
+}
+
 App({
   globalData: {
     store,
@@ -219,6 +280,7 @@ App({
 
   onShow() {
     store.resetSessionDismissals();
+    this.routeToProfileSelectorIfNeeded(store.getState());
   },
 
   initCurrentProfilePersistence() {
@@ -253,6 +315,69 @@ App({
     const pending = Boolean(this.globalData.openRecordPanelOnDataTab);
     this.globalData.openRecordPanelOnDataTab = false;
     return pending;
+  },
+
+  readLastSelectedProfileId() {
+    return readLastSelectedProfileIdFromStorage();
+  },
+
+  persistLastSelectedProfileId(profileId) {
+    if (!profileId) {
+      clearLastSelectedProfileIdFromStorage();
+      return;
+    }
+
+    persistLastSelectedProfileIdToStorage(profileId);
+  },
+
+  clearLastSelectedProfileId() {
+    clearLastSelectedProfileIdFromStorage();
+  },
+
+  routeToProfileSelectorIfNeeded(nextState = store.getState()) {
+    if (!this.globalData.loginReady) {
+      return false;
+    }
+
+    const currentRoute = getCurrentRoute();
+    if (
+      currentRoute
+      && currentRoute !== 'pages/data/data'
+      && currentRoute !== 'pages/profile-home/profile-home'
+      && currentRoute !== PROFILE_SELECTOR_ROUTE
+    ) {
+      return false;
+    }
+
+    if (currentRoute === 'pages/invite-accept/invite-accept') {
+      return false;
+    }
+
+    const profiles = Array.isArray(nextState && nextState.profiles)
+      ? nextState.profiles
+      : [];
+    if (profiles.length < 2) {
+      return false;
+    }
+
+    const lastSelectedProfileId = readLastSelectedProfileIdFromStorage();
+    if (hasProfileId(profiles, lastSelectedProfileId)) {
+      if ((nextState.currentProfileId || null) !== lastSelectedProfileId) {
+        store.setCurrentProfileId(lastSelectedProfileId);
+      }
+      return false;
+    }
+
+    clearLastSelectedProfileIdFromStorage();
+
+    if (currentRoute === PROFILE_SELECTOR_ROUTE) {
+      return false;
+    }
+
+    wx.reLaunch({
+      url: PROFILE_SELECTOR_URL,
+    });
+    return true;
   },
 
   markMemberListDirty() {
@@ -350,6 +475,7 @@ App({
       const nextState = normalizeLoginPayload(result);
       const previousState = store.getState();
       const storedCurrentProfileId = readCurrentProfileIdFromStorage();
+      const lastSelectedProfileId = readLastSelectedProfileIdFromStorage();
 
       if (preserveCurrentProfileId) {
         const currentProfileId = previousState.currentProfileId;
@@ -362,10 +488,16 @@ App({
       }
 
       if (!nextState.currentProfileId) {
-        nextState.currentProfileId = pickInitialCurrentProfileId(
-          nextState.profiles,
-          storedCurrentProfileId,
-        );
+        if (nextState.profiles.length >= 2) {
+          nextState.currentProfileId = hasProfileId(nextState.profiles, lastSelectedProfileId)
+            ? lastSelectedProfileId
+            : null;
+        } else {
+          nextState.currentProfileId = pickInitialCurrentProfileId(
+            nextState.profiles,
+            lastSelectedProfileId || storedCurrentProfileId,
+          );
+        }
       }
 
       this.globalData.loginReady = true;
@@ -421,7 +553,8 @@ App({
     }
 
     try {
-      await this.login();
+      const nextState = await this.login();
+      this.routeToProfileSelectorIfNeeded(nextState);
     } catch (error) {
       console.warn('Initial login failed.', error);
     }

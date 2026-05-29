@@ -1,6 +1,7 @@
 const { store } = require('../store/index');
 
 const CURRENT_PROFILE_STORAGE_KEY = 'currentProfileId';
+const LAST_SELECTED_PROFILE_STORAGE_KEY = 'lastSelectedProfileId';
 
 function persistCurrentProfileId(profileId) {
   if (typeof wx === 'undefined') {
@@ -13,6 +14,17 @@ function persistCurrentProfileId(profileId) {
   }
 
   wx.removeStorageSync(CURRENT_PROFILE_STORAGE_KEY);
+}
+
+function clearDeletedLastSelectedProfileId(profileId) {
+  if (typeof wx === 'undefined' || !profileId) {
+    return;
+  }
+
+  const lastSelectedProfileId = wx.getStorageSync(LAST_SELECTED_PROFILE_STORAGE_KEY);
+  if (lastSelectedProfileId === profileId) {
+    wx.removeStorageSync(LAST_SELECTED_PROFILE_STORAGE_KEY);
+  }
 }
 
 function findProfileById(profileId) {
@@ -37,6 +49,7 @@ function removeProfileFromStore(profileId) {
     currentProfileId: nextCurrentProfileId,
   });
 
+  clearDeletedLastSelectedProfileId(profileId);
   persistCurrentProfileId(nextCurrentProfileId);
 
   return nextState;

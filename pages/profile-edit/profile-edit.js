@@ -98,6 +98,7 @@ function syncCreatedProfileIntoStore(profile, relationship) {
     currentProfileId: newProfileId,
   });
   wx.setStorageSync('currentProfileId', newProfileId);
+  wx.setStorageSync('lastSelectedProfileId', newProfileId);
 }
 
 function findProfile(profileId) {
