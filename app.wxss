@@ -1,9 +1,9 @@
 page {
   --color-primary: #2563eb;
-  --color-danger: #dc2626;
+  --color-danger: #ff3b30;
   --color-text: #111827;
   --color-text-secondary: #8E8E93;
-  --color-bg: #eef4fe;
+  --color-bg: #f2f2f7;
   --color-card: #ffffff;
 
   min-height: 100%;
@@ -28,7 +28,7 @@ page {
 .card {
   box-sizing: border-box;
   padding: 48rpx;
-  border-radius: 64rpx; 
+  border-radius: 32rpx;
   background: var(--color-card);
   box-shadow: 0 12rpx 32rpx rgba(17, 24, 39, 0.08);
 }

@@ -93,12 +93,12 @@
       </view>
     </view>
 
-    <view wx:if="{{canManageMembers}}" class="members-actions">
-      <button class="btn-primary members-actions__button" bindtap="handleInviteNewMember" style="font-size:{{fs.button}}">
+    <view wx:if="{{canInviteMembers || canManageMembers}}" class="members-actions">
+      <button wx:if="{{canInviteMembers}}" class="btn-primary members-actions__button" bindtap="handleInviteNewMember" style="font-size:{{fs.button}}">
         + 邀请新成员
       </button>
       <button
-        wx:if="{{members.length >= 2}}"
+        wx:if="{{canManageMembers && members.length >= 2}}"
         class="btn-secondary members-actions__button"
         bindtap="handleOpenTransferMode"
         style="font-size:{{fs.button}}"
@@ -140,6 +140,34 @@
           取消
         </button>
       </view>
+    </view>
+  </view>
+
+  <view wx:if="{{showInviteDialog}}" class="members-invite-dialog">
+    <view class="members-invite-dialog__mask" bindtap="handleCloseInviteDialog"></view>
+    <view class="members-invite-dialog__sheet card" catchtap="noop">
+      <view class="members-invite-dialog__title" style="font-size:{{fs.body}}">
+        邀请家人关注「{{profileName}}」的健康
+      </view>
+      <view class="members-invite-dialog__text" style="font-size:{{fs.secondary}}">
+        对方将可以查看 {{profileName}} 的血压和用药情况，但不能修改数据。
+      </view>
+      <button
+        class="members-invite-dialog__share"
+        open-type="share"
+        bindtap="handleInviteShareTap"
+        data-share-type="invite"
+        style="font-size:{{fs.button}}"
+      >
+        分享给家人
+      </button>
+      <button
+        class="members-invite-dialog__cancel"
+        bindtap="handleCloseInviteDialog"
+        style="font-size:{{fs.secondary}}"
+      >
+        取消
+      </button>
     </view>
   </view>
 </view>

@@ -14,7 +14,7 @@
   width: 128rpx;
   height: 128rpx;
   margin: 0 auto 32rpx;
-  border-radius: 64rpx;
+  border-radius: 50%;
   background: #dbeafe;
   font-size: 64rpx;
 }
@@ -40,7 +40,7 @@
   min-height: 104rpx;
   margin-top: 48rpx;
   padding: 0 36rpx;
-  border-radius: 28rpx;
+  border-radius: 24rpx;
   background: #1d4ed8;
   color: #ffffff;
   font-size: 36rpx;

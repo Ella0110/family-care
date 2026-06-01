@@ -307,40 +307,9 @@ function buildStatusMeta(status) {
     };
   }
 
-  if (status.level === 'normal') {
-    return {
-      text: '正常',
-      className: 'records-status--normal',
-    };
-  }
-
-  if (status.level === 'low') {
-    return {
-      text: '偏低',
-      className: 'records-status--warning',
-    };
-  }
-
-  const detail = status.detail || '';
-  const text = detail ? `${status.label}${detail}` : status.label;
-
-  if (detail === '1级') {
-    return {
-      text,
-      className: 'records-status--warning',
-    };
-  }
-
-  if (detail === '3级') {
-    return {
-      text,
-      className: 'records-status--danger records-status--strong',
-    };
-  }
-
   return {
-    text,
-    className: 'records-status--danger',
+    text: status.tagText,
+    className: `${status.recordsClassName}${status.level === 'stage3' ? ' records-status--strong' : ''}`,
   };
 }
 
@@ -1146,7 +1115,7 @@ Page({
         title: '确定删除此记录？',
         content: '删除后数据将无法恢复',
         confirmText: '删除',
-        confirmColor: '#EF4444',
+        confirmColor: '#FF3B30',
         cancelText: '取消',
         success: (res) => {
           if (!res.confirm) {

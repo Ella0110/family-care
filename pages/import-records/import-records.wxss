@@ -1,7 +1,7 @@
 .import-page {
   min-height: 100vh;
   padding-bottom: calc(244rpx + env(safe-area-inset-bottom));
-  background: #eef3fb;
+  background: #f2f2f7;
 }
 
 .import-card + .import-card {
@@ -77,12 +77,12 @@
 
 .import-parse-status--success .import-parse-status__text,
 .import-parse-status--success .import-parse-status__icon {
-  color: #10b981;
+  color: #34c759;
 }
 
 .import-parse-status--warning .import-parse-status__text,
 .import-parse-status--warning .import-parse-status__icon {
-  color: #f59e0b;
+  color: #ff9500;
 }
 
 .import-parse-status__icon {

@@ -3,24 +3,36 @@
   align-items: center;
   min-height: 52rpx;
   padding: 0 20rpx;
-  border-radius: 999rpx;
+  border-radius: 16rpx;
   font-size: 28rpx;
   font-weight: 700;
 }
 
-.bp-status-tag--normal {
-  background: #e8f5ee;
-  color: #166534;
-}
-
-.bp-status-tag--high {
-  background: #fee2e2;
-  color: #b42318;
-}
-
 .bp-status-tag--low {
-  background: #ffedd5;
-  color: #c2410c;
+  background: #eff6ff;
+  color: #007aff;
+}
+
+.bp-status-tag--normal {
+  background: #f0fff4;
+  color: #34c759;
+}
+
+.bp-status-tag--elevated {
+  background: #fff9eb;
+  color: #f5a623;
+}
+
+.bp-status-tag--stage1 {
+  background: #fff4eb;
+  color: #ff9500;
+}
+
+.bp-status-tag--stage2,
+.bp-status-tag--stage3,
+.bp-status-tag--high {
+  background: #fff0f0;
+  color: #ff3b30;
 }
 
 .bp-status-tag__detail {

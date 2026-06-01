@@ -1,8 +1,9 @@
 const { store } = require('../../store/index');
 const memberService = require('../../services/member-service');
+const invitationService = require('../../services/invitation-service');
 const { getErrorMessage } = require('../../utils/error-messages');
 const { DEFAULT_FONT_SCALE, normalizeFontScale, syncFontData } = require('../../utils/font-scale');
-const { getCurrentRelationship, canManage, isOwner } = require('../../utils/permission-helpers');
+const { getCurrentRelationship, canInvite, canManage, isOwner } = require('../../utils/permission-helpers');
 
 const STALE_THRESHOLD = 30 * 1000;
 
@@ -93,6 +94,12 @@ function buildTransferCandidates(members) {
   return (members || []).filter((member) => !member.isOwnerMember);
 }
 
+function buildInviteShareTitle(inviterNickname, profileName) {
+  const inviter = String(inviterNickname || '').trim() || '家人';
+  const profile = String(profileName || '').trim() || '家人';
+  return `${inviter}邀请你一起关注${profile}的血压健康`;
+}
+
 Page({
   data: {
     fontScale: DEFAULT_FONT_SCALE,
@@ -105,6 +112,7 @@ Page({
     errorText: '',
     members: [],
     currentRelationshipRole: '',
+    canInviteMembers: false,
     canManageMembers: false,
     transferCandidates: [],
     isRoleDialogVisible: false,
@@ -112,6 +120,9 @@ Page({
     roleDialogMemberName: '',
     roleDialogSelection: 'viewer',
     selectedNewOwnerUserId: '',
+    showInviteDialog: false,
+    pendingInvitationToken: '',
+    isPreparingInvitation: false,
     isSubmitting: false,
   },
 
@@ -158,6 +169,13 @@ Page({
     }
   },
 
+  onUnload() {
+    if (this.inviteDialogCloseTimer) {
+      clearTimeout(this.inviteDialogCloseTimer);
+      this.inviteDialogCloseTimer = null;
+    }
+  },
+
   syncFontScale() {
     syncFontData.call(this);
   },
@@ -167,6 +185,7 @@ Page({
     const relationship = getCurrentRelationship(state, this.data.profileId);
     this.setData({
       currentRelationshipRole: relationship ? relationship.role : '',
+      canInviteMembers: canInvite(state, this.data.profileId),
       canManageMembers: canManage(state, this.data.profileId),
     });
   },
@@ -248,10 +267,110 @@ Page({
     goBackOrHome();
   },
 
-  handleInviteNewMember() {
-    wx.navigateTo({
-      url: `/pages/invite-create/invite-create?profileId=${this.data.profileId}`,
+  async handleInviteNewMember() {
+    if (!this.data.profileId || !this.data.canInviteMembers || this.data.isPreparingInvitation) {
+      return;
+    }
+
+    this.setData({ isPreparingInvitation: true });
+    wx.showLoading({
+      title: '',
+      mask: true,
     });
+
+    try {
+      const result = await invitationService.createInvitation({
+        profileIds: [this.data.profileId],
+        defaultRole: 'viewer',
+      });
+      const token = result && result.invitation && typeof result.invitation.token === 'string'
+        ? result.invitation.token
+        : '';
+
+      if (!token) {
+        throw new Error('Missing invitation token');
+      }
+
+      this.setData({
+        showInviteDialog: true,
+        pendingInvitationToken: token,
+        isPreparingInvitation: false,
+      });
+    } catch (error) {
+      this.setData({ isPreparingInvitation: false });
+      wx.showToast({
+        title: getErrorMessage(error),
+        icon: 'none',
+      });
+    } finally {
+      wx.hideLoading();
+    }
+  },
+
+  handleCloseInviteDialog() {
+    if (!this.data.showInviteDialog && !this.data.pendingInvitationToken) {
+      return;
+    }
+
+    if (this.inviteDialogCloseTimer) {
+      clearTimeout(this.inviteDialogCloseTimer);
+      this.inviteDialogCloseTimer = null;
+    }
+
+    this.setData({
+      showInviteDialog: false,
+      pendingInvitationToken: '',
+    });
+  },
+
+  hideInviteDialogAfterShareTap() {
+    if (!this.data.showInviteDialog) {
+      return;
+    }
+
+    this.setData({
+      showInviteDialog: false,
+    });
+  },
+
+  handleInviteShareTap() {
+    if (!this.data.pendingInvitationToken) {
+      return;
+    }
+
+    if (this.inviteDialogCloseTimer) {
+      clearTimeout(this.inviteDialogCloseTimer);
+    }
+
+    this.inviteDialogCloseTimer = setTimeout(() => {
+      this.inviteDialogCloseTimer = null;
+      this.hideInviteDialogAfterShareTap();
+    }, 0);
+  },
+
+  noop() {},
+
+  onShareAppMessage(options = {}) {
+    const dataset = options && options.target && options.target.dataset
+      ? options.target.dataset
+      : {};
+
+    if (
+      options.from !== 'button'
+      || dataset.shareType !== 'invite'
+      || !this.data.pendingInvitationToken
+    ) {
+      return {};
+    }
+
+    const state = store.getState();
+    const user = state.user || {};
+
+    return {
+      title: buildInviteShareTitle(user.nickname, this.data.profileName),
+      path: `/pages/invite-accept/invite-accept?token=${encodeURIComponent(this.data.pendingInvitationToken)}`,
+      imageUrl: '/assets/tab-profile-active.png',
+    };
   },
 
   handleOpenTransferMode() {

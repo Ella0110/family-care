@@ -2,7 +2,7 @@
   min-height: 100vh;
   padding: 32rpx 28rpx calc(48rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
-  background: #eef3fb;
+  background: #f2f2f7;
 }
 
 .profile-edit-card {
@@ -41,8 +41,8 @@
 }
 
 .profile-edit-avatar {
-  width: 112rpx;
-  height: 112rpx;
+  width: 120rpx;
+  height: 120rpx;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -66,11 +66,18 @@
 
 .profile-edit-avatar__button {
   margin: 0;
-  padding: 0 28rpx;
-  min-height: 80rpx;
-  border-radius: 24rpx;
+  padding: 0;
+  min-height: auto;
+  background: transparent;
+  color: #3478f6;
+  border-radius: 0;
+  border: none;
   font-size: 28rpx;
   line-height: 1.4;
+}
+
+.profile-edit-avatar__button::after {
+  border: 0;
 }
 
 .profile-edit-input {
@@ -93,7 +100,7 @@
 
 .profile-edit-error {
   margin-top: 24rpx;
-  color: #ef4444;
+  color: #ff3b30;
   font-size: 26rpx;
   line-height: 1.6;
 }
@@ -114,11 +121,16 @@
   width: 100%;
   margin-top: 24rpx;
   border-radius: 24rpx;
-  border-color: #3478f6;
-  color: #3478f6;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
   font-size: 32rpx;
   min-height: 96rpx;
   padding: 24rpx 32rpx;
   line-height: 1.4;
   box-sizing: border-box;
+}
+
+.profile-edit-cancel::after {
+  border: 0;
 }

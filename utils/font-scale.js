@@ -3,6 +3,8 @@ const DEFAULT_FONT_SCALE = 1.0;
 const FONT_SCALE_STORAGE_KEY = 'fontScale';
 const FONT_SIZES_RPX = Object.freeze({
   hero: Object.freeze([80, 92, 104]),
+  bpSystolic: Object.freeze([135, 140, 145]),
+  bpDiastolic: Object.freeze([105, 110, 115]),
   title: Object.freeze([36, 41, 47]),
   button: Object.freeze([32, 37, 42]),
   body: Object.freeze([30, 35, 39]),

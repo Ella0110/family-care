@@ -1,13 +1,13 @@
 /* ========== 页面基础 ========== */
 page {
-    background-color: #eef4fe;
+    background-color: #f2f2f7;
 }
 
 .data-page {
     min-height: 100vh;
     padding: 0 28rpx;
     padding-bottom: calc(188rpx + env(safe-area-inset-bottom));
-    background: #eef4fe;
+    background: #f2f2f7;
 }
 
 /* ========== Loading ========== */
@@ -16,7 +16,7 @@ page {
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    background: #ffffff;
+    background: #f2f2f7;
 }
 
 .data-loading__spinner {
@@ -48,7 +48,7 @@ page {
     width: 18rpx;
     height: 18rpx;
     border-radius: 50%;
-    background: #ef4444;
+    background: #ff3b30;
     flex-shrink: 0;
 }
 
@@ -96,7 +96,7 @@ page {
 .data-latest {
     margin-bottom: 36rpx;
     padding: 64rpx 64rpx 48rpx;
-    border-radius: 64rpx;
+    border-radius: 32rpx;
     background: #ffffff;
     box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.04);
 }
@@ -115,24 +115,35 @@ page {
     display: inline-flex;
     align-items: center;
     gap: 10rpx;
+    padding: 0;
+    border-radius: 0;
     font-size: 26rpx;
-    font-weight: 600;
+    font-weight: 700;
     line-height: 1.4;
+    background: transparent;
 }
 
-.data-latest__status.is-danger {
-    color: #dc2626;
-}
-.data-latest__status.is-warning {
-    color: #f59e0b;
-}
 .data-latest__status.is-normal {
-    color: #000000;
+    color: #0f172a;
+}
+.data-latest__status.is-low {
+    color: #007aff;
+}
+.data-latest__status.is-elevated {
+    color: #f5a623;
+}
+.data-latest__status.is-stage1 {
+    color: #ff9500;
+}
+.data-latest__status.is-stage2,
+.data-latest__status.is-stage3,
+.data-latest__status.is-danger {
+    color: #ff3b30;
 }
 
 .data-latest__status-dot {
-    width: 16rpx;
-    height: 16rpx;
+    width: 18rpx;
+    height: 18rpx;
     border-radius: 50%;
     background: currentColor;
 }
@@ -149,7 +160,7 @@ page {
 }
 
 .data-latest__systolic {
-    font-size: 80rpx;
+    font-size: 135rpx;
     font-weight: 800;
     font-family:
         ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
@@ -158,10 +169,21 @@ page {
 }
 
 .data-latest__systolic.is-normal {
-    color: #000000;
+    color: #0f172a;
 }
-.data-latest__systolic.is-alert {
-    color: #dc2626;
+.data-latest__systolic.is-low {
+    color: #007aff;
+}
+.data-latest__systolic.is-elevated {
+    color: #f5a623;
+}
+.data-latest__systolic.is-stage1 {
+    color: #ff9500;
+}
+.data-latest__systolic.is-stage2,
+.data-latest__systolic.is-stage3,
+.data-latest__systolic.is-danger {
+    color: #ff3b30;
 }
 
 .data-latest__separator {
@@ -172,7 +194,7 @@ page {
 }
 
 .data-latest__diastolic {
-    font-size: 80rpx;
+    font-size: 105rpx;
     font-weight: 700;
     letter-spacing: -2rpx;
     font-family:
@@ -181,10 +203,21 @@ page {
 }
 
 .data-latest__diastolic.is-normal {
-    color: #000000;
+    color: #0f172a;
 }
-.data-latest__diastolic.is-alert {
-    color: #f59e0b;
+.data-latest__diastolic.is-low {
+    color: #007aff;
+}
+.data-latest__diastolic.is-elevated {
+    color: #f5a623;
+}
+.data-latest__diastolic.is-stage1 {
+    color: #ff9500;
+}
+.data-latest__diastolic.is-stage2,
+.data-latest__diastolic.is-stage3,
+.data-latest__diastolic.is-danger {
+    color: #ff3b30;
 }
 
 .data-latest__unit {
@@ -229,10 +262,10 @@ page {
 }
 
 .data-latest__meta-hr {
-    color: #000000;
+    color: #0f172a;
 }
 .data-latest__meta-hr.is-alert {
-    color: #dc2626;
+    color: #ff3b30;
 }
 
 .data-latest__recorder {
@@ -251,7 +284,7 @@ page {
     width: 100%;
     padding: 80rpx 48rpx;
     background: rgba(255, 255, 255, 0.8);
-    border-radius: 40rpx;
+    border-radius: 32rpx;
     box-shadow: 0 20px 25px -5px rgba(49, 130, 247, 0.04);
     display: flex;
     flex-direction: column;
@@ -357,7 +390,7 @@ page {
    ========================================================== */
 .data-analysis {
     padding: 48rpx 48rpx 40rpx;
-    border-radius: 64rpx;
+    border-radius: 32rpx;
     background: #ffffff;
     box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.04);
     margin-bottom: 24rpx;
@@ -399,7 +432,7 @@ page {
     align-items: center;
     flex-wrap: wrap;
     background: #f1f5f9;
-    border-radius: 999rpx;
+    border-radius: 16rpx;
     padding: 4rpx;
     /* gap:24rpx; */
 }
@@ -407,7 +440,7 @@ page {
 .da-tab {
     min-width: 100rpx;
     padding: 8rpx 16rpx;
-    border-radius: 500rpx;
+    border-radius: 16rpx;
     text-align: center;
     color: #64748b;
     font-size: 26rpx;
@@ -499,7 +532,7 @@ page {
     flex: 1 1 0;
     min-width: 0;
     padding: 24rpx 18rpx;
-    border-radius: 50rpx;
+    border-radius: 32rpx;
     background: #f8fafc;
     text-align: center;
 }
@@ -516,7 +549,7 @@ page {
 }
 
 .da-summary__value--danger {
-    color: #dc2626;
+    color: #ff3b30;
 }
 
 .da-summary__label {
@@ -572,21 +605,21 @@ page {
 }
 
 .da-legend__line--hr {
-    border-top-color: #f59e0b;
+    border-top-color: #ff9500;
 }
 
 .da-legend__dot {
     width: 12rpx;
     height: 12rpx;
     border-radius: 50%;
-    background: #ef4444;
+    background: #ff9500;
 }
 
 .da-legend__dot_normal {
     width: 12rpx;
     height: 12rpx;
     border-radius: 50%;
-    background: #3182f7;
+    background: #34c759;
 }
 
 /* --- 区块分隔线 --- */
@@ -668,7 +701,7 @@ page {
     top: 50%;
     transform: translateY(-50%);
     padding: 48rpx 40rpx;
-    border-radius: 24rpx;
+    border-radius: 32rpx;
     background: #ffffff;
 }
 

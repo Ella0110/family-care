@@ -126,8 +126,13 @@ function verifyE4AndroidDialogCompatibility() {
   );
   assert.match(
     wxss,
-    /\.records-dialog-layer__card[\s\S]*border-radius:\s*32rpx;[\s\S]*border:\s*1rpx solid #e2e8f0;/i,
-    'records delete dialog card should use a 32rpx radius and visible border for Android compatibility',
+    /\.records-dialog-layer__card[\s\S]*border-radius:\s*32rpx;/i,
+    'records delete dialog card should keep the unified 32rpx radius',
+  );
+  assert.doesNotMatch(
+    wxss,
+    /\.records-dialog-layer__card[\s\S]*border:\s*1rpx solid #e2e8f0;/i,
+    'records delete dialog card should drop the legacy gray border in the final visual pass',
   );
   assert.match(
     wxss,
@@ -146,7 +151,7 @@ function verifyE5OwnerOnlyDangerSection() {
 
   assert.match(
     wxml,
-    /<block wx:if="\{\{canManageCurrentProfile\}\}">[\s\S]*<view class="profile-home__section-head">[\s\S]*<view class="profile-home__section-title">其他<\/view>[\s\S]*<view class="card profile-home__danger"/,
+    /<block wx:if="\{\{canManageCurrentProfile\}\}">[\s\S]*<view class="profile-home__section-head">[\s\S]*<view class="profile-home__section-title"[^>]*>其他<\/view>[\s\S]*<view class="card profile-home__danger"/,
     'profile-home should render the entire "其他" section only for owners/managers',
   );
 }

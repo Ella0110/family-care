@@ -48,13 +48,13 @@ expectMatch(
 
 expectMatch(
   dataPageSource,
-  /canvas\.width = Math\.max\(1,\s*Math\.round\(EXPORT_CHART_CANVAS_WIDTH \* exportScale\)\);/,
+  /canvas\.width = Math\.max\(\s*1,\s*Math\.round\(EXPORT_CHART_CANVAS_WIDTH \* exportScale\),?\s*\);/,
   'data page single-chart export should scale canvas width by DPR',
 );
 
 expectMatch(
   dataPageSource,
-  /canvas\.height = Math\.max\(1,\s*Math\.round\(exportHeight \* exportScale\)\);/,
+  /canvas\.height = Math\.max\(\s*1,\s*Math\.round\(exportHeight \* exportScale\)\s*\);/,
   'data page single-chart export should scale canvas height by DPR',
 );
 
@@ -66,13 +66,13 @@ expectMatch(
 
 expectMatch(
   dataPageSource,
-  /destWidth:\s*Math\.max\(1,\s*Math\.round\(EXPORT_CHART_CANVAS_WIDTH \* exportScale\)\)/,
+  /destWidth:\s*Math\.max\(\s*1,\s*Math\.round\(EXPORT_CHART_CANVAS_WIDTH \* exportScale\),?\s*\)/,
   'data page single-chart export should export DPR-scaled width',
 );
 
 expectMatch(
   dataPageSource,
-  /destHeight:\s*Math\.max\(1,\s*Math\.round\(exportHeight \* exportScale\)\)/,
+  /destHeight:\s*Math\.max\(\s*1,\s*Math\.round\(exportHeight \* exportScale\)\s*\)/,
   'data page single-chart export should export DPR-scaled height',
 );
 

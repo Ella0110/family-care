@@ -104,13 +104,13 @@ assert.match(
   'profile create should update store and storage before switching back to the requested tab',
 );
 assert.match(read('pages/data/data.js'), /pageReady:\s*false/, 'data page should initialize pageReady as false');
-assert.match(read('pages/data/data.js'), /_lastProfileId:\s*''/, 'data page should track the last rendered profile id');
+assert.match(read('pages/data/data.js'), /_lastProfileId:\s*['"]{2}/, 'data page should track the last rendered profile id');
 assert.match(read('pages/data/data.js'), /consumePendingRecordPanelOpen/, 'data page should consume pending record-panel requests from the custom tab bar');
 assert.match(read('pages/data/data.js'), /this\.setData\(\{\s*pageReady:\s*false\s*\}\)/, 'data page should enter loading state before switching profile content');
 assert.match(read('pages/data/data.js'), /pageReady:\s*true/, 'data page should mark pageReady true after data is ready');
 assert.match(read('pages/data/data.js'), /getAppLoginStatus/, 'data page should reuse shared login status helper before rendering');
 assert.match(read('pages/data/data.js'), /if \(!loginStatus\.isLoginReady\) \{\s*this\.enterPageLoading\(\);\s*return;\s*\}/, 'data page should stay in loading state until app login finishes');
-assert.match(read('pages/data/data.js'), /const loginJustFinished = loginStatus\.isLoginReady && !this\.lastLoginReady/, 'data page should refresh once when login transitions from pending to ready');
+assert.match(read('pages/data/data.js'), /const loginJustFinished =\s*loginStatus\.isLoginReady && !this\.lastLoginReady/, 'data page should refresh once when login transitions from pending to ready');
 assert.match(read('pages/data/data.js'), /setTabBarVisible\(visible\)/, 'data page should control custom tab bar visibility');
 assert.match(read('pages/data/data.wxml'), /bind:visibilitychange="handleProfileSwitcherVisibilityChange"/, 'data page should listen to profile switcher visibility');
 assert.match(read('pages/data/data.wxml'), /bind:visibilitychange="handleRecordPanelVisibilityChange"/, 'data page should listen to record panel visibility');

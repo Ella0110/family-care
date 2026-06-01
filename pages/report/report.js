@@ -510,6 +510,7 @@ Page({
       this.chartThreshold,
       { width, height },
       this.data.selectedDays,
+      { hideTitle: true },
     );
   },
 
@@ -533,6 +534,7 @@ Page({
       this.chartThreshold,
       { width, height },
       this.data.selectedDays,
+      { hideTitle: true },
     );
   },
 

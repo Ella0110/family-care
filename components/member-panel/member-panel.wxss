@@ -16,7 +16,7 @@
     right: 0;
     bottom: 0;
     padding: 24rpx 40rpx calc(env(safe-area-inset-bottom) + 32rpx);
-    border-radius: 40rpx 40rpx 0 0;
+    border-radius: 32rpx 32rpx 0 0;
     background: #ffffff;
     box-sizing: border-box;
     box-shadow: 0 -10rpx 40rpx rgba(0, 0, 0, 0.05);
@@ -131,7 +131,7 @@
     text-align: center;
     font-size: 30rpx;
     font-weight: 600;
-    color: #ef4444;
+    color: #ff3b30;
 }
 
 .member-panel__cancel {
@@ -198,16 +198,16 @@
 .member-panel__dialog-icon {
     width: 80rpx;
     height: 80rpx;
-    border-radius: 24rpx;
+    border-radius: 50%;
     margin-bottom: 24rpx;
-    background: #fef2f2;
-    color: #ef4444;
+    background: #fff0f0;
+    color: #ff3b30;
     font-size: 36rpx;
 }
 
 .member-panel__feedback-icon.is-danger,
 .member-panel__dialog-icon.is-danger {
-    background: #ef4444;
+    background: #ff3b30;
     color: #ffffff;
 }
 
@@ -246,7 +246,7 @@
     padding: 24rpx 32rpx;
     border: none;
     border-radius: 24rpx;
-    background: #ef4444;
+    background: #ff3b30;
     color: #ffffff;
     font-size: 32rpx;
     font-weight: 600;

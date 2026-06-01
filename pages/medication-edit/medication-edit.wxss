@@ -1,7 +1,7 @@
 .medication-list-page {
   min-height: 100vh;
   padding: 32rpx 28rpx calc(188rpx + env(safe-area-inset-bottom));
-  background: #eef3fb;
+  background: #f2f2f7;
 }
 
 .medication-list__state,
@@ -71,7 +71,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ef4444;
+  background: #ff3b30;
   border-radius: 0 32rpx 32rpx 0;
   color: #ffffff;
   font-size: 32rpx;
@@ -131,11 +131,17 @@
   align-items: center;
   text-align: center;
   padding: 72rpx 48rpx;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 32rpx;
+  box-shadow: 0 8px 32px rgba(49, 130, 247, 0.08);
 }
 
 .medication-empty__button {
   width: 100%;
   margin-top: 32rpx;
+  box-shadow: 0 8px 24px rgba(49, 130, 247, 0.3);
 }
 
 .medication-list__footer {

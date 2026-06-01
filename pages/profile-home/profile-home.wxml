@@ -169,6 +169,34 @@
     <view class="profile-home__loading-spinner"></view>
   </view>
 
+  <view wx:if="{{showInviteDialog}}" class="profile-home__invite-dialog">
+    <view class="profile-home__invite-mask" bindtap="handleCloseInviteDialog"></view>
+    <view class="profile-home__invite-sheet" catchtap="noop">
+      <view class="profile-home__invite-title" style="font-size:{{fs.body}}">
+        邀请家人关注「{{profileName}}」的健康
+      </view>
+      <view class="profile-home__invite-text" style="font-size:{{fs.secondary}}">
+        对方将可以查看 {{profileName}} 的血压和用药情况，但不能修改数据。
+      </view>
+      <button
+        class="profile-home__invite-share"
+        open-type="share"
+        bindtap="handleInviteShareTap"
+        data-share-type="invite"
+        style="font-size:{{fs.button}}"
+      >
+        分享给家人
+      </button>
+      <button
+        class="profile-home__invite-cancel"
+        bindtap="handleCloseInviteDialog"
+        style="font-size:{{fs.secondary}}"
+      >
+        取消
+      </button>
+    </view>
+  </view>
+
   <profile-switcher
     show="{{showProfileSwitcher}}"
     profiles="{{profiles}}"

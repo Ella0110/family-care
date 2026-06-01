@@ -1,70 +1,65 @@
-<view class="page page-root">
+<view class="page page-root invite-accept-page">
   <view wx:if="{{viewState === 'loading'}}" class="card invite-accept-card">
-    <view class="invite-accept-card__title" style="font-size:{{fs.title}}">收到家人邀请</view>
-    <view class="invite-accept-card__text">正在读取邀请信息...</view>
+    <view class="invite-accept-card__title invite-accept-card__title--center" style="font-size:{{fs.title}}">收到家人邀请</view>
+    <view class="invite-accept-card__text invite-accept-card__text--center" style="font-size:{{fs.secondary}}">正在读取邀请信息...</view>
   </view>
 
-  <view wx:elif="{{viewState === 'ready'}}" class="invite-accept-page">
-    <view class="card invite-accept-card">
-      <view class="invite-accept-card__eyebrow" style="font-size:{{fs.label}}">来自家人的分享邀请</view>
-      <view class="invite-accept-card__inviter">
-        <image wx:if="{{invitationDisplay.inviterAvatarUrl}}" class="invite-accept-card__avatar" src="{{invitationDisplay.inviterAvatarUrl}}" mode="aspectFill" />
-        <view wx:else class="invite-accept-card__avatar invite-accept-card__avatar--fallback" style="font-size:{{fs.title}}">{{invitationDisplay.inviterInitial}}</view>
-        <view class="invite-accept-card__inviter-name" style="font-size:{{fs.body}}">{{invitationDisplay.inviterNickname}}</view>
-      </view>
-      <view class="invite-accept-card__title" style="font-size:{{fs.title}}">邀请你一起关注家人的健康记录</view>
-
-      <view class="invite-accept-card__section">
-        <view class="invite-accept-card__section-title" style="font-size:{{fs.label}}">关注以下家人</view>
-        <view
-          wx:for="{{invitationDisplay.profiles}}"
-          wx:key="_id"
-          class="invite-accept-card__profile"
-        >
-          <view class="invite-accept-card__profile-title" style="font-size:{{fs.body}}">{{item.label}}</view>
-          <view class="invite-accept-card__profile-summary">{{item.latestSummary}}</view>
-        </view>
-      </view>
-
-      <view wx:if="{{invitationDisplay.message}}" class="invite-accept-card__section">
-        <view class="invite-accept-card__section-title" style="font-size:{{fs.label}}">留言</view>
-        <view class="invite-accept-card__message">{{invitationDisplay.message}}</view>
-      </view>
-
-      <view class="invite-accept-card__section">
-        <view class="invite-accept-card__section-title" style="font-size:{{fs.label}}">你将获得的权限</view>
-        <view wx:for="{{invitationDisplay.permissionSummary.enabled}}" wx:key="*this" class="invite-accept-card__permission invite-accept-card__permission--enabled" style="font-size:{{fs.body}}">✓ {{item}}</view>
-        <view wx:for="{{invitationDisplay.permissionSummary.disabled}}" wx:key="*this" class="invite-accept-card__permission invite-accept-card__permission--disabled" style="font-size:{{fs.body}}">✗ {{item}}</view>
-      </view>
-
-      <view class="invite-accept-card__expiry">邀请将在 {{invitationDisplay.expiresAtText}}</view>
-      <view wx:if="{{!isJoinReady}}" class="invite-accept-card__hint">正在准备登录信息，请稍候...</view>
-      <button class="btn-primary invite-accept-card__button" bindtap="handleAcceptInvitation" loading="{{isAccepting}}" disabled="{{!isJoinReady || isAccepting}}">
-        接受邀请
-      </button>
-      <button class="invite-accept-card__secondary" bindtap="handleDecline" style="font-size:{{fs.button}}">暂不接受</button>
+  <view wx:elif="{{viewState === 'ready'}}" class="card invite-accept-card">
+    <image
+      wx:if="{{invitationDisplay.inviterAvatarUrl}}"
+      class="invite-accept-card__avatar"
+      src="{{invitationDisplay.inviterAvatarUrl}}"
+      mode="aspectFill"
+    />
+    <view
+      wx:else
+      class="invite-accept-card__avatar invite-accept-card__avatar--fallback"
+      style="font-size:{{fs.title}}"
+    >
+      {{invitationDisplay.inviterInitial}}
     </view>
+
+    <view class="invite-accept-card__headline" style="font-size:{{fs.body}}">
+      「{{invitationDisplay.inviterNickname}}」邀请你一起关注
+    </view>
+    <view class="invite-accept-card__title" style="font-size:{{fs.title}}">
+      {{invitationDisplay.primaryProfileTitle}}
+    </view>
+    <view
+      wx:if="{{invitationDisplay.secondaryText}}"
+      class="invite-accept-card__text invite-accept-card__text--center"
+      style="font-size:{{fs.secondary}}"
+    >
+      {{invitationDisplay.secondaryText}}
+    </view>
+
+    <button
+      class="btn-primary invite-accept-card__button"
+      bindtap="handleAcceptInvitation"
+      loading="{{isAccepting}}"
+      disabled="{{isAccepting}}"
+      style="font-size:{{fs.button}}"
+    >
+      {{isAccepting ? '正在加入...' : '接受邀请并查看'}}
+    </button>
+    <button
+      class="invite-accept-card__secondary"
+      bindtap="handleDecline"
+      disabled="{{isAccepting}}"
+      style="font-size:{{fs.secondary}}"
+    >
+      暂不加入
+    </button>
   </view>
 
-  <view wx:elif="{{viewState === 'invalid'}}" class="card invite-accept-card">
+  <view wx:else class="card invite-accept-card">
     <view class="invite-accept-card__invalid-icon" style="font-size:{{fs.title}}">⌛</view>
     <view class="invite-accept-card__title invite-accept-card__title--center" style="font-size:{{fs.title}}">邀请链接已失效</view>
-    <view class="invite-accept-card__text invite-accept-card__text--center">该邀请链接已过期，或已被其他家人领取。请联系家人重新发送。</view>
-    <view wx:if="{{invitationDisplay}}" class="invite-accept-card__text invite-accept-card__text--center">
-      当前链接来自 {{invitationDisplay.inviterNickname}}。
+    <view class="invite-accept-card__text invite-accept-card__text--center" style="font-size:{{fs.secondary}}">
+      {{invalidMessage}}
     </view>
-    <button wx:if="{{invitationDisplay}}" class="invite-accept-card__ghost-button" bindtap="handleCopyInviterNickname" style="font-size:{{fs.body}}">复制邀请人昵称</button>
-    <button class="btn-primary invite-accept-card__button" bindtap="handleDecline">返回主页</button>
-  </view>
-
-  <view wx:elif="{{viewState === 'accepting'}}" class="card invite-accept-card">
-    <view class="invite-accept-card__title" style="font-size:{{fs.title}}">正在加入...</view>
-    <view class="invite-accept-card__text">请稍候，马上就好。</view>
-  </view>
-
-  <view wx:else class="card invite-accept-card invite-accept-card--success">
-    <view class="invite-accept-card__title" style="font-size:{{fs.title}}">成功加入</view>
-    <view class="invite-accept-card__text">{{successMessage}}</view>
-    <button class="btn-primary invite-accept-card__button" bindtap="handleEnterView">进入查看</button>
+    <button class="btn-primary invite-accept-card__button" bindtap="handleDecline" style="font-size:{{fs.button}}">
+      返回首页
+    </button>
   </view>
 </view>

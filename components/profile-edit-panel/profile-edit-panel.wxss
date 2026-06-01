@@ -46,7 +46,7 @@
 
 .profile-edit-panel__title {
     color: #0f172a;
-    font-size: 36rpx;
+    font-size: 34rpx;
     font-weight: 700;
     line-height: 1.35;
 }
@@ -76,7 +76,7 @@
 
 .profile-edit-panel__label {
     color: #334155;
-    font-size: 30rpx;
+    font-size: 28rpx;
     font-weight: 700;
     line-height: 1.5;
 }
@@ -139,7 +139,7 @@
 
 .profile-edit-panel__error {
     margin-top: 24rpx;
-    color: #ef4444;
+    color: #ff3b30;
     font-size: 26rpx;
     line-height: 1.6;
 }

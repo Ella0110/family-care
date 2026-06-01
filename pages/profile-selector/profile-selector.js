@@ -76,30 +76,9 @@ function normalizeStatusDisplay(profile, latestRecord) {
     ),
   );
 
-  if (status.level === 'low') {
-    return {
-      text: '偏低',
-      className: 'is-low',
-    };
-  }
-
-  if (status.level === 'normal') {
-    return {
-      text: '正常血压',
-      className: 'is-normal',
-    };
-  }
-
-  if (status.detail === '3级') {
-    return {
-      text: '严重高血压',
-      className: 'is-danger',
-    };
-  }
-
   return {
-    text: '偏高',
-    className: 'is-warning',
+    text: status.tagText,
+    className: status.selectorClassName,
   };
 }
 

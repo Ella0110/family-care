@@ -114,23 +114,23 @@ function statusPalette(level) {
 
 // ── Range bar zones ───────────────────────────────────────────────────────────
 
-function bpSysZones(ref) {
+function bpSysZones() {
   return [
     { from: 60,  to: 90,  c: C.zLow    },
-    { from: 90,  to: ref, c: C.zNormal },
-    { from: ref, to: 160, c: C.zAtt    },
-    { from: 160, to: 180, c: C.zWarn   },
-    { from: 180, to: 220, c: C.zDanger },
+    { from: 90,  to: 120, c: C.zNormal },
+    { from: 120, to: 140, c: C.zAtt    },
+    { from: 140, to: 160, c: C.zWarn   },
+    { from: 160, to: 220, c: C.zDanger },
   ]
 }
 
-function bpDiaZones(ref) {
+function bpDiaZones() {
   return [
     { from: 40,  to: 60,  c: C.zLow    },
-    { from: 60,  to: ref, c: C.zNormal },
-    { from: ref, to: 100, c: C.zAtt    },
-    { from: 100, to: 110, c: C.zWarn   },
-    { from: 110, to: 140, c: C.zDanger },
+    { from: 60,  to: 80,  c: C.zNormal },
+    { from: 80,  to: 90,  c: C.zAtt    },
+    { from: 90,  to: 100, c: C.zWarn   },
+    { from: 100, to: 140, c: C.zDanger },
   ]
 }
 
@@ -291,8 +291,8 @@ function drawBPSection(ctx, report, W, y) {
       if (i > 0) { hline(ctx, PAD, W - PAD, y + 4); y += 20 }
       txt(ctx, shortTime(record.measuredAt), PAD, y, 20, C.muted)
       y += 28
-      y = drawBarRow(ctx, PAD, y, '高压', record.systolic, 'mmHg', 60, 220, bpSysZones(report.refLines.systolic))
-      y = drawBarRow(ctx, PAD, y, '低压', record.diastolic, 'mmHg', 40, 140, bpDiaZones(report.refLines.diastolic))
+      y = drawBarRow(ctx, PAD, y, '高压', record.systolic, 'mmHg', 60, 220, bpSysZones())
+      y = drawBarRow(ctx, PAD, y, '低压', record.diastolic, 'mmHg', 40, 140, bpDiaZones())
     })
     return y + 20
   }

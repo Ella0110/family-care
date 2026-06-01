@@ -79,7 +79,7 @@
 
     <view wx:if="{{hasRecords}}" class="report-section report-section--chart">
       <view class="report-section__heading-row">
-        <view class="report-section__eyebrow" style="font-size:{{fs.label}}">血压趋势图</view>
+        <view class="report-section__eyebrow" style="font-size:{{fs.label}}">血压波动趋势</view>
         <view class="report-section__unit" style="font-size:{{fs.caption}}">单位：mmHg</view>
       </view>
       <canvas id="reportBpChart" type="2d" class="report-chart-card__canvas"></canvas>
@@ -87,7 +87,7 @@
 
     <view wx:if="{{hasRecords && hasHeartRateData}}" class="report-section report-section--chart">
       <view class="report-section__heading-row">
-        <view class="report-section__eyebrow" style="font-size:{{fs.label}}">心率变化图</view>
+        <view class="report-section__eyebrow" style="font-size:{{fs.label}}">心率变化</view>
         <view class="report-section__unit" style="font-size:{{fs.caption}}">单位：bpm</view>
       </view>
       <canvas id="reportHeartRateChart" type="2d" class="report-chart-card__canvas"></canvas>
@@ -95,7 +95,8 @@
 
     <view wx:elif="{{hasRecords}}" class="report-section report-section--chart">
       <view class="report-section__heading-row">
-        <view class="report-section__eyebrow" style="font-size:{{fs.label}}">心率变化图</view>
+        <view class="report-section__eyebrow" style="font-size:{{fs.label}}">心率变化</view>
+        <view class="report-section__unit" style="font-size:{{fs.caption}}">单位：bpm</view>
       </view>
       <view class="report-chart-card__empty" style="font-size:{{fs.secondary}}">暂无心率数据</view>
     </view>
@@ -111,7 +112,7 @@
         >
           <view class="report-alert-list__left">
             <view class="report-alert-list__time" style="font-size:{{fs.body}}">{{item.measuredAtText}}</view>
-            <view class="report-alert-list__tags" style="font-size:{{fs.label}}">{{item.alertText}}</view>
+            <view class="report-alert-list__tags {{item.tagClassName}}" style="font-size:{{fs.label}}">{{item.alertText}}</view>
           </view>
           <view class="report-alert-list__right">
             <view class="report-alert-list__bp" style="font-size:{{fs.title}}">{{item.bloodPressureText}}</view>

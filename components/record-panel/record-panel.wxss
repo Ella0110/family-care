@@ -18,7 +18,7 @@
     min-height: 76vh;
     max-height: 82vh;
     padding: 24rpx 40rpx calc(env(safe-area-inset-bottom) + 20rpx);
-    border-radius: 40rpx 40rpx 0 0;
+    border-radius: 32rpx 32rpx 0 0;
     background: #ffffff;
     box-sizing: border-box;
     box-shadow: 0 -10rpx 40rpx rgba(0, 0, 0, 0.05);
@@ -89,7 +89,7 @@
 }
 
 .record-panel__metric-label.is-error {
-    color: #ef4444;
+    color: #ff3b30;
 }
 
 .record-panel__metric-value {
@@ -106,7 +106,7 @@
 }
 
 .record-panel__metric-value.is-error {
-    color: #ef4444;
+    color: #ff3b30;
 }
 
 .record-panel__metric-line {
@@ -152,7 +152,7 @@
 }
 
 .record-panel__time-value.is-error {
-    color: #ef4444;
+    color: #ff3b30;
 }
 
 .record-panel__time-arrow {
@@ -177,8 +177,8 @@
     width: 36rpx;
     height: 36rpx;
     border-radius: 50%;
-    background: rgba(239, 68, 68, 0.12);
-    color: #ef4444;
+    background: rgba(255, 59, 48, 0.12);
+    color: #ff3b30;
     font-size: 24rpx;
     font-weight: 700;
 }
@@ -187,7 +187,7 @@
     flex: 1;
     font-size: 24rpx;
     line-height: 1.5;
-    color: #ef4444;
+    color: #ff3b30;
 }
 
 .record-panel__keypad {
@@ -261,7 +261,7 @@
     text-align: center;
     font-size: 30rpx;
     font-weight: 600;
-    color: #ef4444;
+    color: #ff3b30;
 }
 
 .record-panel__overlay-layer {
@@ -317,7 +317,7 @@
 }
 
 .record-panel__feedback-icon.is-danger {
-    background: #ef4444;
+    background: #ff3b30;
 }
 
 .record-panel__feedback-title {
@@ -347,8 +347,8 @@
     width: 80rpx;
     height: 80rpx;
     margin-bottom: 24rpx;
-    border-radius: 24rpx;
-    background: #fef2f2;
+    border-radius: 50%;
+    background: #fff0f0;
     font-size: 36rpx;
 }
 
@@ -372,7 +372,7 @@
     padding: 24rpx 32rpx;
     border: none;
     border-radius: 24rpx;
-    background: #ef4444;
+    background: #ff3b30;
     color: #ffffff;
     font-size: 32rpx;
     font-weight: 600;

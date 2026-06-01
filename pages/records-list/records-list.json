@@ -1,6 +1,6 @@
 {
   "navigationBarTitleText": "全部记录",
-  "navigationBarBackgroundColor": "#F0F4FA",
+  "navigationBarBackgroundColor": "#F2F2F7",
   "navigationBarTextStyle": "black",
   "usingComponents": {
     "record-panel": "/components/record-panel/record-panel"

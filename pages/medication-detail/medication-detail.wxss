@@ -1,11 +1,11 @@
 .page {
-  background: #eef3fb;
+  background: #f2f2f7;
 }
 
 .medication-detail-page {
   min-height: 100vh;
   padding: 32rpx 28rpx 48rpx;
-  background: #eef3fb;
+  background: #f2f2f7;
 }
 
 .medication-detail__state,
@@ -45,7 +45,7 @@
 .form-required,
 .medication-detail__error,
 .medication-detail__delete {
-  color: #ef4444;
+  color: #ff3b30;
 }
 
 .form-input,

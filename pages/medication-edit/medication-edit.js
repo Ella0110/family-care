@@ -407,7 +407,7 @@ Page({
       title: '确定删除这条用药？',
       content: '删除后无法恢复',
       confirmText: '删除',
-      confirmColor: '#ef4444',
+      confirmColor: '#ff3b30',
       cancelText: '取消',
     });
 

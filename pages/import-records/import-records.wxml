@@ -4,7 +4,7 @@
       <textarea
         class="import-textarea"
         value="{{csvText}}"
-        placeholder="粘贴 CSV 格式的血压数据&#10;支持从 Excel、备忘录等复制的数据"
+        placeholder="粘贴 CSV 格式的血压数据，支持从 Excel、备忘录等复制"
         maxlength="-1"
         disabled="{{isImporting}}"
         bindinput="handleInput"

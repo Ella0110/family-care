@@ -20,15 +20,15 @@
         <!-- 最近血压卡片（保持不动） -->
         <view class="card data-latest {{latestRecordDisplay ? '' : 'data-latest--empty'}}">
           <view wx:if="{{latestRecordDisplay}}" class="data-latest__content">
-            <view class="data-latest__status {{latestRecordDisplay.statusClassName}}">
+            <view wx:if="{{latestRecordDisplay.showStatusTag}}" class="data-latest__status {{latestRecordDisplay.statusClassName}}">
               <view class="data-latest__status-dot"></view>
               <text style="font-size:{{fs.secondary}}">{{latestRecordDisplay.statusText}}</text>
             </view>
 
             <view class="data-latest__numbers">
-              <text class="data-latest__systolic {{latestRecordDisplay.systolicClassName}}" style="font-size:{{fs.hero}}">{{latestRecordDisplay.systolicText}}</text>
+              <text class="data-latest__systolic {{latestRecordDisplay.systolicClassName}}" style="font-size:{{fs.bpSystolic}}">{{latestRecordDisplay.systolicText}}</text>
               <text class="data-latest__separator" style="font-size:{{fs.title}}">/</text>
-              <text class="data-latest__diastolic {{latestRecordDisplay.diastolicClassName}}" style="font-size:{{fs.hero}}">{{latestRecordDisplay.diastolicText}}</text>
+              <text class="data-latest__diastolic {{latestRecordDisplay.diastolicClassName}}" style="font-size:{{fs.bpDiastolic}}">{{latestRecordDisplay.diastolicText}}</text>
               <text class="data-latest__unit" style="font-size:{{fs.caption}}">mmHg</text>
             </view>
 

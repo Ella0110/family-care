@@ -90,7 +90,7 @@ function verifyC0DataEmptyGuide() {
   );
   assert.match(
     wxss,
-    /\.data-latest__empty-card[\s\S]*background:\s*rgba\(255,\s*255,\s*255,\s*0\.8\);[\s\S]*border-radius:\s*40rpx;/i,
+    /\.data-latest__empty-card[\s\S]*background:\s*rgba\(255,\s*255,\s*255,\s*0\.8\);[\s\S]*border-radius:\s*32rpx;/i,
     'data empty-record guide should use the new translucent white card',
   );
   assert.match(
@@ -125,8 +125,8 @@ function verifyC1CreatePageStructure() {
 
   assert.match(
     wxss,
-    /\.page[\s\S]*background:\s*#eef3fb;/i,
-    'create profile page should align to the shared light-blue page background',
+    /\.page[\s\S]*background:\s*#f2f2f7;/i,
+    'create profile page should align to the shared neutral page background',
   );
   assert.match(
     wxss,
@@ -135,8 +135,8 @@ function verifyC1CreatePageStructure() {
   );
   assert.match(
     wxss,
-    /\.profile-edit__form--create[\s\S]*border-radius:\s*40rpx;/i,
-    'create profile content should use the new larger create-card radius',
+    /\.profile-edit__form--create[\s\S]*border-radius:\s*32rpx;/i,
+    'create profile content should use the unified 32rpx card radius',
   );
   assert.match(
     wxss,

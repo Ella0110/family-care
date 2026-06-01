@@ -1,5 +1,5 @@
 .page {
-  background: #eef3fb;
+  background: #f2f2f7;
 }
 
 .profile-edit-page {
@@ -33,7 +33,7 @@
 
 .profile-edit__form--create {
   padding: 48rpx;
-  border-radius: 40rpx;
+  border-radius: 32rpx;
   background: rgba(255, 255, 255, 0.7);
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
@@ -57,7 +57,7 @@
 }
 
 .form-required {
-  color: #ef4444;
+  color: #ff3b30;
 }
 
 .form-input,

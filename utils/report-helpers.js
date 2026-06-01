@@ -1,15 +1,15 @@
 const { calculateAge, formatPhoneWithSpaces, getThreshold } = require('./profile-detail');
 const {
+  LOW_BP,
+  BP_LEVELS,
+  getBPStatusDisplay,
+  getBPLevelForValue,
+} = require('./bp-status');
+const {
   formatEast8DateYMD,
   getEast8StartOfDay,
   toEast8Parts,
 } = require('./csv-helpers');
-
-// 低血压阈值（硬编码，V1 不做用户可调）
-const LOW_BP = {
-  systolic: 90,
-  diastolic: 60,
-};
 
 // 心率阈值（硬编码）
 const HR_THRESHOLD = {
@@ -106,20 +106,34 @@ function joinMedicationNames(activeMedications) {
   return names.length ? names.join('、') : '暂无用药记录';
 }
 
+function getBloodPressureStatus(record) {
+  if (!record) {
+    return getBPStatusDisplay(NaN, NaN);
+  }
+
+  return getBPStatusDisplay(record.systolic, record.diastolic);
+}
+
 function isHighRiskRecord(record) {
-  return record.systolic >= 180 || record.diastolic >= 120;
+  return getBloodPressureStatus(record).level === BP_LEVELS.STAGE3;
 }
 
 function isHighRecord(record, threshold) {
-  return record.systolic >= threshold.systolic || record.diastolic >= threshold.diastolic;
+  void threshold;
+  const level = getBloodPressureStatus(record).level;
+  return level === BP_LEVELS.ELEVATED
+    || level === BP_LEVELS.STAGE1
+    || level === BP_LEVELS.STAGE2
+    || level === BP_LEVELS.STAGE3;
 }
 
 function isLowRecord(record) {
-  return record.systolic < LOW_BP.systolic || record.diastolic < LOW_BP.diastolic;
+  return getBloodPressureStatus(record).level === BP_LEVELS.LOW;
 }
 
 function isBloodPressureAbnormal(record, threshold) {
-  return isHighRecord(record, threshold) || isLowRecord(record);
+  void threshold;
+  return getBloodPressureStatus(record).attention;
 }
 
 function isHeartRateAbnormal(record) {
@@ -131,8 +145,9 @@ function isHeartRateAbnormal(record) {
 }
 
 function decorateAlertFlags(record, threshold, heartRateAlertOverride) {
-  const systolicAlert = record.systolic >= threshold.systolic || record.systolic < LOW_BP.systolic;
-  const diastolicAlert = record.diastolic >= threshold.diastolic || record.diastolic < LOW_BP.diastolic;
+  void threshold;
+  const systolicAlert = getBPLevelForValue(record.systolic, 'systolic') !== BP_LEVELS.NORMAL;
+  const diastolicAlert = getBPLevelForValue(record.diastolic, 'diastolic') !== BP_LEVELS.NORMAL;
   const heartRateAlert = heartRateAlertOverride === undefined
     ? isHeartRateAbnormal(record)
     : Boolean(heartRateAlertOverride);
@@ -325,16 +340,12 @@ function buildChartTimeline(records, days, threshold, now = new Date()) {
 }
 
 function getAlertLabels(record, threshold) {
+  void threshold;
   const labels = [];
+  const bpStatus = getBloodPressureStatus(record);
 
-  if (isHighRiskRecord(record)) {
-    labels.push('血压很高', '严重异常');
-  } else if (isHighRecord(record, threshold)) {
-    labels.push('血压偏高');
-  }
-
-  if (isLowRecord(record)) {
-    labels.push('血压偏低');
+  if (bpStatus.attention) {
+    labels.push(bpStatus.tagText);
   }
 
   if (Number.isFinite(record.heartRate) && record.heartRate > HR_THRESHOLD.high) {
@@ -349,6 +360,7 @@ function getAlertLabels(record, threshold) {
 }
 
 function buildAlertBanner(records, threshold) {
+  void threshold;
   if ((records || []).some((record) => isHighRiskRecord(record))) {
     return {
       type: 'critical',
@@ -429,14 +441,27 @@ function buildRecentAlerts(records, threshold) {
     .slice()
     .sort((left, right) => right.measuredAt.getTime() - left.measuredAt.getTime())
     .slice(0, 5)
-    .map((record) => ({
-      key: record._id,
-      measuredAtText: formatMonthDayTime(record.measuredAt),
-      alertText: getAlertLabels(record, threshold).join(' · '),
-      bloodPressureText: `${record.systolic}/${record.diastolic}`,
-      heartRateText: Number.isFinite(record.heartRate) ? `${record.heartRate}bpm` : '',
-      hasHeartRate: Number.isFinite(record.heartRate),
-    }));
+    .map((record) => {
+      const bpStatus = getBloodPressureStatus(record);
+      const heartRateHigh = Number.isFinite(record.heartRate) && record.heartRate > HR_THRESHOLD.high;
+      const heartRateLow = Number.isFinite(record.heartRate) && record.heartRate < HR_THRESHOLD.low;
+
+      return {
+        key: record._id,
+        measuredAtText: formatMonthDayTime(record.measuredAt),
+        alertText: bpStatus.attention
+          ? bpStatus.tagText
+          : heartRateHigh
+            ? '心率偏快'
+            : '心率偏慢',
+        tagClassName: bpStatus.attention
+          ? bpStatus.reportTagClassName
+          : 'report-alert-list__tags--stage1',
+        bloodPressureText: `${record.systolic}/${record.diastolic}`,
+        heartRateText: Number.isFinite(record.heartRate) ? `${record.heartRate}bpm` : '',
+        hasHeartRate: Number.isFinite(record.heartRate),
+      };
+    });
 }
 
 function buildPatientInfo(profile, activeMedications, hideSensitive, now = new Date()) {

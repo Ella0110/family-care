@@ -1,9 +1,12 @@
+const { getBPStatusDisplay, BP_LEVELS } = require('./bp-status')
+
 const BP_STATUS = {
-  LOW: { level: 'low', label: '偏低', color: '#FF9500', attention: true },
-  IN_RANGE: { level: 'inRange', label: '参考范围内', color: '#34C759', attention: false },
-  HIGH: { level: 'high', label: '偏高', color: '#FF9500', attention: true },
-  VERY_HIGH: { level: 'veryHigh', label: '明显偏高', color: '#FF3B30', attention: true },
-  CRITICAL: { level: 'critical', label: '很高', color: '#C81E1E', attention: true },
+  LOW: { level: 'low', label: '血压偏低', color: '#007AFF', attention: true },
+  IN_RANGE: { level: 'inRange', label: '正常', color: '#34C759', attention: false },
+  ELEVATED: { level: 'elevated', label: '临界偏高', color: '#F5A623', attention: true },
+  HIGH: { level: 'high', label: '偏高1级', color: '#FF9500', attention: true },
+  VERY_HIGH: { level: 'veryHigh', label: '偏高2级', color: '#FF3B30', attention: true },
+  CRITICAL: { level: 'critical', label: '血压过高（3级）', color: '#FF3B30', attention: true },
 }
 
 const HR_STATUS = {
@@ -19,15 +22,15 @@ function cloneStatus(status) {
 }
 
 function getBPStatus(systolic, diastolic, target) {
-  const sys = Number(systolic)
-  const dia = Number(diastolic)
-  const tSys = Number(target && target.systolic) || 135
-  const tDia = Number(target && target.diastolic) || 85
+  void target
 
-  if (sys < 90 || dia < 60) return cloneStatus(BP_STATUS.LOW)
-  if (sys >= 180 || dia >= 110) return cloneStatus(BP_STATUS.CRITICAL)
-  if (sys >= 160 || dia >= 100) return cloneStatus(BP_STATUS.VERY_HIGH)
-  if (sys >= tSys || dia >= tDia) return cloneStatus(BP_STATUS.HIGH)
+  const status = getBPStatusDisplay(systolic, diastolic)
+
+  if (status.level === BP_LEVELS.LOW) return cloneStatus(BP_STATUS.LOW)
+  if (status.level === BP_LEVELS.STAGE3) return cloneStatus(BP_STATUS.CRITICAL)
+  if (status.level === BP_LEVELS.STAGE2) return cloneStatus(BP_STATUS.VERY_HIGH)
+  if (status.level === BP_LEVELS.STAGE1) return cloneStatus(BP_STATUS.HIGH)
+  if (status.level === BP_LEVELS.ELEVATED) return cloneStatus(BP_STATUS.ELEVATED)
   return cloneStatus(BP_STATUS.IN_RANGE)
 }
 

@@ -25,7 +25,7 @@ function verifyF1ImportPage() {
 
   assert.match(
     wxml,
-    /placeholder="粘贴 CSV 格式的血压数据&#10;支持从 Excel、备忘录等复制的数据"/,
+    /placeholder="粘贴 CSV 格式的血压数据，支持从 Excel、备忘录等复制"/,
     'import textarea should move the import instructions into the placeholder',
   );
 
@@ -215,37 +215,37 @@ function verifyF3ChartExportSummary() {
 
   assert.match(
     js,
-    /function buildChartExportSummaryText\(chartType,\s*selectedDays,\s*rangeSummary,\s*heartRateSummary\)/,
+    /function buildChartExportSummaryText\(\s*chartType,\s*selectedDays,\s*rangeSummary,\s*heartRateSummary,\s*\)/,
     'data page should extract chart export summary building into a helper',
   );
 
   assert.match(
     js,
-    /近 \$\{selectedDays\}天 \| 均值 \$\{rangeSummary\.averageText \|\| '--'\} mmHg \| 异常\$?\{rangeSummary\.abnormalCount\}次/,
+    /近 \$\{selectedDays\}天 \| 均值 \$\{rangeSummary\.averageText \|\| ["']--["']\} mmHg \| 异常\$?\{rangeSummary\.abnormalCount\}次/,
     'blood pressure chart export should append the required summary line',
   );
 
   assert.match(
     js,
-    /近 \$\{selectedDays\}天 \| 均值 \$\{heartRateSummary\.averageText \|\| '--'\} bpm \| 异常\$?\{heartRateSummary\.abnormalCount\}次/,
+    /近 \$\{selectedDays\}天 \| 均值 \$\{heartRateSummary\.averageText \|\| ["']--["']\} bpm \| 异常\$?\{heartRateSummary\.abnormalCount\}次/,
     'heart rate chart export should append the required summary line',
   );
 
   assert.match(
     js,
-    /const EXPORT_CHART_SUMMARY_FONT_SIZE = 28;[\s\S]*ctx\.font = `\$\{EXPORT_CHART_SUMMARY_FONT_SIZE\}px sans-serif`;[\s\S]*ctx\.fillText\(summaryText,\s*EXPORT_CHART_CANVAS_WIDTH \/ 2,/,
+    /const EXPORT_CHART_SUMMARY_FONT_SIZE = 28;[\s\S]*ctx\.font = `\$\{EXPORT_CHART_SUMMARY_FONT_SIZE\}px sans-serif`;[\s\S]*ctx\.fillText\(\s*summaryText,\s*EXPORT_CHART_CANVAS_WIDTH \/ 2,/,
     'chart export should render the summary line in 28px centered text',
   );
 
   assert.match(
     js,
-    /const exportScale = Math\.max\(1,\s*Number\(this\.pixelRatio\)\s*\|\|\s*1\);[\s\S]*canvas\.width = Math\.max\(1,\s*Math\.round\(EXPORT_CHART_CANVAS_WIDTH \* exportScale\)\);[\s\S]*canvas\.height = Math\.max\(1,\s*Math\.round\(exportHeight \* exportScale\)\);[\s\S]*ctx\.scale\(exportScale,\s*exportScale\);/,
+    /const exportScale = Math\.max\(1,\s*Number\(this\.pixelRatio\)\s*\|\|\s*1\);[\s\S]*canvas\.width = Math\.max\(\s*1,\s*Math\.round\(EXPORT_CHART_CANVAS_WIDTH \* exportScale\),?\s*\);[\s\S]*canvas\.height = Math\.max\(\s*1,\s*Math\.round\(exportHeight \* exportScale\)\s*\);[\s\S]*ctx\.scale\(exportScale,\s*exportScale\);/,
     'chart export should scale the canvas by DPR before drawing',
   );
 
   assert.match(
     js,
-    /destWidth:\s*Math\.max\(1,\s*Math\.round\(EXPORT_CHART_CANVAS_WIDTH \* exportScale\)\),[\s\S]*destHeight:\s*Math\.max\(1,\s*Math\.round\(exportHeight \* exportScale\)\)/,
+    /destWidth:\s*Math\.max\(\s*1,\s*Math\.round\(EXPORT_CHART_CANVAS_WIDTH \* exportScale\),?\s*\),[\s\S]*destHeight:\s*Math\.max\(\s*1,\s*Math\.round\(exportHeight \* exportScale\)\s*\)/,
     'chart export should export DPR-scaled dimensions',
   );
 

@@ -9,7 +9,7 @@
         </view>
         <view wx:else class="profile-edit-avatar" style="font-size:{{fs.title}}">{{form.avatarFallback}}</view>
         <button
-          class="btn-secondary profile-edit-avatar__button"
+          class="profile-edit-avatar__button"
           open-type="chooseAvatar"
           bindchooseavatar="onChooseAvatar"
          style="font-size:{{fs.body}}">
@@ -42,7 +42,7 @@
      style="font-size:{{fs.button}}">
       保存修改
     </button>
-    <button class="btn-secondary profile-edit-cancel" bindtap="handleBack" disabled="{{isSaving}}" style="font-size:{{fs.button}}">
+    <button class="profile-edit-cancel" bindtap="handleBack" disabled="{{isSaving}}" style="font-size:{{fs.button}}">
       取消
     </button>
   </view>

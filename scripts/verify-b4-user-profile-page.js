@@ -54,8 +54,8 @@ assert.match(
 
 assert.match(
   wxss,
-  /\.page-root\s*\{[\s\S]*background:\s*#eef3fb;/i,
-  'page root should align to the shared light-blue background',
+  /\.page-root\s*\{[\s\S]*background:\s*#f2f2f7;/i,
+  'page root should align to the shared neutral page background',
 );
 
 assert.match(

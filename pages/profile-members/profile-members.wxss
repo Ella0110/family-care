@@ -1,243 +1,323 @@
 .members-page {
-  padding: 32rpx 24rpx 48rpx;
+    padding: 32rpx 24rpx 48rpx;
 }
 
 .members-header {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-  margin-bottom: 24rpx;
+    display: flex;
+    align-items: center;
+    gap: 16rpx;
+    margin-bottom: 24rpx;
 }
 
 .members-header__back {
-  font-size: 30rpx;
-  color: #2457d6;
+    font-size: 30rpx;
+    color: #2457d6;
 }
 
 .members-header__title {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: #111827;
-  line-height: 1.35;
+    font-size: 36rpx;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.35;
 }
 
 .members-header__subtitle {
-  margin-top: 6rpx;
-  font-size: 22rpx;
-  color: #6b7280;
-  line-height: 1.5;
+    margin-top: 6rpx;
+    font-size: 22rpx;
+    color: #6b7280;
+    line-height: 1.5;
 }
 
 .members-state,
 .members-transfer__intro,
 .members-list {
-  padding: 28rpx;
+    padding: 28rpx;
 }
 
 .members-state__title,
 .members-transfer__title {
-  font-size: 36rpx;
-  font-weight: 600;
-  color: #111827;
+    font-size: 36rpx;
+    font-weight: 600;
+    color: #111827;
 }
 
 .members-state__text,
 .members-transfer__text {
-  margin-top: 12rpx;
-  font-size: 26rpx;
-  color: #6b7280;
-  line-height: 1.6;
+    margin-top: 12rpx;
+    font-size: 26rpx;
+    color: #6b7280;
+    line-height: 1.6;
 }
 
 .members-content,
 .members-transfer {
-  display: flex;
-  flex-direction: column;
-  gap: 24rpx;
+    display: flex;
+    flex-direction: column;
+    gap: 24rpx;
 }
 
 .member-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 20rpx;
-  padding: 24rpx 0;
-  border-bottom: 1rpx solid #eef2f7;
+    display: flex;
+    align-items: flex-start;
+    gap: 20rpx;
+    padding: 24rpx 0;
+    border-bottom: 1rpx solid #eef2f7;
 }
 
 .member-row:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
+    border-bottom: none;
+    padding-bottom: 0;
 }
 
 .member-row:first-child {
-  padding-top: 0;
+    padding-top: 0;
 }
 
 .member-row--selected {
-  background: rgba(36, 87, 214, 0.06);
-  border-radius: 24rpx;
-  margin: 0 -12rpx;
-  padding: 24rpx 12rpx;
+    background: rgba(36, 87, 214, 0.06);
+    border-radius: 24rpx;
+    margin: 0 -12rpx;
+    padding: 24rpx 12rpx;
 }
 
 .member-row__choice {
-  width: 28rpx;
-  font-size: 30rpx;
-  color: #2457d6;
-  line-height: 1.5;
+    width: 28rpx;
+    font-size: 30rpx;
+    color: #2457d6;
+    line-height: 1.5;
 }
 
 .member-row__avatar {
-  width: 72rpx;
-  height: 72rpx;
-  border-radius: 50%;
-  background: #dbe5f6;
-  color: #2457d6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 30rpx;
-  font-weight: 600;
-  overflow: hidden;
-  flex-shrink: 0;
+    width: 72rpx;
+    height: 72rpx;
+    border-radius: 50%;
+    background: #dbe5f6;
+    color: #2457d6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30rpx;
+    font-weight: 600;
+    overflow: hidden;
+    flex-shrink: 0;
 }
 
 .member-row__avatar-image {
-  width: 100%;
-  height: 100%;
+    width: 100%;
+    height: 100%;
 }
 
 .member-row__body {
-  flex: 1;
-  min-width: 0;
+    flex: 1;
+    min-width: 0;
 }
 
 .member-row__top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16rpx;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16rpx;
 }
 
 .member-row__name {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #111827;
-  line-height: 1.5;
+    font-size: 30rpx;
+    font-weight: 600;
+    color: #111827;
+    line-height: 1.5;
 }
 
 .member-row__badge {
-  flex-shrink: 0;
-  padding: 8rpx 16rpx;
-  border-radius: 999rpx;
-  background: #eef4ff;
-  color: #2457d6;
-  font-size: 22rpx;
-  white-space: nowrap;
+    flex-shrink: 0;
+    padding: 8rpx 16rpx;
+    border-radius: 999rpx;
+    background: #eef4ff;
+    color: #2457d6;
+    font-size: 22rpx;
+    white-space: nowrap;
 }
 
 .member-row__meta {
-  margin-top: 8rpx;
-  font-size: 26rpx;
-  color: #6b7280;
-  line-height: 1.5;
+    margin-top: 8rpx;
+    font-size: 26rpx;
+    color: #6b7280;
+    line-height: 1.5;
 }
 
 .member-row__alerts {
-  margin-top: 14rpx;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12rpx;
+    margin-top: 14rpx;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12rpx;
 }
 
 .member-row__alerts-label {
-  font-size: 26rpx;
-  color: #4b5563;
+    font-size: 26rpx;
+    color: #4b5563;
 }
 
 .member-row__menu {
-  padding: 4rpx 8rpx;
-  font-size: 36rpx;
-  color: #6b7280;
-  line-height: 1;
+    padding: 4rpx 8rpx;
+    font-size: 36rpx;
+    color: #6b7280;
+    line-height: 1;
 }
 
 .members-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
+    display: flex;
+    flex-direction: column;
+    gap: 16rpx;
 }
 
 .members-actions__button {
-  width: 100%;
+    width: 100%;
 }
 
 .members-role-dialog {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
 }
 
 .members-role-dialog__mask {
-  position: absolute;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.45);
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
 }
 
 .members-role-dialog__panel {
-  position: absolute;
-  left: 24rpx;
-  right: 24rpx;
-  bottom: 24rpx;
-  padding: 28rpx;
+    position: absolute;
+    left: 24rpx;
+    right: 24rpx;
+    bottom: 24rpx;
+    padding: 28rpx;
 }
 
 .members-role-dialog__title {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: #111827;
-  margin-bottom: 20rpx;
+    font-size: 36rpx;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 20rpx;
 }
 
 .members-role-dialog__option {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-  padding: 18rpx 0;
-  border-bottom: 1rpx solid #eef2f7;
-  font-size: 30rpx;
-  color: #111827;
-  line-height: 1.5;
+    display: flex;
+    align-items: center;
+    gap: 16rpx;
+    padding: 18rpx 0;
+    border-bottom: 1rpx solid #eef2f7;
+    font-size: 30rpx;
+    color: #111827;
+    line-height: 1.5;
 }
 
 .members-role-dialog__option:last-of-type {
-  border-bottom: none;
+    border-bottom: none;
 }
 
 .members-role-dialog__option--disabled {
-  display: block;
-  color: #9ca3af;
+    display: block;
+    color: #9ca3af;
 }
 
 .members-role-dialog__hint {
-  margin-top: 6rpx;
-  font-size: 22rpx;
-  line-height: 1.5;
+    margin-top: 6rpx;
+    font-size: 22rpx;
+    line-height: 1.5;
 }
 
 .members-role-dialog__radio {
-  width: 28rpx;
-  color: #2457d6;
+    width: 28rpx;
+    color: #2457d6;
 }
 
 .members-role-dialog__actions {
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
-  margin-top: 24rpx;
+    display: flex;
+    flex-direction: column;
+    gap: 16rpx;
+    margin-top: 24rpx;
 }
 
 .members-role-dialog__button {
-  width: 100%;
+    width: 100%;
+}
+
+.members-invite-dialog {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 56rpx;
+    box-sizing: border-box;
+}
+
+.members-invite-dialog__mask {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.members-invite-dialog__sheet {
+    position: relative;
+    z-index: 1;
+    width: 85%;
+    max-width: 640rpx;
+    padding: 48rpx;
+    border-radius: 32rpx;
+    box-sizing: border-box;
+}
+
+.members-invite-dialog__title {
+    color: #0f172a;
+    font-size: 34rpx;
+    font-weight: 700;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.members-invite-dialog__text {
+    margin-top: 16rpx;
+    color: #94a3b8;
+    font-size: 26rpx;
+    line-height: 1.7;
+    text-align: center;
+}
+
+.members-invite-dialog__share {
+    width: 100%;
+    min-height: 96rpx;
+    margin-top: 48rpx;
+    border-radius: 24rpx;
+    background: #3478f6;
+    color: #ffffff;
+    font-size: 32rpx;
+    font-weight: 700;
+    line-height: 1.4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.members-invite-dialog__share::after,
+.members-invite-dialog__cancel::after {
+    border: none;
+}
+
+.members-invite-dialog__cancel {
+    margin-top: 24rpx;
+    padding: 8rpx 0;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 28rpx;
+    font-weight: 500;
+    line-height: 1.5;
 }

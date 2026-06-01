@@ -2,13 +2,14 @@ const { store } = require('../../store/index');
 const invitationService = require('../../services/invitation-service');
 const { getErrorMessage } = require('../../utils/error-messages');
 const { DEFAULT_FONT_SCALE, normalizeFontScale, syncFontData } = require('../../utils/font-scale');
-const {
-  buildInvitationPermissionSummary,
-  buildInvitationExpiryText,
-  buildInvitationNicknameInitial,
-  buildInvitationProfileLabel,
-  buildLatestBpSummary,
-} = require('../../utils/invitation');
+const { buildInvitationNicknameInitial } = require('../../utils/invitation');
+
+const INVALID_INVITATION_CODES = new Set([
+  'INVITATION_EXPIRED',
+  'INVITATION_USED',
+  'INVITATION_REVOKED',
+  'INVITATION_NOT_FOUND',
+]);
 
 function showToast(title, duration = 1500) {
   wx.showToast({
@@ -23,22 +24,40 @@ function getCurrentFontScale() {
   return normalizeFontScale(app && app.globalData ? app.globalData.fontScale : DEFAULT_FONT_SCALE);
 }
 
+function normalizeProfileName(profile) {
+  const name = String((profile && profile.name) || '').trim();
+  return name || '家人';
+}
+
+function buildPrimaryProfileTitle(profiles) {
+  if (!Array.isArray(profiles) || profiles.length === 0) {
+    return '「家人」的血压健康';
+  }
+
+  if (profiles.length > 1) {
+    return '多位家人的健康记录';
+  }
+
+  return `「${normalizeProfileName(profiles[0])}」的血压健康`;
+}
+
 function buildInvitationDisplay(invitation) {
-  const permissionSummary = buildInvitationPermissionSummary(invitation.defaultRole);
+  const profiles = Array.isArray(invitation && invitation.profiles) ? invitation.profiles : [];
+  const primaryProfile = profiles[0] || null;
 
   return {
-    inviterNickname: invitation.inviterNickname || '家人',
-    inviterAvatarUrl: invitation.inviterAvatarUrl || '',
-    inviterInitial: buildInvitationNicknameInitial(invitation.inviterNickname, '家'),
-    profiles: (invitation.profiles || []).map((profile) => ({
-      _id: profile._id,
-      label: buildInvitationProfileLabel(profile, new Date()),
-      latestSummary: buildLatestBpSummary(profile.latestBp, new Date()),
-    })),
-    defaultRole: invitation.defaultRole,
-    message: invitation.message || '',
-    expiresAtText: buildInvitationExpiryText(invitation.expiresAt, new Date()),
-    permissionSummary,
+    inviterNickname: String((invitation && invitation.inviterNickname) || '').trim() || '家人',
+    inviterAvatarUrl: (invitation && invitation.inviterAvatarUrl) || '',
+    inviterInitial: buildInvitationNicknameInitial(
+      invitation && invitation.inviterNickname,
+      '家',
+    ),
+    primaryProfileId: primaryProfile && primaryProfile._id ? primaryProfile._id : '',
+    primaryProfileTitle: buildPrimaryProfileTitle(profiles),
+    hasMultipleProfiles: profiles.length > 1,
+    secondaryText: profiles.length > 1
+      ? '该邀请包含多个档案，接受后会一起加入。'
+      : '',
   };
 }
 
@@ -56,8 +75,6 @@ Page({
     isLoginFailed: false,
     isJoinReady: false,
     isAccepting: false,
-    acceptedProfileId: '',
-    successMessage: '',
   },
 
   onLoad(options = {}) {
@@ -92,7 +109,11 @@ Page({
   },
 
   syncFontScale() {
+    const fontScale = getCurrentFontScale();
     syncFontData.call(this);
+    this.setData({
+      fontScale,
+    });
   },
 
   syncLoginState() {
@@ -127,6 +148,7 @@ Page({
       viewState: 'loading',
       invalidCode: '',
       invalidMessage: '',
+      isAccepting: false,
     });
 
     try {
@@ -137,7 +159,10 @@ Page({
         invitationDisplay: buildInvitationDisplay(result.invitation),
       });
     } catch (error) {
-      this.setInvalidState(error.code, error.invitation || (error.result && error.result.invitation) || null);
+      this.setInvalidState(
+        error.code,
+        error.invitation || (error.result && error.result.invitation) || null,
+      );
     }
   },
 
@@ -147,7 +172,7 @@ Page({
       invitation: invitation || null,
       invitationDisplay: invitation ? buildInvitationDisplay(invitation) : null,
       invalidCode: code || 'INVITATION_NOT_FOUND',
-      invalidMessage: getErrorMessage({ code: code || 'INVITATION_NOT_FOUND' }),
+      invalidMessage: '该链接已过期或已被使用',
       isAccepting: false,
     });
   },
@@ -178,7 +203,7 @@ Page({
   },
 
   handleDecline() {
-    wx.switchTab({
+    wx.reLaunch({
       url: '/pages/data/data',
     });
   },
@@ -193,94 +218,71 @@ Page({
       return;
     }
 
-    const modalResult = await new Promise((resolve) => {
-      wx.showModal({
-        title: '确定加入吗？',
-        content: '加入后你将看到家人的健康记录。',
-        confirmText: '确定加入',
-        success: resolve,
-        fail() {
-          resolve({ confirm: false, cancel: true });
-        },
-      });
-    });
-
-    if (!modalResult || !modalResult.confirm) {
-      return;
-    }
-
     this.setData({
-      viewState: 'accepting',
       isAccepting: true,
     });
 
+    let acceptedProfileId = this.data.invitationDisplay
+      ? this.data.invitationDisplay.primaryProfileId
+      : '';
+
     try {
       const result = await invitationService.acceptInvitation(this.data.token);
-      const firstProfileId = result.relationships[0] && result.relationships[0].profileId
+      acceptedProfileId = result.relationships[0] && result.relationships[0].profileId
         ? result.relationships[0].profileId
-        : '';
-      const firstProfile = this.data.invitationDisplay && this.data.invitationDisplay.profiles[0];
-      const app = getApp();
-
-      if (app && typeof app.login === 'function') {
-        await app.login();
-      }
-
-      if (firstProfileId) {
-        store.setCurrentProfileId(firstProfileId);
-      }
-
-      this.syncLoginState();
-      this.setData({
-        viewState: 'success',
-        isAccepting: false,
-        acceptedProfileId: firstProfileId,
-        successMessage: firstProfile
-          ? `你现在可以查看${firstProfile.label.replace(/（.*$/, '')}的健康记录了`
-          : '你现在可以查看家人的健康记录了',
-      });
+        : acceptedProfileId;
     } catch (error) {
-      if (
-        error
-        && ['INVITATION_EXPIRED', 'INVITATION_USED', 'INVITATION_REVOKED', 'INVITATION_NOT_FOUND'].includes(error.code)
-      ) {
-        this.setInvalidState(error.code, error.invitation || (error.result && error.result.invitation) || null);
+      if (error && INVALID_INVITATION_CODES.has(error.code)) {
+        this.setInvalidState(
+          error.code,
+          error.invitation || (error.result && error.result.invitation) || null,
+        );
         return;
       }
 
       this.setData({
-        viewState: 'ready',
         isAccepting: false,
       });
       showToast(getErrorMessage(error));
-    }
-  },
-
-  handleCopyInviterNickname() {
-    const nickname = this.data.invitationDisplay && this.data.invitationDisplay.inviterNickname;
-    if (!nickname) {
-      showToast('邀请人信息不可用');
       return;
     }
 
-    wx.setClipboardData({
-      data: nickname,
-      success() {
-        showToast('已复制邀请人昵称');
-      },
-      fail() {
-        showToast('复制失败，请重试');
-      },
-    });
-  },
+    const app = getApp();
 
-  handleEnterView() {
-    if (this.data.acceptedProfileId) {
-      store.setCurrentProfileId(this.data.acceptedProfileId);
+    try {
+      if (app && typeof app.login === 'function') {
+        await app.login();
+      }
+
+      this.syncLoginState();
+
+      if (acceptedProfileId) {
+        if (app && typeof app.persistLastSelectedProfileId === 'function') {
+          app.persistLastSelectedProfileId(acceptedProfileId);
+        } else {
+          wx.setStorageSync('lastSelectedProfileId', acceptedProfileId);
+        }
+        store.setCurrentProfileId(acceptedProfileId);
+      }
+
+      this.setData({
+        isAccepting: false,
+      });
+
+      wx.reLaunch({
+        url: '/pages/data/data',
+      });
+    } catch (error) {
+      this.syncLoginState();
+      this.setData({
+        isAccepting: false,
+      });
+      wx.showModal({
+        title: '已接受邀请',
+        content: '已接受邀请，但同步档案列表失败。请返回首页后稍候重试，或重新打开小程序。',
+        showCancel: false,
+        confirmText: '知道了',
+      });
     }
-
-    wx.switchTab({
-      url: '/pages/data/data',
-    });
   },
 });

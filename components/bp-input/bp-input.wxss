@@ -12,7 +12,7 @@
   min-height: 156rpx;
   padding: 22rpx 18rpx 16rpx;
   border: 3rpx solid #bfdbfe;
-  border-radius: 28rpx;
+  border-radius: 16rpx;
   background: #f8fbff;
 }
 

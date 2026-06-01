@@ -1,10 +1,10 @@
 page {
-  background: #eef3fb;
+  background: #f2f2f7;
 }
 
 .profile-selector-page {
   min-height: 100vh;
-  background: #eef3fb;
+  background: #f2f2f7;
   padding-bottom: 48rpx;
 }
 
@@ -95,7 +95,7 @@ page {
 
 .profile-selector-card__current {
   padding: 4rpx 12rpx;
-  border-radius: 8rpx;
+  border-radius: 16rpx;
   background: #3478f6;
   color: #ffffff;
   font-size: 20rpx;
@@ -163,24 +163,31 @@ page {
   line-height: 1.4;
 }
 
-.profile-selector-card__status.is-danger {
-  background: #fef2f2;
-  color: #ef4444;
-}
-
-.profile-selector-card__status.is-warning {
-  background: #fff7ed;
-  color: #f97316;
-}
-
 .profile-selector-card__status.is-normal {
-  background: #f0fdf4;
-  color: #22c55e;
+  background: #f0fff4;
+  color: #34c759;
 }
 
 .profile-selector-card__status.is-low {
   background: #eff6ff;
-  color: #3b82f6;
+  color: #007aff;
+}
+
+.profile-selector-card__status.is-elevated {
+  background: #fff9eb;
+  color: #f5a623;
+}
+
+.profile-selector-card__status.is-stage1 {
+  background: #fff4eb;
+  color: #ff9500;
+}
+
+.profile-selector-card__status.is-stage2,
+.profile-selector-card__status.is-stage3,
+.profile-selector-card__status.is-danger {
+  background: #fff0f0;
+  color: #ff3b30;
 }
 
 .profile-selector-card__empty {

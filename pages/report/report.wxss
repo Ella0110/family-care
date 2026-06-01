@@ -1,7 +1,7 @@
 .report-page {
   padding: 32rpx 28rpx 240rpx;
   box-sizing: border-box;
-  background: #eef3fb;
+  background: #f2f2f7;
 }
 
 .report-tabs,
@@ -151,7 +151,7 @@
 }
 
 .report-profile__value--emergency {
-  color: #ef4444;
+  color: #ff3b30;
 }
 
 .privacy-target {
@@ -159,37 +159,37 @@
 }
 
 .report-alert {
-  border-left: 6rpx solid #ef4444;
-  border-radius: 24rpx;
-  background: #fef2f2;
+  border-left: 6rpx solid #ff3b30;
+  border-radius: 32rpx;
+  background: #fff0f0;
   padding: 28rpx 28rpx 28rpx 24rpx;
 }
 
 .report-alert--warning {
-  border-left-color: #f97316;
-  background: #fff7ed;
+  border-left-color: #ff9500;
+  background: #fff8f0;
 }
 
 .report-alert__title {
-  color: #991b1b;
+  color: #ff3b30;
   font-size: 32rpx;
   font-weight: 800;
   line-height: 1.4;
 }
 
 .report-alert--warning .report-alert__title {
-  color: #9a3412;
+  color: #ff9500;
 }
 
 .report-alert__text {
   margin-top: 10rpx;
-  color: #7f1d1d;
+  color: #ff3b30;
   font-size: 26rpx;
   line-height: 1.7;
 }
 
 .report-alert--warning .report-alert__text {
-  color: #9a3412;
+  color: #ff9500;
 }
 
 .report-summary {
@@ -203,9 +203,8 @@
   min-height: 180rpx;
   padding: 28rpx 24rpx;
   box-sizing: border-box;
-  border-radius: 24rpx;
+  border-radius: 32rpx;
   background: #f8fafc;
-  border: 1rpx solid #e2e8f0;
 }
 
 .report-summary__label {
@@ -223,11 +222,11 @@
 }
 
 .report-summary__value--danger {
-  color: #b42318;
+  color: #ff3b30;
 }
 
 .report-summary__value--warning {
-  color: #c2410c;
+  color: #ff9500;
 }
 
 .report-summary__unit {
@@ -287,9 +286,45 @@
 
 .report-alert-list__tags {
   margin-top: 8rpx;
-  color: #b42318;
+  display: inline-flex;
+  align-items: center;
+  padding: 8rpx 16rpx;
+  border-radius: 16rpx;
   font-size: 24rpx;
+  font-weight: 600;
   line-height: 1.6;
+}
+
+.report-alert-list__tags--low {
+  background: #eff6ff;
+  color: #007aff;
+}
+
+.report-alert-list__tags--normal {
+  background: #f0fff4;
+  color: #34c759;
+}
+
+.report-alert-list__tags--elevated {
+  background: #fff9eb;
+  color: #f5a623;
+}
+
+.report-alert-list__tags--stage1 {
+  background: #fff4eb;
+  color: #ff9500;
+}
+
+.report-alert-list__tags--stage2,
+.report-alert-list__tags--stage3,
+.report-alert-list__tags--danger {
+  background: #fff0f0;
+  color: #ff3b30;
+}
+
+.report-alert-list__tags--warning {
+  background: #fff4eb;
+  color: #ff9500;
 }
 
 .report-alert-list__bp {

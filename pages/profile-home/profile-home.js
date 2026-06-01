@@ -4,6 +4,7 @@ const recordService = require("../../services/record-service");
 const medicationService = require("../../services/medication-service");
 const memberService = require("../../services/member-service");
 const profileService = require("../../services/profile-service");
+const invitationService = require("../../services/invitation-service");
 const { getErrorMessage } = require("../../utils/error-messages");
 const {
     getBPStatusDisplay,
@@ -138,9 +139,7 @@ function buildLatestRecordDisplay(record, profile) {
         bpText: `${payload.systolic} / ${payload.diastolic} mmHg`,
         heartRateText: payload.heartRate ? `${payload.heartRate} bpm` : "--",
         measuredAtText: formatMeasuredAt(record.measuredAt),
-        statusText: status.detail
-            ? `血压${status.label}${status.detail}`
-            : `血压${status.label}`,
+        statusText: status.summaryText,
         statusClassName: status.className,
         isAbnormal: status.level !== "normal",
     };
@@ -234,6 +233,12 @@ function buildMemberItems(members, currentUserId) {
         });
 }
 
+function buildInviteShareTitle(inviterNickname, profileName) {
+    const inviter = String(inviterNickname || "").trim() || "家人";
+    const profile = String(profileName || "").trim() || "家人";
+    return `${inviter}邀请你一起关注${profile}的血压健康`;
+}
+
 Page({
     data: {
         fontScale: DEFAULT_FONT_SCALE,
@@ -269,6 +274,9 @@ Page({
         showMemberPanel: false,
         selectedMember: null,
         showEditPanel: false,
+        showInviteDialog: false,
+        pendingInvitationToken: "",
+        isPreparingInvitation: false,
         fontScaleLabel: getFontScaleLabel(DEFAULT_FONT_SCALE),
         selectedFontScale: DEFAULT_FONT_SCALE,
         fontScaleOptions: FONT_SCALE_OPTIONS.map((value) => ({
@@ -426,6 +434,10 @@ Page({
     },
 
     onUnload() {
+        if (this.inviteDialogCloseTimer) {
+            clearTimeout(this.inviteDialogCloseTimer);
+            this.inviteDialogCloseTimer = null;
+        }
         this.setTabBarVisible(true);
         if (this._unsubscribe) {
             this._unsubscribe();
@@ -571,9 +583,20 @@ Page({
         )
             ? overrides.showEditPanel
             : this.data.showEditPanel;
+        const showInviteDialog = Object.prototype.hasOwnProperty.call(
+            overrides,
+            "showInviteDialog",
+        )
+            ? overrides.showInviteDialog
+            : this.data.showInviteDialog;
 
         this.setTabBarVisible(
-            !(showProfileSwitcher || showMemberPanel || showEditPanel),
+            !(
+                showProfileSwitcher ||
+                showMemberPanel ||
+                showEditPanel ||
+                showInviteDialog
+            ),
         );
     },
 
@@ -1045,9 +1068,132 @@ Page({
             return;
         }
 
-        wx.navigateTo({
-            url: `/pages/invite-create/invite-create?profileId=${this.data.currentProfileId}`,
+        if (this.data.isPreparingInvitation) {
+            return;
+        }
+
+        const run = async () => {
+            this.setData({
+                isPreparingInvitation: true,
+            });
+
+            wx.showLoading({
+                title: "",
+                mask: true,
+            });
+
+            try {
+                const result = await invitationService.createInvitation({
+                    profileIds: [this.data.currentProfileId],
+                    defaultRole: "viewer",
+                });
+                const token =
+                    result &&
+                    result.invitation &&
+                    typeof result.invitation.token === "string"
+                        ? result.invitation.token
+                        : "";
+
+                if (!token) {
+                    throw new Error("Missing invitation token");
+                }
+
+                this.setData({
+                    showInviteDialog: true,
+                    pendingInvitationToken: token,
+                    isPreparingInvitation: false,
+                });
+                this.syncTabBarVisibility({
+                    showInviteDialog: true,
+                });
+            } catch (error) {
+                this.setData({
+                    isPreparingInvitation: false,
+                });
+                wx.showToast({
+                    title: getErrorMessage(error),
+                    icon: "none",
+                });
+            } finally {
+                wx.hideLoading();
+            }
+        };
+
+        run();
+    },
+
+    handleCloseInviteDialog() {
+        if (!this.data.showInviteDialog && !this.data.pendingInvitationToken) {
+            return;
+        }
+
+        if (this.inviteDialogCloseTimer) {
+            clearTimeout(this.inviteDialogCloseTimer);
+            this.inviteDialogCloseTimer = null;
+        }
+
+        this.setData({
+            showInviteDialog: false,
+            pendingInvitationToken: "",
         });
+        this.syncTabBarVisibility({
+            showInviteDialog: false,
+        });
+    },
+
+    hideInviteDialogAfterShareTap() {
+        if (!this.data.showInviteDialog) {
+            return;
+        }
+
+        this.setData({
+            showInviteDialog: false,
+        });
+        this.syncTabBarVisibility({
+            showInviteDialog: false,
+        });
+    },
+
+    handleInviteShareTap() {
+        if (!this.data.pendingInvitationToken) {
+            return;
+        }
+
+        if (this.inviteDialogCloseTimer) {
+            clearTimeout(this.inviteDialogCloseTimer);
+        }
+
+        this.inviteDialogCloseTimer = setTimeout(() => {
+            this.inviteDialogCloseTimer = null;
+            this.hideInviteDialogAfterShareTap();
+        }, 0);
+    },
+
+    noop() {},
+
+    onShareAppMessage(options = {}) {
+        const target =
+            options && options.target && options.target.dataset
+                ? options.target
+                : null;
+        const dataset = target ? target.dataset || {} : {};
+
+        if (
+            options.from !== "button" ||
+            dataset.shareType !== "invite" ||
+            !this.data.pendingInvitationToken
+        ) {
+            return {};
+        }
+
+        const state = store.getState();
+        const user = state.user || {};
+
+        return {
+            title: buildInviteShareTitle(user.nickname, this.data.profileName),
+            path: `/pages/invite-accept/invite-accept?token=${encodeURIComponent(this.data.pendingInvitationToken)}`,
+            imageUrl: "/assets/tab-profile-active.png",
+        };
     },
 
     handleOpenReport() {

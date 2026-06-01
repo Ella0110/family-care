@@ -24,8 +24,8 @@ function main() {
 
   assert.match(
     wxss,
-    /\.records-export-preview[\s\S]*background:\s*#eef3fb;/i,
-    'export preview shell should use the shared light-blue background',
+    /\.records-export-preview[\s\S]*background:\s*#f2f2f7;/i,
+    'export preview shell should use the shared neutral page background',
   );
 
   assert.match(

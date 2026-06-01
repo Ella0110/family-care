@@ -72,8 +72,8 @@ function verifyMedicationListPage() {
   );
   assert.match(
     wxss,
-    /\.medication-list-page[\s\S]*background:\s*#eef3fb;/i,
-    'medication list page should align to the shared light-blue page background',
+    /\.medication-list-page[\s\S]*background:\s*#f2f2f7;/i,
+    'medication list page should align to the shared neutral page background',
   );
 }
 
@@ -132,8 +132,8 @@ function verifyMedicationDetailPage() {
   );
   assert.match(
     wxss,
-    /\.medication-detail-page[\s\S]*background:\s*#eef3fb;/i,
-    'medication detail page should align to the shared light-blue background',
+    /\.medication-detail-page[\s\S]*background:\s*#f2f2f7;/i,
+    'medication detail page should align to the shared neutral page background',
   );
 }
 

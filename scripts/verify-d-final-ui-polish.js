@@ -24,7 +24,7 @@ function verifyD1EmptyGuideGlassCard() {
 
   assert.match(
     wxss,
-    /\.profile-empty-guide__card[\s\S]*border-radius:\s*40rpx;/i,
+    /\.profile-empty-guide__card[\s\S]*border-radius:\s*32rpx;/i,
     'empty-profile guide should use the shared glass-card radius',
   );
 
@@ -34,10 +34,10 @@ function verifyD1EmptyGuideGlassCard() {
     'empty-profile guide should use the shared glass-card shadow',
   );
 
-  assert.match(
+  assert.doesNotMatch(
     wxss,
-    /\.profile-empty-guide__card[\s\S]*border:\s*1rpx solid rgba\(255,\s*255,\s*255,\s*0\.3\);/i,
-    'empty-profile guide should use the shared glass-card border',
+    /border:\s*1rpx solid rgba\(255,\s*255,\s*255,\s*0\.3\);/i,
+    'empty-profile guide should remove the extra glass-card border in the final style pass',
   );
 
   assert.match(

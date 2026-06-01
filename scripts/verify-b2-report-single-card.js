@@ -68,7 +68,7 @@ assert.match(
 
 assert.match(
   wxss,
-  /\.report-alert\s*\{[\s\S]*border-left:\s*6rpx solid #ef4444;/i,
+  /\.report-alert\s*\{[\s\S]*border-left:\s*6rpx solid #ff3b30;/i,
   'alert block should use the left-border warning style',
 );
 
