@@ -333,3 +333,11 @@
   color: #3478f6;
   border: 2rpx solid #3478f6;
 }
+
+.invite-share-preload {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}

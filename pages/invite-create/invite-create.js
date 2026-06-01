@@ -433,6 +433,7 @@ Page({
     return {
       title: this.data.shareCardTitle || '邀请你查看家人的健康记录',
       path: `/pages/invite-accept/invite-accept?token=${safeToken}`,
+      imageUrl: '/assets/images/share-card.png',
     };
   },
 });

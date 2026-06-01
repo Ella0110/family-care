@@ -149,4 +149,5 @@
       复制邀请链接
     </button>
   </view>
+  <image class="invite-share-preload" src="/assets/images/share-card.png" mode="aspectFill" />
 </view>

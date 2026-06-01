@@ -137,7 +137,13 @@ function verifyInviteAcceptCentering() {
 
 function verifyShareImage() {
   const homeJs = read('pages/profile-home/profile-home.js');
-  assert.match(homeJs, /imageUrl:\s*['"]\/assets\/tab-profile-active\.png['"]/, 'invite share config should use a static image instead of a page screenshot');
+  const membersJs = read('pages/profile-members/profile-members.js');
+  const inviteCreateJs = read('pages/invite-create/invite-create.js');
+  const inviteCreateWxml = read('pages/invite-create/invite-create.wxml');
+  assert.match(homeJs, /imageUrl:\s*['"]\/assets\/images\/share-card\.png['"]/, 'profile-home invite share config should use the provided custom share image');
+  assert.match(membersJs, /imageUrl:\s*['"]\/assets\/images\/share-card\.png['"]/, 'profile-members invite share config should use the provided custom share image');
+  assert.match(inviteCreateJs, /imageUrl:\s*['"]\/assets\/images\/share-card\.png['"]/, 'invite-create share config should use the provided custom share image');
+  assert.match(inviteCreateWxml, /src="\/assets\/images\/share-card\.png"/, 'invite-create should reference the custom share image in markup so it is packaged for preview uploads');
 }
 
 verifyBackgrounds();

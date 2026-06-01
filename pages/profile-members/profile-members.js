@@ -369,7 +369,7 @@ Page({
     return {
       title: buildInviteShareTitle(user.nickname, this.data.profileName),
       path: `/pages/invite-accept/invite-accept?token=${encodeURIComponent(this.data.pendingInvitationToken)}`,
-      imageUrl: '/assets/tab-profile-active.png',
+      imageUrl: '/assets/images/share-card.png',
     };
   },
 
