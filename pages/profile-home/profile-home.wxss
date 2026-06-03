@@ -537,6 +537,28 @@
     text-align: center;
 }
 
+.profile-home__invite-input {
+    width: 100%;
+    min-height: 96rpx;
+    margin-top: 32rpx;
+    padding: 20rpx 24rpx;
+    border-radius: 16rpx;
+    border: 2rpx solid #e2e8f0;
+    background: #f8fafc;
+    color: #0f172a;
+    line-height: 1.5;
+    box-sizing: border-box;
+}
+
+.profile-home__invite-name {
+    margin-top: 20rpx;
+    color: #0f172a;
+    font-size: 28rpx;
+    font-weight: 600;
+    line-height: 1.5;
+    text-align: center;
+}
+
 .profile-home__invite-share {
     margin-top: 48rpx;
     width: 100%;

@@ -1,9 +1,14 @@
 const { store } = require('../../store/index');
+const userService = require('../../services/user-service');
 const memberService = require('../../services/member-service');
 const invitationService = require('../../services/invitation-service');
 const { getErrorMessage } = require('../../utils/error-messages');
 const { DEFAULT_FONT_SCALE, normalizeFontScale, syncFontData } = require('../../utils/font-scale');
 const { getCurrentRelationship, canInvite, canManage, isOwner } = require('../../utils/permission-helpers');
+const {
+  normalizeGrantedUserProfile,
+  isAnonymousInvitationNickname,
+} = require('../../utils/invitation');
 
 const STALE_THRESHOLD = 30 * 1000;
 
@@ -100,6 +105,23 @@ function buildInviteShareTitle(inviterNickname, profileName) {
   return `${inviter}邀请你一起关注${profile}的血压健康`;
 }
 
+function trimText(value) {
+  return String(value || '').trim();
+}
+
+function isValidInviteNickname(value) {
+  const nickname = trimText(value);
+  return Boolean(nickname) && !isAnonymousInvitationNickname(nickname);
+}
+
+function getInviteNicknameFromUser(user) {
+  const normalized = normalizeGrantedUserProfile({
+    nickname: user && user.nickname,
+    avatarUrl: user && user.avatarUrl,
+  });
+  return normalized ? normalized.nickname : '';
+}
+
 Page({
   data: {
     fontScale: DEFAULT_FONT_SCALE,
@@ -122,6 +144,10 @@ Page({
     selectedNewOwnerUserId: '',
     showInviteDialog: false,
     pendingInvitationToken: '',
+    showNicknameInput: false,
+    inviteNickname: '',
+    inviteNicknameDraft: '',
+    isSavingInviteNickname: false,
     isPreparingInvitation: false,
     isSubmitting: false,
   },
@@ -272,6 +298,22 @@ Page({
       return;
     }
 
+    const currentUser = store.getState().user || {};
+    const inviteNickname = getInviteNicknameFromUser(currentUser);
+
+    if (!isValidInviteNickname(inviteNickname)) {
+      this.setData({
+        showInviteDialog: true,
+        pendingInvitationToken: '',
+        showNicknameInput: true,
+        inviteNickname: '',
+        inviteNicknameDraft: '',
+        isSavingInviteNickname: false,
+        isPreparingInvitation: false,
+      });
+      return;
+    }
+
     this.setData({ isPreparingInvitation: true });
     wx.showLoading({
       title: '',
@@ -294,6 +336,10 @@ Page({
       this.setData({
         showInviteDialog: true,
         pendingInvitationToken: token,
+        showNicknameInput: false,
+        inviteNickname,
+        inviteNicknameDraft: inviteNickname,
+        isSavingInviteNickname: false,
         isPreparingInvitation: false,
       });
     } catch (error) {
@@ -320,7 +366,86 @@ Page({
     this.setData({
       showInviteDialog: false,
       pendingInvitationToken: '',
+      showNicknameInput: false,
+      inviteNickname: '',
+      inviteNicknameDraft: '',
+      isSavingInviteNickname: false,
     });
+  },
+
+  handleInviteNicknameInput(event) {
+    this.setData({
+      inviteNicknameDraft: trimText(event.detail.value).slice(0, 20),
+    });
+  },
+
+  async handleConfirmInviteNickname() {
+    if (this.data.isSavingInviteNickname) {
+      return;
+    }
+
+    const inviteNickname = trimText(this.data.inviteNicknameDraft);
+    if (!isValidInviteNickname(inviteNickname)) {
+      wx.showToast({
+        title: '请输入有效昵称',
+        icon: 'none',
+      });
+      return;
+    }
+
+    this.setData({
+      isSavingInviteNickname: true,
+    });
+
+    try {
+      const result = await userService.updateProfile({
+        nickname: inviteNickname,
+      });
+      const nextUser = Object.assign(
+        {},
+        store.getState().user || {},
+        result && result.user ? result.user : {},
+        {
+          nickname: inviteNickname,
+        },
+      );
+      store.setState({
+        user: nextUser,
+      });
+
+      const app = getApp();
+      if (app && typeof app.syncInviterProfileState === 'function') {
+        app.syncInviterProfileState(nextUser);
+      }
+
+      const invitationResult = await invitationService.createInvitation({
+        profileIds: [this.data.profileId],
+        defaultRole: 'viewer',
+      });
+      const token = invitationResult && invitationResult.invitation && typeof invitationResult.invitation.token === 'string'
+        ? invitationResult.invitation.token
+        : '';
+
+      if (!token) {
+        throw new Error('Missing invitation token');
+      }
+
+      this.setData({
+        showNicknameInput: false,
+        pendingInvitationToken: token,
+        inviteNickname,
+        inviteNicknameDraft: inviteNickname,
+        isSavingInviteNickname: false,
+      });
+    } catch (error) {
+      this.setData({
+        isSavingInviteNickname: false,
+      });
+      wx.showToast({
+        title: '保存失败，请重试',
+        icon: 'none',
+      });
+    }
   },
 
   hideInviteDialogAfterShareTap() {
@@ -334,7 +459,7 @@ Page({
   },
 
   handleInviteShareTap() {
-    if (!this.data.pendingInvitationToken) {
+    if (this.data.showNicknameInput || !this.data.pendingInvitationToken) {
       return;
     }
 

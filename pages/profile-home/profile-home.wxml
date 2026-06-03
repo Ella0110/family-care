@@ -175,18 +175,46 @@
       <view class="profile-home__invite-title" style="font-size:{{fs.body}}">
         邀请家人关注「{{profileName}}」的健康
       </view>
-      <view class="profile-home__invite-text" style="font-size:{{fs.secondary}}">
-        对方将可以查看 {{profileName}} 的血压和用药情况，但不能修改数据。
-      </view>
-      <button
-        class="profile-home__invite-share"
-        open-type="share"
-        bindtap="handleInviteShareTap"
-        data-share-type="invite"
-        style="font-size:{{fs.button}}"
-      >
-        分享给家人
-      </button>
+      <block wx:if="{{showNicknameInput}}">
+        <view class="profile-home__invite-text" style="font-size:{{fs.secondary}}">
+          请先设置你的昵称，让家人知道是谁邀请的
+        </view>
+        <input
+          class="profile-home__invite-input"
+          type="nickname"
+          maxlength="20"
+          placeholder="你的昵称"
+          value="{{inviteNicknameDraft}}"
+          bindinput="handleInviteNicknameInput"
+          style="font-size:{{fs.body}}"
+        />
+        <button
+          class="profile-home__invite-share"
+          bindtap="handleConfirmInviteNickname"
+          loading="{{isSavingInviteNickname}}"
+          disabled="{{isSavingInviteNickname}}"
+          style="font-size:{{fs.button}}"
+        >
+          确认并分享
+        </button>
+      </block>
+      <block wx:else>
+        <view class="profile-home__invite-text" style="font-size:{{fs.secondary}}">
+          对方将可以查看 {{profileName}} 的血压和用药情况，但不能修改数据。
+        </view>
+        <view class="profile-home__invite-name" style="font-size:{{fs.secondary}}">
+          以 {{inviteNickname}} 的名义邀请
+        </view>
+        <button
+          class="profile-home__invite-share"
+          open-type="share"
+          bindtap="handleInviteShareTap"
+          data-share-type="invite"
+          style="font-size:{{fs.button}}"
+        >
+          分享给家人
+        </button>
+      </block>
       <button
         class="profile-home__invite-cancel"
         bindtap="handleCloseInviteDialog"

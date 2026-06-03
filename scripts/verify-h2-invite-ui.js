@@ -30,9 +30,75 @@ function verifyProfileHomeInviteDialog() {
   );
 
   assert.match(
+    wxml,
+    /wx:if="\{\{showNicknameInput\}\}"[\s\S]*请先设置你的昵称，让家人知道是谁邀请的/,
+    'profile-home invite dialog should show the nickname setup state when nickname is missing',
+  );
+
+  assert.match(
+    wxml,
+    /type="nickname"[\s\S]*placeholder="你的昵称"/,
+    'profile-home invite dialog should use a nickname input inside the dialog',
+  );
+
+  assert.match(
+    wxml,
+    /确认并分享/,
+    'profile-home invite dialog should include the confirm-and-share CTA',
+  );
+
+  assert.match(
+    wxml,
+    /wx:else[\s\S]*以 \{\{inviteNickname\}\} 的名义邀请/,
+    'profile-home invite dialog should show the ready-to-share state with the saved nickname',
+  );
+
+  assert.match(
     js,
     /await invitationService\.createInvitation\(\{[\s\S]*profileIds:\s*\[this\.data\.currentProfileId\][\s\S]*defaultRole:\s*["']viewer["']/,
     'profile-home should create a viewer invitation for the current profile',
+  );
+
+  assert.match(
+    js,
+    /if\s*\(!isValidInviteNickname\(inviteNickname\)\)\s*\{[\s\S]*showInviteDialog:\s*true[\s\S]*showNicknameInput:\s*true[\s\S]*pendingInvitationToken:\s*["']["']/,
+    'profile-home should open the nickname gate UI directly instead of requesting an invite when nickname is missing',
+  );
+
+  assert.match(
+    js,
+    /showNicknameInput:\s*false[\s\S]*inviteNickname:\s*["'][^"']*["'][\s\S]*inviteNicknameDraft:\s*["'][^"']*["'][\s\S]*isSavingInviteNickname:\s*false/,
+    'profile-home should track nickname gating state in dialog data',
+  );
+
+  assert.match(
+    js,
+    /function isValidInviteNickname\(/,
+    'profile-home should share invite nickname validation with the dialog flow',
+  );
+
+  assert.match(
+    js,
+    /if\s*\(!isValidInviteNickname\(inviteNickname\)\)\s*\{[\s\S]*showInviteDialog:\s*true[\s\S]*showNicknameInput:\s*true[\s\S]*return;[\s\S]*await invitationService\.createInvitation/,
+    'profile-home should gate nickname-less users into the dialog UI before creating an invitation',
+  );
+
+  assert.match(
+    js,
+    /await userService\.updateProfile\(\{[\s\S]*nickname:/,
+    'profile-home should persist a newly entered invite nickname through updateUserProfile',
+  );
+
+  assert.match(
+    js,
+    /await invitationService\.createInvitation\(\{[\s\S]*profileIds:\s*\[this\.data\.currentProfileId\][\s\S]*defaultRole:\s*["']viewer["']/,
+    'profile-home should prepare an invitation after nickname is available',
+  );
+
+  assert.match(
+    js,
+    /store\.setState\(\{[\s\S]*user:/,
+    'profile-home should update the local store after saving the invite nickname',
   );
 
   assert.match(
@@ -128,6 +194,7 @@ function verifyInviteAccept() {
 
 function verifyProfileMembersInviteEntry() {
   const js = read('pages/profile-members/profile-members.js');
+  const wxml = read('pages/profile-members/profile-members.wxml');
 
   assert.doesNotMatch(
     js,
@@ -139,6 +206,48 @@ function verifyProfileMembersInviteEntry() {
     js,
     /handleInviteShareTap|open-type="share"|onShareAppMessage|showInviteDialog|createInvitation/,
     'profile-members should handle invite sharing without the old page jump',
+  );
+
+  assert.match(
+    wxml,
+    /wx:if="\{\{showNicknameInput\}\}"[\s\S]*请先设置你的昵称，让家人知道是谁邀请的/,
+    'profile-members invite dialog should show the nickname setup state when nickname is missing',
+  );
+
+  assert.match(
+    wxml,
+    /type="nickname"[\s\S]*placeholder="你的昵称"/,
+    'profile-members invite dialog should use a nickname input inside the dialog',
+  );
+
+  assert.match(
+    wxml,
+    /确认并分享[\s\S]*wx:else[\s\S]*以 \{\{inviteNickname\}\} 的名义邀请/,
+    'profile-members invite dialog should support both nickname setup and ready-to-share states',
+  );
+
+  assert.match(
+    js,
+    /showNicknameInput:\s*false[\s\S]*inviteNickname:\s*["'][^"']*["'][\s\S]*inviteNicknameDraft:\s*["'][^"']*["'][\s\S]*isSavingInviteNickname:\s*false/,
+    'profile-members should track nickname gating state in dialog data',
+  );
+
+  assert.match(
+    js,
+    /if\s*\(!isValidInviteNickname\(inviteNickname\)\)\s*\{[\s\S]*showInviteDialog:\s*true[\s\S]*showNicknameInput:\s*true[\s\S]*return;[\s\S]*await invitationService\.createInvitation/,
+    'profile-members should gate nickname-less users into the dialog UI before creating an invitation',
+  );
+
+  assert.match(
+    js,
+    /if\s*\(!isValidInviteNickname\(inviteNickname\)\)\s*\{[\s\S]*showInviteDialog:\s*true[\s\S]*showNicknameInput:\s*true[\s\S]*pendingInvitationToken:\s*["']["']/,
+    'profile-members should open the nickname gate UI directly instead of requesting an invite when nickname is missing',
+  );
+
+  assert.match(
+    js,
+    /await userService\.updateProfile\(\{[\s\S]*nickname:/,
+    'profile-members should persist a newly entered invite nickname through updateUserProfile',
   );
 
   assert.match(
