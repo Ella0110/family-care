@@ -12,6 +12,7 @@ function createLoginHandler(deps = {}) {
   const cloudSdk = deps.cloud || cloud;
   const auth = deps.auth || authModule;
   const now = deps.now || (() => new Date());
+  const _ = database.command;
 
   return async function loginHandler(event, context) {
     void event;
@@ -75,19 +76,38 @@ function createLoginHandler(deps = {}) {
       .get();
 
     const relationships = Array.isArray(relationshipsRes.data) ? relationshipsRes.data : [];
-    const joinedRelationships = [];
+    const profileIds = relationships.map((relationship) => relationship.profileId).filter(Boolean);
+    let joinedRelationships = [];
 
-    for (const relationship of relationships) {
-      const profile = await auth.getActiveProfile(relationship.profileId);
-      if (!profile) {
-        continue;
-      }
+    if (profileIds.length > 0) {
+      const profilesRes = await database
+        .collection(COLLECTIONS.PROFILES)
+        .where({
+          _id: _.in(profileIds),
+          deletedAt: null,
+        })
+        .limit(500)
+        .get();
 
-      joinedRelationships.push(
-        Object.assign({}, relationship, {
-          profile,
-        }),
+      const profiles = Array.isArray(profilesRes.data) ? profilesRes.data : [];
+      const profileMap = new Map(
+        profiles
+          .filter((profile) => profile && profile._id)
+          .map((profile) => [profile._id, profile]),
       );
+
+      joinedRelationships = relationships
+        .map((relationship) => {
+          const profile = profileMap.get(relationship.profileId);
+          if (!profile) {
+            return null;
+          }
+
+          return Object.assign({}, relationship, {
+            profile,
+          });
+        })
+        .filter(Boolean);
     }
 
     return {

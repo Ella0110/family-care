@@ -47,6 +47,7 @@ function createCommand() {
     gte: (value) => wrap('gte', value),
     lte: (value) => wrap('lte', value),
     and: (value) => wrap('and', value),
+    in: (value) => wrap('in', value),
   };
 }
 
@@ -65,6 +66,10 @@ function matchesOperator(operatorObject, actualValue) {
 
   if (operatorObject.__op === 'and') {
     return operatorObject.value.every((condition) => matchesOperator(condition, actualValue));
+  }
+
+  if (operatorObject.__op === 'in') {
+    return Array.isArray(operatorObject.value) && operatorObject.value.includes(actualValue);
   }
 
   return false;

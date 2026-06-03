@@ -113,7 +113,7 @@ function createSaveRecordHandler(deps = {}) {
             templateId: SUBSCRIBE_ALERT_TEMPLATE_ID,
             page: 'pages/data/data',
             data: templateData,
-            miniprogramState: 'developer', // TODO: 上线前切换为 formal。
+            miniprogramState: 'formal',
           }),
         ),
       );
