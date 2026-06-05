@@ -471,6 +471,42 @@ App({
     }
   },
 
+  async resumeLaunchRouting() {
+    if (this.launchRoutingPromise) {
+      return this.launchRoutingPromise;
+    }
+
+    this.launchRoutingPromise = (async () => {
+      const currentRoute = getCurrentRoute();
+      if (currentRoute && currentRoute !== LAUNCH_ROUTE) {
+        return false;
+      }
+
+      try {
+        let nextState = store.getState();
+        if (!(this.globalData.loginReady && !this.globalData.loginError && nextState.user)) {
+          nextState = await this.login();
+        }
+
+        const wentToSelector = this.routeToProfileSelectorIfNeeded(nextState);
+        const activeRoute = getCurrentRoute();
+        if (!wentToSelector && (!activeRoute || activeRoute === LAUNCH_ROUTE)) {
+          wx.switchTab({
+            url: '/pages/data/data',
+          });
+        }
+        return true;
+      } catch (error) {
+        console.warn('Launch routing failed.', error);
+        return false;
+      } finally {
+        this.launchRoutingPromise = null;
+      }
+    })();
+
+    return this.launchRoutingPromise;
+  },
+
   async login(options = {}) {
     const preserveCurrentProfileId = options && options.preserveCurrentProfileId === true;
     try {
@@ -555,19 +591,6 @@ App({
       return;
     }
 
-    try {
-      const nextState = await this.login();
-      const wentToSelector = this.routeToProfileSelectorIfNeeded(nextState);
-      if (!wentToSelector) {
-        const currentRoute = getCurrentRoute();
-        if (currentRoute === LAUNCH_ROUTE) {
-          wx.switchTab({
-            url: '/pages/data/data',
-          });
-        }
-      }
-    } catch (error) {
-      console.warn('Initial login failed.', error);
-    }
+    await this.resumeLaunchRouting();
   },
 });

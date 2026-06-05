@@ -1,7 +1,6 @@
 const { store } = require('../../store/index');
 const invitationService = require('../../services/invitation-service');
 const { getErrorMessage } = require('../../utils/error-messages');
-const { DEFAULT_FONT_SCALE, normalizeFontScale, syncFontData } = require('../../utils/font-scale');
 const { buildInvitationNicknameInitial } = require('../../utils/invitation');
 
 const INVALID_INVITATION_CODES = new Set([
@@ -17,11 +16,6 @@ function showToast(title, duration = 1500) {
     icon: 'none',
     duration,
   });
-}
-
-function getCurrentFontScale() {
-  const app = getApp();
-  return normalizeFontScale(app && app.globalData ? app.globalData.fontScale : DEFAULT_FONT_SCALE);
 }
 
 function normalizeProfileName(profile) {
@@ -63,8 +57,6 @@ function buildInvitationDisplay(invitation) {
 
 Page({
   data: {
-    fontScale: DEFAULT_FONT_SCALE,
-    fs: {},
     token: '',
     viewState: 'loading',
     invitation: null,
@@ -78,7 +70,9 @@ Page({
   },
 
   onLoad(options = {}) {
-    this.syncFontScale();
+    this.isPageActive = true;
+    this.loadInvitationRequestId = 0;
+    this.acceptInvitationRequestId = 0;
     this.lastLoginStateSignature = '';
     this.syncLoginState();
     this.unsubscribeStore = store.subscribe(() => {
@@ -97,23 +91,24 @@ Page({
   },
 
   onShow() {
-    this.syncFontScale();
+    this.isPageActive = true;
     this.syncLoginState();
   },
 
+  onHide() {
+    this.isPageActive = false;
+    this.loadInvitationRequestId += 1;
+    this.acceptInvitationRequestId += 1;
+  },
+
   onUnload() {
+    this.isPageActive = false;
+    this.loadInvitationRequestId += 1;
+    this.acceptInvitationRequestId += 1;
     if (this.unsubscribeStore) {
       this.unsubscribeStore();
       this.unsubscribeStore = null;
     }
-  },
-
-  syncFontScale() {
-    const fontScale = getCurrentFontScale();
-    syncFontData.call(this);
-    this.setData({
-      fontScale,
-    });
   },
 
   syncLoginState() {
@@ -144,6 +139,9 @@ Page({
   },
 
   async loadInvitation(token) {
+    this.loadInvitationRequestId += 1;
+    const requestId = this.loadInvitationRequestId;
+
     this.setData({
       viewState: 'loading',
       invalidCode: '',
@@ -153,12 +151,18 @@ Page({
 
     try {
       const result = await invitationService.getInvitationInfo(token);
+      if (!this.isPageActive || requestId !== this.loadInvitationRequestId) {
+        return;
+      }
       this.setData({
         viewState: 'ready',
         invitation: result.invitation,
         invitationDisplay: buildInvitationDisplay(result.invitation),
       });
     } catch (error) {
+      if (!this.isPageActive || requestId !== this.loadInvitationRequestId) {
+        return;
+      }
       this.setInvalidState(
         error.code,
         error.invitation || (error.result && error.result.invitation) || null,
@@ -186,8 +190,14 @@ Page({
     if (app && typeof app.login === 'function') {
       try {
         await app.login();
+        if (!this.isPageActive) {
+          return false;
+        }
         this.syncLoginState();
       } catch (error) {
+        if (!this.isPageActive) {
+          return false;
+        }
         this.syncLoginState();
         showToast(getErrorMessage(error));
         return false;
@@ -213,8 +223,10 @@ Page({
       return;
     }
 
+    this.acceptInvitationRequestId += 1;
+    const requestId = this.acceptInvitationRequestId;
     const canAccept = await this.ensureLoginReady();
-    if (!canAccept) {
+    if (!canAccept || !this.isPageActive || requestId !== this.acceptInvitationRequestId) {
       return;
     }
 
@@ -228,10 +240,16 @@ Page({
 
     try {
       const result = await invitationService.acceptInvitation(this.data.token);
+      if (!this.isPageActive || requestId !== this.acceptInvitationRequestId) {
+        return;
+      }
       acceptedProfileId = result.relationships[0] && result.relationships[0].profileId
         ? result.relationships[0].profileId
         : acceptedProfileId;
     } catch (error) {
+      if (!this.isPageActive || requestId !== this.acceptInvitationRequestId) {
+        return;
+      }
       if (error && INVALID_INVITATION_CODES.has(error.code)) {
         this.setInvalidState(
           error.code,
@@ -253,6 +271,9 @@ Page({
       if (app && typeof app.login === 'function') {
         await app.login();
       }
+      if (!this.isPageActive || requestId !== this.acceptInvitationRequestId) {
+        return;
+      }
 
       this.syncLoginState();
 
@@ -273,6 +294,9 @@ Page({
         url: '/pages/data/data',
       });
     } catch (error) {
+      if (!this.isPageActive || requestId !== this.acceptInvitationRequestId) {
+        return;
+      }
       this.syncLoginState();
       this.setData({
         isAccepting: false,

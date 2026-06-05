@@ -185,6 +185,36 @@ function verifyInviteAccept() {
     'invite-accept should use the new compact card spacing',
   );
 
+  assert.doesNotMatch(
+    js,
+    /syncFontData|syncFontScale|getCurrentFontScale|fontScale:\s*DEFAULT_FONT_SCALE|fs:\s*\{\}/,
+    'invite-accept should no longer participate in shared fontScale syncing',
+  );
+
+  assert.doesNotMatch(
+    wxml,
+    /font-size:\{\{fs\./,
+    'invite-accept should render with fixed font sizes instead of fs bindings',
+  );
+
+  assert.match(
+    wxss,
+    /\.invite-accept-card__headline \{[\s\S]*font-size:\s*30rpx;/,
+    'invite-accept headline should use a fixed standard font size',
+  );
+
+  assert.match(
+    wxss,
+    /\.invite-accept-card__title \{[\s\S]*font-size:\s*34rpx;/,
+    'invite-accept title should use a fixed standard font size',
+  );
+
+  assert.match(
+    wxss,
+    /\.invite-accept-card__button \{[\s\S]*font-size:\s*32rpx;/,
+    'invite-accept primary action should use a fixed standard font size',
+  );
+
   assert.match(
     js,
     /await invitationService\.acceptInvitation\(this\.data\.token\)/,

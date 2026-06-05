@@ -36,7 +36,6 @@ assert.ok(!appWxss.includes('--font-sm'), 'app.wxss should remove the old --font
   'pages/medication-edit/medication-edit',
   'pages/medication-detail/medication-detail',
   'pages/invite-create/invite-create',
-  'pages/invite-accept/invite-accept',
   'pages/import-records/import-records',
   'pages/user-profile-edit/user-profile-edit',
   'pages/user-settings/user-settings',

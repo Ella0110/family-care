@@ -50,8 +50,8 @@ function main() {
 
   assert.match(
     launchJs,
-    /Page\(\{\s*onLoad\(\)\s*\{\s*\},?\s*\}\);?/,
-    'launch page should stay passive and let app.js drive post-login routing',
+    /onShow\(\)\s*\{[\s\S]*resumeLaunchRouting/,
+    'launch page should retry routing when users re-enter the app home route later',
   );
 
   assert.match(
@@ -83,8 +83,14 @@ function main() {
 
   assert.match(
     appJs,
-    /const nextState = await this\.login\(\);\s*const wentToSelector = this\.routeToProfileSelectorIfNeeded\(nextState\);[\s\S]*if \(!wentToSelector\) \{[\s\S]*const currentRoute = getCurrentRoute\(\);[\s\S]*currentRoute === LAUNCH_ROUTE[\s\S]*wx\.switchTab\(\{\s*url:\s*'\/pages\/data\/data'/,
-    'app.js should leave launch by switching to the data tab when login completes without requiring profile-selector',
+    /await this\.resumeLaunchRouting\(\);/,
+    'app.js should delegate launch-page routing through the shared resumeLaunchRouting helper',
+  );
+
+  assert.match(
+    appJs,
+    /resumeLaunchRouting\(\)\s*\{[\s\S]*this\.launchRoutingPromise[\s\S]*activeRoute === LAUNCH_ROUTE[\s\S]*wx\.switchTab\(\{\s*url:\s*['"]\/pages\/data\/data['"]/,
+    'app.js should expose a reusable launch-route resume flow for later homepage jumps',
   );
 
   console.log('verify-launch-routing: ok');

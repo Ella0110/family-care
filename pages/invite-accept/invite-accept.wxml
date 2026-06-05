@@ -1,7 +1,7 @@
 <view class="page page-root invite-accept-page">
   <view wx:if="{{viewState === 'loading'}}" class="card invite-accept-card">
-    <view class="invite-accept-card__title invite-accept-card__title--center" style="font-size:{{fs.title}}">收到家人邀请</view>
-    <view class="invite-accept-card__text invite-accept-card__text--center" style="font-size:{{fs.secondary}}">正在读取邀请信息...</view>
+    <view class="invite-accept-card__title invite-accept-card__title--center">收到家人邀请</view>
+    <view class="invite-accept-card__text invite-accept-card__text--center">正在读取邀请信息...</view>
   </view>
 
   <view wx:elif="{{viewState === 'ready'}}" class="card invite-accept-card">
@@ -14,21 +14,19 @@
     <view
       wx:else
       class="invite-accept-card__avatar invite-accept-card__avatar--fallback"
-      style="font-size:{{fs.title}}"
     >
       {{invitationDisplay.inviterInitial}}
     </view>
 
-    <view class="invite-accept-card__headline" style="font-size:{{fs.body}}">
+    <view class="invite-accept-card__headline">
       「{{invitationDisplay.inviterNickname}}」邀请你一起关注
     </view>
-    <view class="invite-accept-card__title" style="font-size:{{fs.title}}">
+    <view class="invite-accept-card__title">
       {{invitationDisplay.primaryProfileTitle}}
     </view>
     <view
       wx:if="{{invitationDisplay.secondaryText}}"
       class="invite-accept-card__text invite-accept-card__text--center"
-      style="font-size:{{fs.secondary}}"
     >
       {{invitationDisplay.secondaryText}}
     </view>
@@ -38,7 +36,6 @@
       bindtap="handleAcceptInvitation"
       loading="{{isAccepting}}"
       disabled="{{isAccepting}}"
-      style="font-size:{{fs.button}}"
     >
       {{isAccepting ? '正在加入...' : '接受邀请并查看'}}
     </button>
@@ -46,19 +43,18 @@
       class="invite-accept-card__secondary"
       bindtap="handleDecline"
       disabled="{{isAccepting}}"
-      style="font-size:{{fs.secondary}}"
     >
       暂不加入
     </button>
   </view>
 
   <view wx:else class="card invite-accept-card">
-    <view class="invite-accept-card__invalid-icon" style="font-size:{{fs.title}}">⌛</view>
-    <view class="invite-accept-card__title invite-accept-card__title--center" style="font-size:{{fs.title}}">邀请链接已失效</view>
-    <view class="invite-accept-card__text invite-accept-card__text--center" style="font-size:{{fs.secondary}}">
+    <view class="invite-accept-card__invalid-icon">⌛</view>
+    <view class="invite-accept-card__title invite-accept-card__title--center">邀请链接已失效</view>
+    <view class="invite-accept-card__text invite-accept-card__text--center">
       {{invalidMessage}}
     </view>
-    <button class="btn-primary invite-accept-card__button" bindtap="handleDecline" style="font-size:{{fs.button}}">
+    <button class="btn-primary invite-accept-card__button" bindtap="handleDecline">
       返回首页
     </button>
   </view>

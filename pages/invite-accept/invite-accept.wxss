@@ -32,6 +32,7 @@
   align-items: center;
   justify-content: center;
   color: #475569;
+  font-size: 34rpx;
   font-weight: 700;
 }
 
@@ -68,6 +69,8 @@
   width: 100%;
   min-height: 96rpx;
   margin-top: 48rpx;
+  font-size: 32rpx;
+  font-weight: 600;
   box-shadow: 0 8px 24px rgba(52, 120, 246, 0.2);
 }
 

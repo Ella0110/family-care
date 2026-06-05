@@ -16,7 +16,6 @@ const PAGES = [
   'pages/medication-edit/medication-edit',
   'pages/medication-detail/medication-detail',
   'pages/invite-create/invite-create',
-  'pages/invite-accept/invite-accept',
   'pages/import-records/import-records',
   'pages/user-profile-edit/user-profile-edit',
   'pages/user-settings/user-settings',
