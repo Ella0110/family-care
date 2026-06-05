@@ -312,6 +312,13 @@
   font-size: 22rpx;
 }
 
+.settings-about__privacy {
+  margin-top: 12rpx;
+  color: #8e8e93;
+  font-size: 20rpx;
+  line-height: 1.6;
+}
+
 .settings-empty-hint {
   color: #94a3b8;
   font-size: 24rpx;

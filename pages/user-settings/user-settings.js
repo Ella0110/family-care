@@ -366,6 +366,20 @@ Page({
     });
   },
 
+  handleOpenPrivacyContract() {
+    if (typeof wx.openPrivacyContract !== 'function') {
+      showToast('暂时无法打开');
+      return;
+    }
+
+    wx.openPrivacyContract({
+      success: () => {},
+      fail: () => {
+        showToast('暂时无法打开');
+      },
+    });
+  },
+
   applyScaleLocally(fontScale) {
     const app = getApp();
     const nextScale = normalizeFontScale(fontScale);

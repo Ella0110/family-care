@@ -223,6 +223,7 @@
     <view class="settings-card">
       <view class="settings-about__name" style="font-size:{{fs.body}}">来自儿女的关心</view>
       <view class="settings-about__version" style="font-size:{{fs.caption}}">Version 1.0.0 (Build 2026.0418)</view>
+      <view class="settings-about__privacy" bindtap="handleOpenPrivacyContract">隐私保护指引 ></view>
     </view>
   </view>
 

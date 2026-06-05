@@ -124,6 +124,19 @@ function verifyUserProfileEditStyles() {
   assert.match(wxss, /\.profile-edit-cancel\s*\{[\s\S]*background:\s*transparent;[\s\S]*color:\s*#94a3b8;/i, 'user profile cancel action should be a gray text button');
 }
 
+function verifySettingsPrivacyLink() {
+  const wxml = read('pages/user-settings/user-settings.wxml');
+  const js = read('pages/user-settings/user-settings.js');
+  const wxss = read('pages/user-settings/user-settings.wxss');
+
+  assert.match(wxml, /隐私保护指引 >/i, 'settings about section should show the privacy contract entry');
+  assert.match(wxml, /bindtap="handleOpenPrivacyContract"/, 'settings privacy entry should bind the privacy contract handler');
+  assert.match(js, /handleOpenPrivacyContract\(\)/, 'settings page should define a privacy contract handler');
+  assert.match(js, /wx\.openPrivacyContract\(/, 'settings page should call wx.openPrivacyContract');
+  assert.match(js, /showToast\(['"]暂时无法打开['"]\)/, 'settings page should show a fallback toast when privacy contract cannot be opened');
+  assert.match(wxss, /\.settings-about__privacy\s*\{[\s\S]*color:\s*#8e8e93;[\s\S]*font-size:\s*20rpx;/i, 'settings privacy entry should use the muted small-link style');
+}
+
 function verifyMedicationEmptyGlassCard() {
   const wxss = read('pages/medication-edit/medication-edit.wxss');
   assert.match(wxss, /\.medication-empty\s*\{[\s\S]*background:\s*rgba\(255,\s*255,\s*255,\s*0\.7\);[\s\S]*backdrop-filter:\s*blur\(20px\);[\s\S]*border-radius:\s*32rpx;/i, 'medication empty state should use the glass card treatment');
@@ -151,6 +164,7 @@ verifyDataAndRecordStatusStyles();
 verifyReportChartHeadings();
 verifyImportPlaceholder();
 verifyUserProfileEditStyles();
+verifySettingsPrivacyLink();
 verifyMedicationEmptyGlassCard();
 verifyInviteAcceptCentering();
 verifyShareImage();
