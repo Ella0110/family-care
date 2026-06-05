@@ -558,6 +558,7 @@ page {
     color: #94a3b8;
     font-weight: 400;
     line-height: 1.5;
+    white-space: nowrap;
 }
 
 /* --- 图表 --- */

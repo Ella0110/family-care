@@ -49,8 +49,14 @@ function verifyProfileHomeInviteDialog() {
 
   assert.match(
     wxml,
-    /wx:else[\s\S]*以 \{\{inviteNickname\}\} 的名义邀请/,
-    'profile-home invite dialog should show the ready-to-share state with the saved nickname',
+    /wx:else[\s\S]*分享给家人/,
+    'profile-home invite dialog should show the ready-to-share state after nickname setup',
+  );
+
+  assert.doesNotMatch(
+    wxml,
+    /以 \{\{inviteNickname\}\} 的名义邀请/,
+    'profile-home invite dialog should no longer show the old inviter-name helper copy',
   );
 
   assert.match(
@@ -222,8 +228,14 @@ function verifyProfileMembersInviteEntry() {
 
   assert.match(
     wxml,
-    /确认并分享[\s\S]*wx:else[\s\S]*以 \{\{inviteNickname\}\} 的名义邀请/,
+    /确认并分享[\s\S]*wx:else[\s\S]*分享给家人/,
     'profile-members invite dialog should support both nickname setup and ready-to-share states',
+  );
+
+  assert.doesNotMatch(
+    wxml,
+    /以 \{\{inviteNickname\}\} 的名义邀请/,
+    'profile-members invite dialog should no longer show the old inviter-name helper copy',
   );
 
   assert.match(

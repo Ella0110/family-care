@@ -182,9 +182,9 @@
   right: 28rpx;
   bottom: calc(24rpx + env(safe-area-inset-bottom));
   left: 28rpx;
-  padding: 24rpx 0 0;
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 -8rpx 24rpx rgba(15, 23, 42, 0.06);
+  border-radius: 24rpx;
 }
 
 .import-footer__button[disabled] {
