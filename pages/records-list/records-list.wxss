@@ -197,7 +197,7 @@ page {
     font-weight: 600;
     white-space: nowrap;
     line-height: 1.5;
-    padding-top: 4rpx;
+    align-self: center;
 }
 
 .records-row__main {
@@ -231,6 +231,7 @@ page {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    align-self: center;
     min-height: 40rpx;
     padding: 8rpx 16rpx;
     border-radius: 16rpx;
@@ -275,6 +276,7 @@ page {
     color: #cbd5e1;
     font-size: 36rpx;
     line-height: 1;
+    align-self: center;
 }
 
 .records-footer {
