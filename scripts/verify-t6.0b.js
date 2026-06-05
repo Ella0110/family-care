@@ -29,6 +29,7 @@ assert.match(profileHomeJs, /profileService\.deleteProfile/, 'profile-home shoul
 assert.match(profileHomeJs, /handleToggleSubscribeAlerts/, 'profile-home should expose subscribe toggle handler');
 assert.match(profileHomeJs, /handleDeleteProfile/, 'profile-home should expose delete action');
 assert.match(profileHomeJs, /handleSelectProfile/, 'profile-home should react to profile switcher selection');
+assert.match(profileHomeJs, /handleOpenFullProfileList/, 'profile-home should handle the profile-switcher full-list event');
 assert.match(profileHomeJs, /handleOpenReport/, 'profile-home should expose report entry');
 
 assert.match(profileHomeWxml, /设置/, 'profile-home should expose settings entry');
@@ -40,6 +41,7 @@ assert.match(profileHomeWxml, /删除档案/, 'profile-home should render delete
 assert.match(profileHomeWxml, /查看全部档案/, 'profile-home should render bottom switcher entry');
 assert.match(profileHomeWxml, /<switch\b/, 'profile-home should use native switch for alerts toggle');
 assert.match(profileHomeWxml, /profile-switcher/, 'profile-home should render profile-switcher component');
+assert.match(profileHomeWxml, /bind:openfullprofilelist="handleOpenFullProfileList"/, 'profile-home should bind the profile-switcher full-list event');
 
 assert.match(dataJs, /pageReady:\s*false/, 'data page should keep loading gate behavior after T6.0b work');
 assert.match(profileMembersJs, /ensureProfileAccess/, 'profile-members should allow profile viewers to enter read-only member page');

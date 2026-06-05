@@ -118,7 +118,13 @@
         data-value="{{item.value}}"
         bindtap="handleKeyTap"
       >
-        {{item.label}}
+        <image
+          wx:if="{{item.action === 'backspace'}}"
+          class="record-panel__backspace-icon"
+          mode="aspectFit"
+          src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1NiIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDU2IDQwIj48cGF0aCBkPSJNMjAuNSA3LjMgTDQ4LjUgNy4zIFE1Mi4zIDcuMyA1Mi4zIDEwLjkgTDUyLjMgMjkuMSBRNTIuMyAzMi43IDQ4LjUgMzIuNyBMMjAuNSAzMi43IEw3LjUgMjAgWiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOTRBM0I4IiBzdHJva2Utd2lkdGg9IjIuNSIvPjxsaW5lIHgxPSIyNi4xIiB5MT0iMTQuNSIgeDI9IjQyLjkiIHkyPSIyNS41IiBzdHJva2U9IiM5NEEzQjgiIHN0cm9rZS13aWR0aD0iMi41IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48bGluZSB4MT0iNDIuOSIgeTE9IjE0LjUiIHgyPSIyNi4xIiB5Mj0iMjUuNSIgc3Ryb2tlPSIjOTRBM0I4IiBzdHJva2Utd2lkdGg9IjIuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+"
+        ></image>
+        <text wx:else>{{item.label}}</text>
       </view>
     </view>
 

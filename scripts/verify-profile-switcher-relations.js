@@ -40,8 +40,11 @@ try {
   });
 
   global.getApp = () => ({ globalData: { fontScale: 1 } });
+  const navigateToCalls = [];
   global.wx = {
-    navigateTo() {},
+    navigateTo(options) {
+      navigateToCalls.push(options || {});
+    },
   };
 
   let componentDefinition = null;
@@ -88,6 +91,48 @@ try {
     wxml,
     /\{\{item\.displayRelation\}\}/,
     'profile-switcher template should render displayRelation',
+  );
+
+  assert.match(
+    wxml,
+    /wx:if="\{\{displayProfiles\.length >= 2\}\}"[\s\S]*查看完整档案列表 >/,
+    'profile-switcher should only show the full-list entry when there are at least two profiles',
+  );
+
+  assert(
+    componentDefinition.methods && typeof componentDefinition.methods.handleOpenProfileSelector === 'function',
+    'profile-switcher should expose a handler for the full-list entry',
+  );
+
+  const emittedEvents = [];
+  const interactiveInstance = {
+    data: {
+      profiles: [
+        { _id: 'profile-owner', name: '爸爸', relation: '我自己' },
+        { _id: 'profile-viewer', name: 'Hank', relation: '父亲' },
+      ],
+      displayProfiles: [],
+    },
+    setData(patch) {
+      this.data = Object.assign({}, this.data, patch);
+    },
+    triggerEvent(name, detail) {
+      emittedEvents.push({ name, detail });
+    },
+  };
+
+  Object.assign(interactiveInstance, componentDefinition.methods);
+  interactiveInstance.handleOpenProfileSelector();
+
+  assert.deepStrictEqual(
+    emittedEvents.map((item) => item.name),
+    ['openfullprofilelist'],
+    'profile-switcher should notify the parent before opening the full profile list',
+  );
+  assert.strictEqual(
+    navigateToCalls.length,
+    0,
+    'profile-switcher should not navigate directly for the full-list entry',
   );
 
   console.log('verify-profile-switcher-relations: ok');

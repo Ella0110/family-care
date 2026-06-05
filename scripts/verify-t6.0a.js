@@ -10,6 +10,12 @@ function exists(relativePath) {
   return fs.existsSync(path.join(__dirname, '..', relativePath));
 }
 
+function decodeBackspaceSvgFromWxml(wxml) {
+  const match = wxml.match(/class="record-panel__backspace-icon"[\s\S]*?src="data:image\/svg\+xml(?:;charset=utf-8)?;base64,([^"]+)"/);
+  assert.ok(match, 'record-panel backspace icon should embed an inline SVG data URI');
+  return Buffer.from(match[1], 'base64').toString('utf8');
+}
+
 const appConfig = JSON.parse(read('app.json'));
 
 assert.ok(Array.isArray(appConfig.pages), 'app.json should define pages');
@@ -80,6 +86,7 @@ assert.match(read('pages/data/data.wxml'), /wx:else/, 'data page should render a
 assert.match(read('components/profile-switcher/profile-switcher.js'), /triggerEvent\(["']select["']/, 'profile-switcher should emit select event');
 assert.match(read('components/profile-switcher/profile-switcher.js'), /triggerEvent\(["']close["']/, 'profile-switcher should emit close event');
 assert.match(read('components/profile-switcher/profile-switcher.js'), /triggerEvent\(["']visibilitychange["']/, 'profile-switcher should emit visibility change event');
+assert.match(read('components/profile-switcher/profile-switcher.js'), /triggerEvent\(["']openfullprofilelist["']/, 'profile-switcher should emit a full-list event');
 assert.match(read('components/record-panel/record-panel.js'), /eventName:\s*["']success["']/, 'record-panel should emit success event after feedback toast');
 assert.match(read('components/record-panel/record-panel.js'), /eventName:\s*["']delete["']/, 'record-panel should emit delete event after feedback toast');
 assert.match(read('components/record-panel/record-panel.js'), /triggerEvent\(["']visibilitychange["']/, 'record-panel should emit visibility change event');
@@ -88,6 +95,11 @@ assert.match(read('components/record-panel/record-panel.wxml'), /record-panel__f
 assert.match(read('components/record-panel/record-panel.wxml'), /record-panel__dialog/, 'record-panel should render custom delete dialog');
 assert.match(read('components/record-panel/record-panel.wxml'), /record-panel__error-banner/, 'record-panel should render validation error banner');
 assert.doesNotMatch(read('components/record-panel/record-panel.wxml'), /textarea|备注/, 'record-panel should not render note field');
+const backspaceSvg = decodeBackspaceSvgFromWxml(read('components/record-panel/record-panel.wxml'));
+assert.match(backspaceSvg, /^\s*<svg\b/, 'record-panel backspace icon data URI should decode directly to SVG markup');
+assert.match(backspaceSvg, /stroke="#94A3B8"/, 'record-panel backspace icon should use the same muted gray color as the clear action');
+assert.match(backspaceSvg, /stroke-width="5"/, 'record-panel backspace icon should use stroke width 5');
+assert.match(read('components/record-panel/record-panel.wxss'), /\.record-panel__backspace-icon\s*\{[\s\S]*width:\s*84rpx;[\s\S]*height:\s*60rpx;/, 'record-panel backspace icon should use the smaller updated image size');
 assert.match(read('custom-tab-bar/index.wxml'), /custom-tab-bar__plus/, 'custom tab bar should render a centered add button');
 assert.match(read('custom-tab-bar/index.js'), /switchTab/, 'custom tab bar should switch tabs through wx.switchTab');
 assert.match(read('custom-tab-bar/index.js'), /openRecordPanelOnDataTab/, 'custom tab bar should support opening the record panel after switching to data tab');
@@ -117,6 +129,7 @@ assert.match(read('pages/data/data.js'), /if \(!loginStatus\.isLoginReady\) \{\s
 assert.match(read('pages/data/data.js'), /const loginJustFinished =\s*loginStatus\.isLoginReady && !this\.lastLoginReady/, 'data page should refresh once when login transitions from pending to ready');
 assert.match(read('pages/data/data.js'), /setTabBarVisible\(visible\)/, 'data page should control custom tab bar visibility');
 assert.match(read('pages/data/data.wxml'), /bind:visibilitychange="handleProfileSwitcherVisibilityChange"/, 'data page should listen to profile switcher visibility');
+assert.match(read('pages/data/data.wxml'), /bind:openfullprofilelist="handleOpenFullProfileList"/, 'data page should bind the profile-switcher full-list event');
 assert.match(read('pages/data/data.wxml'), /bind:visibilitychange="handleRecordPanelVisibilityChange"/, 'data page should listen to record panel visibility');
 assert.match(read('pages/profile-home/profile-home.js'), /setTabBarVisible\(visible\)/, 'profile-home should control custom tab bar visibility');
 assert.match(read('pages/profile-home/profile-home.wxml'), /bind:visibilitychange="handleProfileSwitcherVisibilityChange"/, 'profile-home should listen to profile switcher visibility');

@@ -104,6 +104,10 @@ Component({
       this.triggerEvent('close');
     },
 
+    handleOpenProfileSelector() {
+      this.triggerEvent('openfullprofilelist');
+    },
+
     noop() {},
   },
 });

@@ -226,7 +226,13 @@
 }
 
 .record-panel__key--backspace {
-    font-size: 56rpx;
+    padding: 18rpx;
+}
+
+.record-panel__backspace-icon {
+    width: 84rpx;
+    height: 60rpx;
+    font-weight: 900;
 }
 
 .record-panel__actions {

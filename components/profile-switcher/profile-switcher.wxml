@@ -24,5 +24,14 @@
     <button class="btn-primary profile-switcher__create" style="font-size:{{fs.button}}" bindtap="handleCreateProfile">
       + 新建档案
     </button>
+
+    <view
+      wx:if="{{displayProfiles.length >= 2}}"
+      class="profile-switcher__full-list-link"
+      style="font-size:{{fs.secondary}}"
+      bindtap="handleOpenProfileSelector"
+    >
+      查看完整档案列表 >
+    </view>
   </view>
 </view>

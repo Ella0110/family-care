@@ -81,3 +81,10 @@
 .profile-switcher__create {
   margin-top: 24rpx;
 }
+
+.profile-switcher__full-list-link {
+  margin-top: 20rpx;
+  color: #8e8e93;
+  text-align: center;
+  line-height: 1.5;
+}

@@ -1237,6 +1237,14 @@ Page({
         this.setData({ showProfileSwitcher: false });
     },
 
+    handleOpenFullProfileList() {
+        this.setData({ showProfileSwitcher: false }, () => {
+            wx.navigateTo({
+                url: "/pages/profile-selector/profile-selector",
+            });
+        });
+    },
+
     handleCreateProfile() {
         wx.navigateTo({
             url: `/pages/profile-edit/profile-edit?mode=create&returnTab=${encodeURIComponent("/pages/data/data")}`,

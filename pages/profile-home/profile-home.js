@@ -959,6 +959,14 @@ Page({
         this.setData({ showProfileSwitcher: false });
     },
 
+    handleOpenFullProfileList() {
+        this.setData({ showProfileSwitcher: false }, () => {
+            wx.navigateTo({
+                url: "/pages/profile-selector/profile-selector",
+            });
+        });
+    },
+
     handleOpenUserSettings() {
         wx.navigateTo({
             url: "/pages/user-settings/user-settings",

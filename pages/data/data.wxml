@@ -206,6 +206,7 @@
     return-tab="/pages/data/data"
     bind:select="handleSelectProfile"
     bind:close="handleCloseProfileSwitcher"
+    bind:openfullprofilelist="handleOpenFullProfileList"
     bind:visibilitychange="handleProfileSwitcherVisibilityChange"
   />
 
