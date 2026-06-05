@@ -344,18 +344,31 @@ Page({
                 loginStatus.isLoginReady && !this.lastLoginReady;
             this.lastLoginReady = loginStatus.isLoginReady;
 
-            this.syncProfileMeta();
-
             if (loginJustFinished) {
-                this.lastSeenProfileId = nextProfileId;
+                this.syncProfileMeta();
+                const resolvedProfileId =
+                    store.getState().currentProfileId || "";
+                if (resolvedProfileId && resolvedProfileId !== nextProfileId) {
+                    return;
+                }
+                this.lastSeenProfileId = resolvedProfileId || nextProfileId;
                 this.loadPageData({ force: true, resetReady: true });
                 return;
             }
 
             if (nextProfileId !== this.lastSeenProfileId) {
-                this.lastSeenProfileId = nextProfileId;
+                this.syncProfileMeta();
+                const resolvedProfileId =
+                    store.getState().currentProfileId || "";
+                if (resolvedProfileId && resolvedProfileId !== nextProfileId) {
+                    return;
+                }
+                this.lastSeenProfileId = resolvedProfileId || nextProfileId;
                 this.loadPageData({ force: true, resetReady: true });
+                return;
             }
+
+            this.syncProfileMeta();
         });
     },
 
@@ -1063,6 +1076,13 @@ Page({
             });
         }
 
+        if (currentProfileId) {
+            delete this.memberCache[currentProfileId];
+        }
+
+        this.lastRefreshAt = 0;
+        this.lastLoadedProfileId = "";
+
         if (selfMembershipChanged) {
             const remainingProfiles = Array.isArray(state.profiles)
                 ? state.profiles.filter(Boolean)
@@ -1073,14 +1093,9 @@ Page({
             store.setState({
                 currentProfileId: nextProfileId,
             });
+            return;
         }
 
-        if (currentProfileId) {
-            delete this.memberCache[currentProfileId];
-        }
-
-        this.lastRefreshAt = 0;
-        this.lastLoadedProfileId = "";
         this.syncProfileMeta();
         this.loadPageData({
             force: true,
