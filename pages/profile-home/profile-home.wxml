@@ -202,9 +202,6 @@
         <view class="profile-home__invite-text" style="font-size:{{fs.secondary}}">
           对方将可以查看 {{profileName}} 的血压和用药情况，但不能修改数据。
         </view>
-        <view class="profile-home__invite-name" style="font-size:{{fs.secondary}}">
-          以 {{inviteNickname}} 的名义邀请
-        </view>
         <button
           class="profile-home__invite-share"
           open-type="share"

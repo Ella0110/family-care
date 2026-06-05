@@ -26,7 +26,6 @@
         <view class="settings-notify-row__body">
           <view class="settings-notify-row__title" style="font-size:{{fs.body}}">异常血压通知</view>
           <view class="settings-notify-row__desc" style="font-size:{{fs.caption}}">超过阈值时通知已选择成员</view>
-          <view class="settings-notify-row__meta" style="font-size:{{fs.caption}}">配置已保存，微信通知功能即将上线</view>
         </view>
         <switch
           color="#3182F7"

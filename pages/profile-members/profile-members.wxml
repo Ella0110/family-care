@@ -176,9 +176,6 @@
         <view class="members-invite-dialog__text" style="font-size:{{fs.secondary}}">
           对方将可以查看 {{profileName}} 的血压和用药情况，但不能修改数据。
         </view>
-        <view class="members-invite-dialog__name" style="font-size:{{fs.secondary}}">
-          以 {{inviteNickname}} 的名义邀请
-        </view>
         <button
           class="members-invite-dialog__share"
           open-type="share"
