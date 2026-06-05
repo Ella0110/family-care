@@ -1,6 +1,5 @@
 const { store } = require("../../store/index");
 const recordService = require("../../services/record-service");
-const { callSilent } = require("../../services/request");
 const { getErrorMessage } = require("../../utils/error-messages");
 const {
     DEFAULT_FONT_SCALE,
@@ -769,21 +768,6 @@ Page({
         }
     },
 
-    async fetchIndependentRecords(profileId) {
-        const result = await callSilent("getRecords", {
-            profileId,
-            type: "bp",
-            limit: 200,
-        });
-
-        return {
-            records: sortRecordsDesc(
-                Array.isArray(result.records) ? result.records : [],
-            ),
-            hasMore: result.hasMore === true,
-        };
-    },
-
     async loadPageData(options = {}) {
         const run = (async () => {
             const force = options.force === true;
@@ -850,6 +834,8 @@ Page({
 
             this.requestId += 1;
             const requestId = this.requestId;
+            const shouldUseCacheStage = !force;
+            let cacheRendered = false;
 
             this.setData({
                 isLoading: true,
@@ -857,28 +843,138 @@ Page({
             });
 
             try {
+                const tryRenderCache = () => {
+                    if (
+                        !shouldUseCacheStage ||
+                        requestId !== this.requestId ||
+                        this._pendingCacheLatest === undefined ||
+                        this._pendingCacheRecords === undefined
+                    ) {
+                        return;
+                    }
+
+                    this.latestRecord = this._pendingCacheLatest || null;
+                    this.allRecords = Array.isArray(this._pendingCacheRecords)
+                        ? this._pendingCacheRecords.slice()
+                        : [];
+                    delete this._pendingCacheLatest;
+                    delete this._pendingCacheRecords;
+
+                    cacheRendered = true;
+                    this.lastLoadedProfileId = profileId;
+                    this.lastRefreshAt = Date.now();
+                    this.coverageDayCount = countUniqueMeasuredDays(
+                        this.allRecords,
+                    );
+                    this.applyViewModel();
+                };
+
+                let latestError = null;
+                let recordError = null;
+                const latestPromise = recordService.loadLatestRecord(
+                    profileId,
+                    {
+                        onCacheHit: shouldUseCacheStage
+                            ? ({ record }) => {
+                                  this._pendingCacheLatest = record || null;
+                                  tryRenderCache();
+                              }
+                            : undefined,
+                        onError(error) {
+                            latestError = error;
+                        },
+                    },
+                );
+
+                const recordsPromise = recordService.loadRecords(
+                    profileId,
+                    { limit: 200 },
+                    {
+                        onCacheHit: shouldUseCacheStage
+                            ? ({ records }) => {
+                                  this._pendingCacheRecords =
+                                      Array.isArray(records)
+                                          ? records.slice()
+                                          : [];
+                                  tryRenderCache();
+                              }
+                            : undefined,
+                        onError(error) {
+                            recordError = error;
+                        },
+                    },
+                );
+
                 const [latestResult, recordResult] = await Promise.all([
-                    recordService.fetchLatestRecord(profileId),
-                    this.fetchIndependentRecords(profileId),
+                    latestPromise,
+                    recordsPromise,
                 ]);
+
+                delete this._pendingCacheLatest;
+                delete this._pendingCacheRecords;
 
                 if (requestId !== this.requestId) {
                     return;
+                }
+
+                if (!latestResult || !recordResult) {
+                    if (cacheRendered) {
+                        if (recordResult) {
+                            this.allRecords = Array.isArray(
+                                recordResult.records,
+                            )
+                                ? recordResult.records.slice()
+                                : this.allRecords || [];
+                        }
+
+                        if (latestResult) {
+                            this.latestRecord =
+                                latestResult.record ||
+                                this.latestRecord ||
+                                this.allRecords[0] ||
+                                null;
+                        } else {
+                            this.latestRecord =
+                                this.latestRecord ||
+                                this.allRecords[0] ||
+                                null;
+                        }
+
+                        this.lastLoadedProfileId = profileId;
+                        this.lastRefreshAt = Date.now();
+                        this.coverageDayCount = countUniqueMeasuredDays(
+                            this.allRecords,
+                        );
+                        this.applyViewModel();
+                        return;
+                    }
+
+                    throw (
+                        latestError ||
+                        recordError ||
+                        new Error("RECORDS_LOAD_FAILED")
+                    );
                 }
 
                 this.lastLoadedProfileId = profileId;
                 this.lastRefreshAt = Date.now();
                 this.allRecords = Array.isArray(recordResult.records)
                     ? recordResult.records.slice()
-                    : [];
+                    : this.allRecords || [];
                 this.coverageDayCount = countUniqueMeasuredDays(
                     this.allRecords,
                 );
                 this.latestRecord =
-                    latestResult.record || this.allRecords[0] || null;
+                    latestResult.record ||
+                    this.latestRecord ||
+                    this.allRecords[0] ||
+                    null;
 
                 this.applyViewModel();
             } catch (error) {
+                delete this._pendingCacheLatest;
+                delete this._pendingCacheRecords;
+
                 if (requestId !== this.requestId) {
                     return;
                 }
