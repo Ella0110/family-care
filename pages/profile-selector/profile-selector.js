@@ -82,7 +82,20 @@ function normalizeStatusDisplay(profile, latestRecord) {
   };
 }
 
-function buildCard(profile, latestRecord, lastSelectedProfileId) {
+function getDisplayRelation(profile, relationships) {
+  const relationship = (Array.isArray(relationships) ? relationships : []).find(
+    (item) => item && item.profileId === (profile && profile._id),
+  );
+  const role = relationship && relationship.role ? relationship.role : 'owner';
+
+  if (role === 'owner') {
+    return profile && typeof profile.relation === 'string' ? profile.relation : '';
+  }
+
+  return '共同关注';
+}
+
+function buildCard(profile, latestRecord, lastSelectedProfileId, relationships) {
   const payload = latestRecord && latestRecord.payload ? latestRecord.payload : null;
   const systolic = payload ? Number(payload.systolic) : NaN;
   const diastolic = payload ? Number(payload.diastolic) : NaN;
@@ -95,6 +108,7 @@ function buildCard(profile, latestRecord, lastSelectedProfileId) {
     avatarColor: getProfileAvatarColor(profile),
     nameText: (profile && profile.name) || '未命名档案',
     relationText: (profile && profile.relation) || '关系未填写',
+    displayRelation: getDisplayRelation(profile, relationships),
     latestMeasuredAtText: hasRecord ? formatMeasuredAt(latestRecord.measuredAt) : '',
     latestValueText: hasRecord ? `${systolic}/${diastolic}` : '暂无记录',
     statusText: status ? status.text : '',
@@ -136,7 +150,9 @@ Page({
   },
 
   async loadProfiles() {
-    const profiles = store.getState().profiles || [];
+    const state = store.getState();
+    const profiles = state.profiles || [];
+    const relationships = state.relationships || [];
     if (profiles.length <= 1) {
       wx.switchTab({
         url: '/pages/data/data',
@@ -153,7 +169,12 @@ Page({
     this.setData({
       isLoading: true,
       showCurrentBadge: Boolean(lastSelectedProfileId),
-      cards: profiles.map((profile) => buildCard(profile, store.getCachedLatestRecord(profile && profile._id), lastSelectedProfileId)),
+      cards: profiles.map((profile) => buildCard(
+        profile,
+        store.getCachedLatestRecord(profile && profile._id),
+        lastSelectedProfileId,
+        relationships,
+      )),
     });
 
     const latestRecords = await Promise.all(
@@ -183,7 +204,12 @@ Page({
 
     this.setData({
       isLoading: false,
-      cards: profiles.map((profile, index) => buildCard(profile, latestRecords[index], lastSelectedProfileId)),
+      cards: profiles.map((profile, index) => buildCard(
+        profile,
+        latestRecords[index],
+        lastSelectedProfileId,
+        relationships,
+      )),
     });
   },
 

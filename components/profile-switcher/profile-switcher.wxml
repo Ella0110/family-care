@@ -7,7 +7,7 @@
 
     <scroll-view scroll-y class="profile-switcher__list">
       <view
-        wx:for="{{profiles}}"
+        wx:for="{{displayProfiles}}"
         wx:key="_id"
         class="profile-switcher__item {{currentProfileId === item._id ? 'profile-switcher__item--active' : ''}}"
         data-profile-id="{{item._id}}"
@@ -15,7 +15,7 @@
       >
         <view class="profile-switcher__item-main">
           <view class="profile-switcher__item-name" style="font-size:{{fs.body}}">{{item.name || '未命名档案'}}</view>
-          <view class="profile-switcher__item-relation" style="font-size:{{fs.secondary}}">{{item.relation || '关系未填写'}}</view>
+          <view class="profile-switcher__item-relation" style="font-size:{{fs.secondary}}">{{item.displayRelation}}</view>
         </view>
         <view wx:if="{{currentProfileId === item._id}}" class="profile-switcher__item-mark" style="font-size:{{fs.caption}}">当前</view>
       </view>

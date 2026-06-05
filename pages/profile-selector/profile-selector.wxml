@@ -24,7 +24,7 @@
               <view class="profile-selector-card__name">{{item.nameText}}</view>
               <view wx:if="{{showCurrentBadge && item.isCurrent}}" class="profile-selector-card__current">当前</view>
             </view>
-            <view class="profile-selector-card__relation">{{item.relationText}}</view>
+            <view class="profile-selector-card__relation">{{item.displayRelation}}</view>
           </view>
         </view>
         <view class="profile-selector-card__meta">

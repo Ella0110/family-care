@@ -1,4 +1,23 @@
+const { store } = require('../../store/index');
 const { syncFontData } = require('../../utils/font-scale');
+
+function buildDisplayProfiles(profiles) {
+  const relationships = store.getState().relationships || [];
+  const roleByProfileId = new Map(
+    relationships
+      .filter((item) => item && item.profileId)
+      .map((item) => [item.profileId, item.role || '']),
+  );
+
+  return (Array.isArray(profiles) ? profiles : []).map((item) => {
+    const relation = item && typeof item.relation === 'string' ? item.relation : '';
+    const role = roleByProfileId.get(item && item._id) || '';
+
+    return Object.assign({}, item, {
+      displayRelation: role === 'owner' ? relation : '共同关注',
+    });
+  });
+}
 
 Component({
   properties: {
@@ -22,33 +41,47 @@ Component({
 
   data: {
     fs: {},
+    displayProfiles: [],
   },
 
   observers: {
     show(visible) {
       if (visible) {
         syncFontData.call(this);
+        this.syncDisplayProfiles();
       }
 
       this.triggerEvent('visibilitychange', {
         visible: visible === true,
       });
     },
+
+    profiles() {
+      this.syncDisplayProfiles();
+    },
   },
 
   lifetimes: {
     attached() {
       syncFontData.call(this);
+      this.syncDisplayProfiles();
     },
   },
 
   pageLifetimes: {
     show() {
       syncFontData.call(this);
+      this.syncDisplayProfiles();
     },
   },
 
   methods: {
+    syncDisplayProfiles() {
+      this.setData({
+        displayProfiles: buildDisplayProfiles(this.data.profiles),
+      });
+    },
+
     handleMaskTap() {
       this.triggerEvent('close');
     },
