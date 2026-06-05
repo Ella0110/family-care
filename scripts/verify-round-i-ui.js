@@ -46,7 +46,7 @@ function verifyDataAndRecordStatusStyles() {
   assert.match(bpStatusJs, /elevated:\s*Object\.freeze\(\{[\s\S]*tagText:\s*'临界偏高'[\s\S]*textColor:\s*'#F5A623'[\s\S]*backgroundColor:\s*'#FFF9EB'/, 'bp-status should define the amber 临界偏高 level');
   assert.match(bpStatusJs, /stage1:\s*Object\.freeze\(\{[\s\S]*tagText:\s*'偏高1级'[\s\S]*textColor:\s*'#FF9500'[\s\S]*backgroundColor:\s*'#FFF4EB'/, 'bp-status should define the orange 偏高1级 level');
   assert.match(bpStatusJs, /stage2:\s*Object\.freeze\(\{[\s\S]*tagText:\s*'偏高2级'[\s\S]*textColor:\s*'#FF3B30'[\s\S]*backgroundColor:\s*'#FFF0F0'/, 'bp-status should define the red 偏高2级 level');
-  assert.match(bpStatusJs, /stage3:\s*Object\.freeze\(\{[\s\S]*tagText:\s*'血压过高（3级）'[\s\S]*textColor:\s*'#FF3B30'[\s\S]*backgroundColor:\s*'#FFF0F0'/, 'bp-status should define the red 3级 level');
+  assert.match(bpStatusJs, /stage3:\s*Object\.freeze\(\{[\s\S]*tagText:\s*'过高3级'[\s\S]*textColor:\s*'#FF3B30'[\s\S]*backgroundColor:\s*'#FFF0F0'/, 'bp-status should define the red 3级 level');
   assert.match(bpStatusJs, /function getBPLevelForValue\(value,\s*type\)/, 'bp-status should expose separate systolic/diastolic grading');
   assert.match(bpStatusJs, /type === 'diastolic' \? 60 : 90/, 'bp-status should use 90\/60 as the low threshold');
   assert.match(bpStatusJs, /type === 'diastolic' \? 80 : 120/, 'bp-status should use 120\/80 as the 临界偏高 threshold');

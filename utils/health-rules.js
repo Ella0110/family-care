@@ -6,7 +6,7 @@ const BP_STATUS = {
   ELEVATED: { level: 'elevated', label: '临界偏高', color: '#F5A623', attention: true },
   HIGH: { level: 'high', label: '偏高1级', color: '#FF9500', attention: true },
   VERY_HIGH: { level: 'veryHigh', label: '偏高2级', color: '#FF3B30', attention: true },
-  CRITICAL: { level: 'critical', label: '血压过高（3级）', color: '#FF3B30', attention: true },
+  CRITICAL: { level: 'critical', label: '过高3级', color: '#FF3B30', attention: true },
 }
 
 const HR_STATUS = {
