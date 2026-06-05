@@ -13,7 +13,7 @@ function exists(relativePath) {
 const appConfig = JSON.parse(read('app.json'));
 
 assert.ok(Array.isArray(appConfig.pages), 'app.json should define pages');
-assert.strictEqual(appConfig.pages[0], 'pages/data/data', 'data page should become the default launch page');
+assert.strictEqual(appConfig.pages[0], 'pages/launch/launch', 'launch page should become the default launch page');
 assert.ok(appConfig.pages.includes('pages/profile-home/profile-home'), 'profile-home page should be registered');
 assert.ok(!appConfig.pages.some((item) => item.endsWith('/home')), 'legacy home page should be removed');
 assert.ok(!appConfig.pages.some((item) => item.endsWith('/profile-detail')), 'legacy profile-detail page should be removed');
@@ -28,6 +28,10 @@ assert.deepStrictEqual(
 );
 
 [
+  'pages/launch/launch.js',
+  'pages/launch/launch.wxml',
+  'pages/launch/launch.wxss',
+  'pages/launch/launch.json',
   'pages/data/data.js',
   'pages/data/data.wxml',
   'pages/data/data.wxss',

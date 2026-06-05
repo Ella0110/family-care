@@ -1,0 +1,6 @@
+<view class="launch-page__container">
+  <view class="launch-page__content">
+    <view class="launch-page__spinner"></view>
+    <view class="launch-page__text">加载中...</view>
+  </view>
+</view>

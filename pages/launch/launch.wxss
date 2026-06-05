@@ -1,0 +1,39 @@
+.launch-page__container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+.launch-page__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.launch-page__spinner {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  border: 6rpx solid rgba(52, 120, 246, 0.16);
+  border-top-color: #3478f6;
+  animation: launch-page-spin 0.8s linear infinite;
+}
+
+.launch-page__text {
+  font-size: 28rpx;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+@keyframes launch-page-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

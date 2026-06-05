@@ -17,6 +17,8 @@ let localConfig = null;
 const GRANTED_USER_PROFILE_STORAGE_KEY = 'grantedUserProfile';
 const CURRENT_PROFILE_STORAGE_KEY = 'currentProfileId';
 const LAST_SELECTED_PROFILE_STORAGE_KEY = 'lastSelectedProfileId';
+const LAUNCH_ROUTE = 'pages/launch/launch';
+const LAUNCH_URL = '/pages/launch/launch';
 const PROFILE_SELECTOR_ROUTE = 'pages/profile-selector/profile-selector';
 const PROFILE_SELECTOR_URL = '/pages/profile-selector/profile-selector';
 
@@ -344,6 +346,7 @@ App({
       currentRoute
       && currentRoute !== 'pages/data/data'
       && currentRoute !== 'pages/profile-home/profile-home'
+      && currentRoute !== LAUNCH_ROUTE
       && currentRoute !== PROFILE_SELECTOR_ROUTE
     ) {
       return false;
@@ -554,7 +557,15 @@ App({
 
     try {
       const nextState = await this.login();
-      this.routeToProfileSelectorIfNeeded(nextState);
+      const wentToSelector = this.routeToProfileSelectorIfNeeded(nextState);
+      if (!wentToSelector) {
+        const currentRoute = getCurrentRoute();
+        if (currentRoute === LAUNCH_ROUTE) {
+          wx.switchTab({
+            url: '/pages/data/data',
+          });
+        }
+      }
     } catch (error) {
       console.warn('Initial login failed.', error);
     }

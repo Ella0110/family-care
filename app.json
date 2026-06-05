@@ -1,5 +1,6 @@
 {
   "pages": [
+    "pages/launch/launch",
     "pages/data/data",
     "pages/profile-home/profile-home",
     "pages/profile-selector/profile-selector",
