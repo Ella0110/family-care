@@ -230,8 +230,8 @@
 }
 
 .record-panel__backspace-icon {
-    width: 84rpx;
-    height: 60rpx;
+    width: 64rpx;
+    height: 48rpx;
     font-weight: 900;
 }
 

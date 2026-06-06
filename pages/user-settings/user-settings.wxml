@@ -57,7 +57,7 @@
       <view wx:if="{{hasProfile}}" class="settings-stepper-block settings-stepper-block--split">
         <view class="settings-stepper-block__title" style="font-size:{{fs.body}}">高压超过多少提醒</view>
         <view class="settings-stepper-block__row">
-          <view class="settings-stepper-block__label" style="font-size:{{fs.caption}}">收缩压（mmHg）</view>
+          <view class="settings-stepper-block__label" style="font-size:{{fs.caption}}">高压（mmHg）</view>
           <view class="settings-stepper">
             <view
               class="settings-stepper__button {{thresholdSystolic <= thresholdSystolicMin ? 'settings-stepper__button--disabled' : ''}}"
@@ -81,7 +81,7 @@
       <view wx:if="{{hasProfile}}" class="settings-stepper-block settings-stepper-block--split">
         <view class="settings-stepper-block__title" style="font-size:{{fs.body}}">低压超过多少提醒</view>
         <view class="settings-stepper-block__row">
-          <view class="settings-stepper-block__label" style="font-size:{{fs.caption}}">舒张压（mmHg）</view>
+          <view class="settings-stepper-block__label" style="font-size:{{fs.caption}}">低压（mmHg）</view>
           <view class="settings-stepper">
             <view
               class="settings-stepper__button {{thresholdDiastolic <= thresholdDiastolicMin ? 'settings-stepper__button--disabled' : ''}}"

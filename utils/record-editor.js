@@ -110,7 +110,7 @@ function validateRecordForm(options = {}) {
     || systolic < limits.systolic.min
     || systolic > limits.systolic.max
   ) {
-    return `收缩压需为 ${limits.systolic.min}-${limits.systolic.max} 之间的整数`;
+    return `高压需为 ${limits.systolic.min}-${limits.systolic.max} 之间的整数`;
   }
 
   if (
@@ -118,11 +118,11 @@ function validateRecordForm(options = {}) {
     || diastolic < limits.diastolic.min
     || diastolic > limits.diastolic.max
   ) {
-    return `舒张压需为 ${limits.diastolic.min}-${limits.diastolic.max} 之间的整数`;
+    return `低压需为 ${limits.diastolic.min}-${limits.diastolic.max} 之间的整数`;
   }
 
   if (systolic <= diastolic) {
-    return '收缩压必须高于舒张压';
+    return '高压必须大于低压';
   }
 
   if (

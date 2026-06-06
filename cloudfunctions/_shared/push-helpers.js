@@ -90,7 +90,7 @@ function buildPushData({ payload, profileName, measuredAt }) {
     alertLevel,
     templateData: {
       thing2: { value: truncateThing(alertLevel) || '血压异常' },
-      character_string3: { value: `${payload.systolic}/${payload.diastolic} mmHg` },
+      character_string3: { value: `高压${payload.systolic}/低压${payload.diastolic} mmHg` },
       thing5: { value: safeProfileName || '家人' },
       time8: { value: formatPushTime(measuredAt) },
     },

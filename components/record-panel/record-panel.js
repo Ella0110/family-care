@@ -140,12 +140,12 @@ function validatePanelForm(profileId, form) {
 
     if (!systolicRaw) {
         fieldErrors.systolic = true;
-        return buildValidationFailure("请输入收缩压", fieldErrors, "systolic");
+        return buildValidationFailure("请输入高压", fieldErrors, "systolic");
     }
 
     if (!diastolicRaw) {
         fieldErrors.diastolic = true;
-        return buildValidationFailure("请输入舒张压", fieldErrors, "diastolic");
+        return buildValidationFailure("请输入低压", fieldErrors, "diastolic");
     }
 
     if (
@@ -155,7 +155,7 @@ function validatePanelForm(profileId, form) {
     ) {
         fieldErrors.systolic = true;
         return buildValidationFailure(
-            "收缩压数值超出合理范围（60-300）",
+            "高压数值超出合理范围（60-300）",
             fieldErrors,
             "systolic",
             ["systolic"],
@@ -169,7 +169,7 @@ function validatePanelForm(profileId, form) {
     ) {
         fieldErrors.diastolic = true;
         return buildValidationFailure(
-            "舒张压数值超出合理范围（30-200）",
+            "低压数值超出合理范围（30-200）",
             fieldErrors,
             "diastolic",
             ["diastolic"],
@@ -180,7 +180,7 @@ function validatePanelForm(profileId, form) {
         fieldErrors.systolic = true;
         fieldErrors.diastolic = true;
         return buildValidationFailure(
-            "收缩压必须大于舒张压",
+            "高压必须大于低压",
             fieldErrors,
             "systolic",
             ["systolic"],
@@ -482,8 +482,8 @@ Component({
                 fieldErrors[field] = true;
                 const range = FIELD_LIMITS[field];
                 const labelMap = {
-                    systolic: "收缩压",
-                    diastolic: "舒张压",
+                    systolic: "高压",
+                    diastolic: "低压",
                     heartRate: "心率",
                 };
 

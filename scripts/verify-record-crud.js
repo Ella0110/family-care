@@ -190,7 +190,7 @@ async function main() {
     pushCalls[0].data,
     {
       thing2: { value: '血压偏高1级' },
-      character_string3: { value: '152/96 mmHg' },
+      character_string3: { value: '高压152/低压96 mmHg' },
       thing5: { value: '测试档案名字很长很长很长很长' },
       time8: { value: '2026-05-06 20:15' },
     },

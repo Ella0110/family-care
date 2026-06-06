@@ -96,10 +96,13 @@ assert.match(read('components/record-panel/record-panel.wxml'), /record-panel__d
 assert.match(read('components/record-panel/record-panel.wxml'), /record-panel__error-banner/, 'record-panel should render validation error banner');
 assert.doesNotMatch(read('components/record-panel/record-panel.wxml'), /textarea|备注/, 'record-panel should not render note field');
 const backspaceSvg = decodeBackspaceSvgFromWxml(read('components/record-panel/record-panel.wxml'));
+const recordPanelWxml = read('components/record-panel/record-panel.wxml');
+const recordPanelWxss = read('components/record-panel/record-panel.wxss');
 assert.match(backspaceSvg, /^\s*<svg\b/, 'record-panel backspace icon data URI should decode directly to SVG markup');
 assert.match(backspaceSvg, /stroke="#94A3B8"/, 'record-panel backspace icon should use the same muted gray color as the clear action');
-assert.match(backspaceSvg, /stroke-width="5"/, 'record-panel backspace icon should use stroke width 5');
-assert.match(read('components/record-panel/record-panel.wxss'), /\.record-panel__backspace-icon\s*\{[\s\S]*width:\s*84rpx;[\s\S]*height:\s*60rpx;/, 'record-panel backspace icon should use the smaller updated image size');
+assert.match(backspaceSvg, /stroke-width="2\.5"/, 'record-panel backspace icon should use stroke width 2.5');
+assert.match(recordPanelWxml, /style="width:\{\{fontScale >= 1\.3 \? '84rpx' : fontScale >= 1\.15 \? '74rpx' : '64rpx'\}\};height:\{\{fontScale >= 1\.3 \? '64rpx' : fontScale >= 1\.15 \? '56rpx' : '48rpx'\}\};"/, 'record-panel backspace icon should scale with font size tiers');
+assert.match(recordPanelWxss, /\.record-panel__backspace-icon\s*\{[\s\S]*width:\s*64rpx;[\s\S]*height:\s*48rpx;/, 'record-panel backspace icon should use 64x48 as the standard fallback size');
 assert.match(read('custom-tab-bar/index.wxml'), /custom-tab-bar__plus/, 'custom tab bar should render a centered add button');
 assert.match(read('custom-tab-bar/index.js'), /switchTab/, 'custom tab bar should switch tabs through wx.switchTab');
 assert.match(read('custom-tab-bar/index.js'), /openRecordPanelOnDataTab/, 'custom tab bar should support opening the record panel after switching to data tab');
