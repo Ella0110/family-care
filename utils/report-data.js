@@ -3,7 +3,7 @@ const { formatDateTime } = require('./date')
 const { buildBloodPressureChart, buildHeartRateChart } = require('./chart-data')
 const { calcAge } = require('./family-settings')
 
-const REPORT_TITLE = '血压心率就诊报告'
+const REPORT_TITLE = '血压心率报告'
 const DISCLAIMER = '本报告仅供健康记录与就诊沟通参考，不作为诊断、治疗或用药依据。个体情况存在差异，请以医生诊疗结果及医嘱为准。'
 
 function toDate(value) {

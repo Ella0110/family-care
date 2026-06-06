@@ -23,7 +23,7 @@
 
   <view wx:else class="report-content">
     <view class="report-section report-section--header">
-      <view class="report-header__title" style="font-size:{{fs.title}}">血压心率就诊报告</view>
+      <view class="report-header__title" style="font-size:{{fs.title}}">血压心率报告</view>
       <view class="report-header__time" style="font-size:{{fs.caption}}">生成于 {{generatedAtText}}</view>
     </view>
 

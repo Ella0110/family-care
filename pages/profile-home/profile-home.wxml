@@ -97,7 +97,7 @@
         >
           <view class="profile-home__shortcut-icon profile-home__shortcut-icon--report">📄</view>
           <view class="profile-home__shortcut-body">
-            <view class="profile-home__shortcut-title" style="font-size:{{fs.body}}">生成就诊报告</view>
+            <view class="profile-home__shortcut-title" style="font-size:{{fs.body}}">生成血压报告</view>
             <view class="profile-home__shortcut-subtitle" style="font-size:{{fs.secondary}}">选择时间段，导出专业报表</view>
           </view>
           <view class="profile-home__shortcut-arrow" style="font-size:{{fs.title}}">›</view>
