@@ -151,8 +151,8 @@ page {
 .data-latest__numbers {
     display: flex;
     align-items: baseline;
-    flex-wrap: wrap;
-    column-gap: 12rpx;
+    flex-wrap: nowrap;
+    column-gap: 8rpx;
     row-gap: 12rpx;
     margin-top: 24rpx;
     margin-bottom: 56rpx;
