@@ -342,15 +342,15 @@
 
 .report-disclaimer__title {
   margin-bottom: 8rpx;
-  color: #94a3b8;
-  font-size: 20rpx;
+  color: #64748b;
+  font-size: 24rpx;
   font-weight: 600;
   line-height: 1.6;
 }
 
 .report-disclaimer__text {
-  color: #94a3b8;
-  font-size: 22rpx;
+  color: #64748b;
+  font-size: 24rpx;
   line-height: 1.8;
 }
 
