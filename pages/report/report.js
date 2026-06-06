@@ -45,7 +45,7 @@ function sortRecordsDesc(records) {
   });
 }
 
-function buildPeriodOptions(coverageDayCount) {
+function buildPeriodOptions(coverageDayCount, earliestRecordAgeInDays = NaN) {
   if (!Number.isFinite(coverageDayCount)) {
     return PERIOD_OPTIONS.map((item) => Object.assign({}, item, { enabled: true }));
   }
@@ -58,7 +58,7 @@ function buildPeriodOptions(coverageDayCount) {
     } else if (item.days === 30) {
       enabled = coverageDayCount > 7;
     } else if (item.days === 90) {
-      enabled = coverageDayCount > 30;
+      enabled = Number.isFinite(earliestRecordAgeInDays) && earliestRecordAgeInDays > 30;
     }
 
     return Object.assign({}, item, { enabled });
@@ -206,6 +206,7 @@ Page({
     this.activeMedications = [];
     this.rawRecords = [];
     this.coverageDayCount = NaN;
+    this.earliestRecordAgeInDays = NaN;
     this.generatedAt = new Date();
     this.pixelRatio = 1;
     this.hasEntered = false;
@@ -290,8 +291,10 @@ Page({
     let nextUntil = null;
     let hasMore = true;
     let pageCount = 0;
+    let earliestRecordAgeInDays = -1;
+    const now = new Date();
 
-    while (hasMore && uniqueDays.size <= 30 && pageCount < 8) {
+    while (hasMore && (uniqueDays.size <= 7 || earliestRecordAgeInDays <= 30) && pageCount < 32) {
       const result = await this.fetchReportRecords(profileId, {
         limit: 200,
         until: nextUntil,
@@ -314,12 +317,23 @@ Page({
         break;
       }
 
+      const today = new Date(now);
+      today.setHours(0, 0, 0, 0);
+      const oldestDay = new Date(oldestMeasuredAt);
+      oldestDay.setHours(0, 0, 0, 0);
+      earliestRecordAgeInDays = Math.floor(
+        (today.getTime() - oldestDay.getTime()) / 86400000,
+      );
+
       nextUntil = new Date(oldestMeasuredAt.getTime() - 1);
       hasMore = result.hasMore === true;
       pageCount += 1;
     }
 
-    return uniqueDays.size;
+    return {
+      coverageDayCount: uniqueDays.size,
+      earliestRecordAgeInDays,
+    };
   },
 
   async loadReportData(days, options = {}) {
@@ -353,10 +367,16 @@ Page({
       const coveragePromise = shouldRefreshCoverage
         ? this.fetchCoverageDayCount(profileId).catch((error) => {
           console.warn('[report] fetchCoverageDayCount failed', error);
-          return NaN;
+          return {
+            coverageDayCount: NaN,
+            earliestRecordAgeInDays: NaN,
+          };
         })
-        : Promise.resolve(this.coverageDayCount);
-      const [medicationResult, recordResult, coverageDayCount] = await Promise.all([
+        : Promise.resolve({
+          coverageDayCount: this.coverageDayCount,
+          earliestRecordAgeInDays: this.earliestRecordAgeInDays,
+        });
+      const [medicationResult, recordResult, coverageInfo] = await Promise.all([
         medicationService.fetchMedications(profileId),
         this.fetchReportRecords(profileId, {
           since: getSinceForDays(days, now),
@@ -375,8 +395,11 @@ Page({
         ? medicationResult.activeMedications.slice()
         : [];
       this.rawRecords = Array.isArray(recordResult.records) ? recordResult.records.slice() : [];
-      if (Number.isFinite(coverageDayCount)) {
-        this.coverageDayCount = coverageDayCount;
+      if (coverageInfo && Number.isFinite(coverageInfo.coverageDayCount)) {
+        this.coverageDayCount = coverageInfo.coverageDayCount;
+      }
+      if (coverageInfo && Number.isFinite(coverageInfo.earliestRecordAgeInDays)) {
+        this.earliestRecordAgeInDays = coverageInfo.earliestRecordAgeInDays;
       }
       this.generatedAt = now;
 
@@ -395,7 +418,10 @@ Page({
         summaryCards: [],
         recentAlerts: [],
         banner: null,
-        periodOptions: buildPeriodOptions(this.coverageDayCount),
+        periodOptions: buildPeriodOptions(
+          this.coverageDayCount,
+          this.earliestRecordAgeInDays,
+        ),
       });
     }
   },
@@ -417,7 +443,10 @@ Page({
     this.setData({
       isLoading: false,
       errorText: '',
-      periodOptions: buildPeriodOptions(this.coverageDayCount),
+      periodOptions: buildPeriodOptions(
+        this.coverageDayCount,
+        this.earliestRecordAgeInDays,
+      ),
       patientNameText: viewModel.patient.nameText,
       medicationText: viewModel.patient.medicationText,
       emergencyText: viewModel.patient.emergencyText,
