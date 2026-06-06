@@ -643,9 +643,18 @@ Page({
 
     initSystemInfo() {
         try {
-            const systemInfo = wx.getSystemInfoSync();
-            this.pixelRatio = Number(systemInfo.pixelRatio) || 1;
+            const windowInfo =
+                typeof wx.getWindowInfo === "function" ? wx.getWindowInfo() : {};
+            const { statusBarHeight, pixelRatio: windowPixelRatio } = windowInfo;
+            const deviceInfo =
+                typeof wx.getDeviceInfo === "function"
+                    ? wx.getDeviceInfo()
+                    : {};
+            this.statusBarHeight = Number(statusBarHeight) || 0;
+            this.pixelRatio =
+                Number(windowPixelRatio) || Number(deviceInfo.pixelRatio) || 1;
         } catch (error) {
+            this.statusBarHeight = 0;
             this.pixelRatio = 1;
         }
     },

@@ -110,8 +110,11 @@ function createReportInstance(definition, profile) {
 try {
   global.getApp = () => ({ globalData: { fontScale: 1 } });
   global.wx = {
-    getSystemInfoSync() {
-      return { pixelRatio: 2 };
+    getWindowInfo() {
+      return { statusBarHeight: 20, pixelRatio: 3 };
+    },
+    getDeviceInfo() {
+      return {};
     },
   };
 
@@ -138,6 +141,12 @@ try {
 
   const dataDefinition = loadPageDefinition(dataPagePath);
   const dataInstance = createDataInstance(dataDefinition, profile);
+  dataDefinition.initSystemInfo.call(dataInstance);
+  assert.strictEqual(
+    dataInstance.pixelRatio,
+    3,
+    'data page should prefer pixelRatio from getWindowInfo so charts stay sharp on high-DPR devices',
+  );
   dataDefinition.applyViewModel.call(dataInstance);
   assert.deepStrictEqual(
     dataInstance.chartThreshold,
