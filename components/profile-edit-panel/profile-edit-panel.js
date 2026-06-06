@@ -91,6 +91,27 @@ function syncProfileIntoStore(profileId, nextProfile) {
     });
 }
 
+function emitVisibilityChange(instance, visible) {
+    const nextVisible = visible === true;
+
+    if (!instance._hasInitializedVisibility) {
+        instance._hasInitializedVisibility = true;
+        instance._lastVisibleState = nextVisible;
+
+        if (!nextVisible) {
+            return;
+        }
+    } else if (instance._lastVisibleState === nextVisible) {
+        return;
+    } else {
+        instance._lastVisibleState = nextVisible;
+    }
+
+    instance.triggerEvent("visibilitychange", {
+        visible: nextVisible,
+    });
+}
+
 Component({
     properties: {
         show: {
@@ -113,9 +134,7 @@ Component({
 
     observers: {
         show(visible) {
-            this.triggerEvent("visibilitychange", {
-                visible: visible === true,
-            });
+            emitVisibilityChange(this, visible);
 
             if (visible) {
                 syncFontData.call(this);

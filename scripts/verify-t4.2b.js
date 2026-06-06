@@ -5,6 +5,7 @@ runVerifySuite([
   'verify-launch-routing.js',
   'verify-round-i-ui.js',
   'verify-save-record-env-version.js',
+  'verify-visibilitychange-boot.js',
   'verify-fixed-bp-display-thresholds.js',
   'verify-t5.5.js',
   'verify-t6.0a.js',
