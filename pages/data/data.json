@@ -3,7 +3,6 @@
   "backgroundTextStyle": "dark",
   "navigationBarTitleText": "数据",
   "usingComponents": {
-    "empty-state": "/components/empty-state/empty-state",
     "profile-empty-guide": "/components/profile-empty-guide/profile-empty-guide",
     "profile-switcher": "/components/profile-switcher/profile-switcher",
     "record-panel": "/components/record-panel/record-panel"

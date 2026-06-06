@@ -108,9 +108,6 @@ page {
     box-shadow: none;
 }
 
-.data-latest__content {
-}
-
 .data-latest__status {
     display: inline-flex;
     align-items: center;
