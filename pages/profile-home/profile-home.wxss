@@ -49,9 +49,11 @@
 }
 
 .profile-home__empty {
-    padding-top: 120rpx;
     display: flex;
+    align-items: center;
     justify-content: center;
+    min-height: calc(100vh - 200rpx - env(safe-area-inset-bottom));
+    box-sizing: border-box;
 }
 
 .profile-home__state-title {

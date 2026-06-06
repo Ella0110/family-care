@@ -67,9 +67,11 @@ page {
 
 /* ========== 空态 ========== */
 .data-empty {
-    padding-top: 120rpx;
     display: flex;
+    align-items: center;
     justify-content: center;
+    min-height: calc(100vh - 200rpx - env(safe-area-inset-bottom));
+    box-sizing: border-box;
 }
 
 /* ========== 错误态 ========== */
