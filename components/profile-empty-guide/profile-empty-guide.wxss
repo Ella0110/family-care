@@ -1,6 +1,6 @@
 .profile-empty-guide {
   width: 100%;
-  min-height: inherit;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
