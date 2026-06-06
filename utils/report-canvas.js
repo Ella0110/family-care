@@ -107,7 +107,7 @@ function statusPalette(level) {
     { title: '整体正常',   desc: '所有测量均在参考范围内',         bg: C.normalBg,    tc: C.normalText,    dot: C.normalDot    },
     { title: '轻微偏高',   desc: '部分测量超出参考值，请继续观察', bg: C.attentionBg, tc: C.attentionText, dot: C.attentionDot },
     { title: '明显偏高',   desc: '存在明显偏高测量，建议近期就医', bg: C.warningBg,   tc: C.warningText,   dot: C.warningDot   },
-    { title: '血压过高',   desc: '存在极高血压测量，请尽快就医',   bg: C.dangerBg,    tc: C.dangerText,    dot: C.dangerDot    },
+    { title: '血压明显偏高', desc: '存在较高血压记录，建议及时就医', bg: C.dangerBg,    tc: C.dangerText,    dot: C.dangerDot    },
   ]
   return L[Math.min(level, 3)]
 }

@@ -364,8 +364,8 @@ function buildAlertBanner(records, threshold) {
   if ((records || []).some((record) => isHighRiskRecord(record))) {
     return {
       type: 'critical',
-      title: '血压过高风险',
-      text: '存在极高血压测量值，建议近期就医并遵医嘱调整用药。',
+      title: '血压偏高提示',
+      text: '存在较高血压记录，请及时就医咨询。',
       pulse: true,
     };
   }

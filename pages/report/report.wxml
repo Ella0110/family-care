@@ -125,6 +125,7 @@
     </view>
 
     <view class="report-section report-section--disclaimer">
+      <view class="report-disclaimer__title" style="font-size:{{fs.label}}">免责声明</view>
       <view class="report-disclaimer__text" style="font-size:{{fs.caption}}">{{disclaimer}}</view>
     </view>
   </view>
