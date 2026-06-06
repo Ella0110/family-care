@@ -34,7 +34,7 @@ assert.match(profileHomeJs, /handleOpenReport/, 'profile-home should expose repo
 
 assert.match(profileHomeWxml, /设置/, 'profile-home should expose settings entry');
 assert.match(profileHomeWxml, /成员管理/, 'profile-home should render members section');
-assert.match(profileHomeWxml, /生成就诊报告/, 'profile-home should render report shortcut');
+assert.match(profileHomeWxml, /生成血压报告/, 'profile-home should render report shortcut');
 assert.match(profileHomeWxml, /药物管理/, 'profile-home should render medication shortcut');
 assert.match(profileHomeWxml, /异常血压通知/, 'profile-home should render alerts toggle');
 assert.match(profileHomeWxml, /删除档案/, 'profile-home should render delete action');

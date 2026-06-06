@@ -182,12 +182,44 @@ function showSystemPermissionHint() {
     });
 }
 
-function buildPeriodOptions(coverageDayCount) {
+function getEarliestMeasuredRecordAgeInDays(records, now = new Date()) {
+    const safeRecords = Array.isArray(records) ? records : [];
+    let earliestTimestamp = Infinity;
+
+    safeRecords.forEach((record) => {
+        const measuredAt = toMeasuredDate(record && record.measuredAt);
+        const timestamp = measuredAt.getTime();
+        if (!Number.isNaN(timestamp) && timestamp < earliestTimestamp) {
+            earliestTimestamp = timestamp;
+        }
+    });
+
+    if (!Number.isFinite(earliestTimestamp)) {
+        return -1;
+    }
+
+    const today = new Date(now);
+    today.setHours(0, 0, 0, 0);
+
+    const earliestDay = new Date(earliestTimestamp);
+    earliestDay.setHours(0, 0, 0, 0);
+
+    return Math.floor(
+        (today.getTime() - earliestDay.getTime()) / 86400000,
+    );
+}
+
+function buildPeriodOptions(coverageDayCount, records, now = new Date()) {
     if (!Number.isFinite(coverageDayCount)) {
         return RANGE_OPTIONS.map((item) =>
             Object.assign({}, item, { enabled: true }),
         );
     }
+
+    const earliestRecordAgeInDays = getEarliestMeasuredRecordAgeInDays(
+        records,
+        now,
+    );
 
     return RANGE_OPTIONS.map((item) => {
         let enabled = false;
@@ -196,7 +228,7 @@ function buildPeriodOptions(coverageDayCount) {
         } else if (item.days === 30) {
             enabled = coverageDayCount > 7;
         } else if (item.days === 90) {
-            enabled = coverageDayCount > 30;
+            enabled = earliestRecordAgeInDays > 30;
         }
 
         return Object.assign({}, item, { enabled });
@@ -1022,7 +1054,10 @@ Page({
     applyViewModel() {
         const profileId = this.data.currentProfileId;
         const profile = profileId ? findProfile(profileId) : null;
-        const periodOptions = buildPeriodOptions(this.coverageDayCount);
+        const periodOptions = buildPeriodOptions(
+            this.coverageDayCount,
+            this.allRecords,
+        );
         const selectedOption = periodOptions.find(
             (item) => item.days === this.data.selectedDays && item.enabled,
         );

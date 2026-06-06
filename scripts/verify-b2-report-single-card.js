@@ -32,7 +32,7 @@ assert.match(
 
 assert.match(
   wxml,
-  /class="report-section report-section--header"[\s\S]*血压心率就诊报告/,
+  /class="report-section report-section--header"[\s\S]*血压心率报告/,
   'report body should start with the title section inside the single card',
 );
 
