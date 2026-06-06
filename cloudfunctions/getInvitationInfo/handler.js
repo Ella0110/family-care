@@ -8,30 +8,6 @@ const {
   getInvitationErrorCodeByStatus,
 } = require('./_shared/invitation-utils');
 
-async function getLatestBp(database, profileId) {
-  const result = await database
-    .collection(COLLECTIONS.RECORDS)
-    .where({
-      profileId,
-      type: 'bp',
-      deletedAt: null,
-    })
-    .orderBy('measuredAt', 'desc')
-    .limit(1)
-    .get();
-
-  const record = result && Array.isArray(result.data) && result.data[0] ? result.data[0] : null;
-  if (!record || !record.payload) {
-    return null;
-  }
-
-  return {
-    systolic: record.payload.systolic,
-    diastolic: record.payload.diastolic,
-    measuredAt: record.measuredAt,
-  };
-}
-
 function buildInvitationInfo(invitation, profiles, status) {
   return {
     token: invitation.token,
@@ -73,7 +49,6 @@ function createGetInvitationInfoHandler(deps = {}) {
         _id: profile._id,
         name: profile.name,
         relation: profile.relation || null,
-        latestBp: await getLatestBp(database, profileId),
       });
     }
 

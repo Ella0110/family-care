@@ -70,7 +70,7 @@ async function main() {
       profileName: '爸爸',
       measuredAt,
     }).templateData.thing2.value,
-    '血压偏高1级',
+    '血压偏高 1 级',
     '145/92 should map to 1级 for push display',
   );
   assert.strictEqual(
@@ -80,7 +80,7 @@ async function main() {
       profileName: '爸爸',
       measuredAt,
     }).templateData.thing2.value,
-    '血压偏高2级',
+    '血压偏高 2 级',
     '165/102 should map to 2级 for push display',
   );
   assert.strictEqual(
@@ -90,7 +90,7 @@ async function main() {
       profileName: '爸爸',
       measuredAt,
     }).templateData.thing2.value,
-    '血压偏高3级',
+    '血压偏高 3 级',
     '185/112 should map to 3级 for push display',
   );
   assert.strictEqual(
@@ -189,8 +189,8 @@ async function main() {
   assert.deepStrictEqual(
     pushCalls[0].data,
     {
-      thing2: { value: '血压偏高1级' },
-      character_string3: { value: '高压152/低压96 mmHg' },
+      thing2: { value: '血压偏高 1 级' },
+      character_string3: { value: '152/96 mmHg' },
       thing5: { value: '测试档案名字很长很长很长很长' },
       time8: { value: '2026-05-06 20:15' },
     },

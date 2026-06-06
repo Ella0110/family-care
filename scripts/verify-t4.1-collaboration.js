@@ -127,9 +127,9 @@ async function main() {
   assert.strictEqual(invitationInfo.success, true);
   assert.strictEqual(invitationInfo.invitation.status, 'active');
   assert.strictEqual(invitationInfo.invitation.profiles.length, 2);
-  assert.strictEqual(
-    invitationInfo.invitation.profiles.find((item) => item._id === profileA._id).latestBp.systolic,
-    138,
+  assert.ok(
+    invitationInfo.invitation.profiles.every((item) => !Object.prototype.hasOwnProperty.call(item, 'latestBp')),
+    'invitation info should not expose recent blood pressure values',
   );
 
   const selfAccept = await acceptInvitation({ token: invitationToken }, {});

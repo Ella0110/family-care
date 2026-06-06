@@ -5,16 +5,10 @@ function requestAlertSubscription(onComplete) {
     return Promise.resolve(typeof onComplete === 'function' ? onComplete() : null);
   }
 
-  console.log('About to request subscribe');
+  const tmplIds = [SUBSCRIBE_ALERT_TEMPLATE_ID];
   return new Promise((resolve) => {
     wx.requestSubscribeMessage({
-      tmplIds: [SUBSCRIBE_ALERT_TEMPLATE_ID],
-      success(res) {
-        console.log('Subscribe result:', JSON.stringify(res));
-      },
-      fail(err) {
-        console.warn('Subscribe request failed:', err);
-      },
+      tmplIds,
       complete: () => {
         Promise.resolve(typeof onComplete === 'function' ? onComplete() : null).finally(resolve);
       },
