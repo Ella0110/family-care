@@ -39,10 +39,6 @@ function buildFunction(factory, runtime, extra = {}) {
 async function main() {
   const measuredAt = '2026-05-06T12:15:00.000Z';
   const runtime = createFakeRuntime({ openId: 'user_record' });
-  const originalGetWXContext = runtime.cloud.getWXContext.bind(runtime.cloud);
-  runtime.cloud.getWXContext = () => Object.assign({}, originalGetWXContext(), {
-    SOURCE: 'wx_devtools',
-  });
   const pushCalls = [];
   runtime.cloud.openapi = {
     subscribeMessage: {
@@ -174,6 +170,7 @@ async function main() {
 
   const alerted = await saveRecord({
     profileId: createdProfile.profile._id,
+    envVersion: 'develop',
     measuredAt,
     payload: {
       systolic: 152,
@@ -205,6 +202,7 @@ async function main() {
   const pushCountBeforeSkip = pushCalls.length;
   const savedSkipPush = await saveRecord({
     profileId: createdProfile.profile._id,
+    envVersion: 'develop',
     measuredAt: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
     payload: {
       systolic: 166,

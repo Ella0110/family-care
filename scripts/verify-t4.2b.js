@@ -4,6 +4,7 @@ runVerifySuite([
   'verify-h2-invite-ui.js',
   'verify-launch-routing.js',
   'verify-round-i-ui.js',
+  'verify-save-record-env-version.js',
   'verify-t5.5.js',
   'verify-t6.0a.js',
   'verify-t6.0b.js',

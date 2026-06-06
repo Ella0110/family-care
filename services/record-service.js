@@ -3,6 +3,20 @@ const { store } = require('../store/index');
 
 const recordCache = new Map();
 
+function getCurrentEnvVersion() {
+  try {
+    if (typeof wx === 'undefined' || typeof wx.getAccountInfoSync !== 'function') {
+      return '';
+    }
+
+    const accountInfo = wx.getAccountInfoSync();
+    const envVersion = accountInfo && accountInfo.miniProgram && accountInfo.miniProgram.envVersion;
+    return typeof envVersion === 'string' ? envVersion : '';
+  } catch (error) {
+    return '';
+  }
+}
+
 function recordSignature(record) {
   if (!record) {
     return 'null';
@@ -82,12 +96,17 @@ function upsertRecord(records, record) {
  * @returns {Promise<{ record: Object, alertTriggered: boolean, alertSentTo: string[] }>}
  */
 async function saveRecord(profileId, payload, measuredAt, note, options = {}) {
+  const envVersion = getCurrentEnvVersion();
   const data = {
     profileId,
     type: 'bp',
     measuredAt,
     payload,
   };
+
+  if (envVersion) {
+    data.envVersion = envVersion;
+  }
 
   if (note) {
     data.note = note;
