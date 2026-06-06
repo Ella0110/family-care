@@ -602,6 +602,38 @@ function drawSampledCurveSegment(
     }
 }
 
+function drawEndpointColoredCurveSegment(
+    ctx,
+    start,
+    end,
+    control1,
+    control2,
+    startColor,
+    endColor,
+    useStraightLine,
+) {
+    const sampleCount = useStraightLine ? 24 : 32;
+    let previousPoint = start;
+
+    for (let step = 1; step <= sampleCount; step += 1) {
+        const t = step / sampleCount;
+        const previousT = (step - 1) / sampleCount;
+        const nextPoint = useStraightLine
+            ? sampleLinePoint(start, end, t)
+            : sampleBezierPoint(start, control1, control2, end, t);
+        const midpointT = (t + previousT) / 2;
+        const strokeColor = midpointT < 0.5 ? startColor : endColor;
+
+        ctx.beginPath();
+        ctx.strokeStyle = strokeColor;
+        ctx.moveTo(previousPoint.x, previousPoint.y);
+        ctx.lineTo(nextPoint.x, nextPoint.y);
+        ctx.stroke();
+
+        previousPoint = nextPoint;
+    }
+}
+
 function drawSeriesPoints(
     ctx,
     chartData,
@@ -621,6 +653,69 @@ function drawSeriesPoints(
             abnormal ? 2 : 2,
         );
     });
+}
+
+function drawSmoothPolylineByPairFlags(
+    ctx,
+    chartData,
+    points,
+    getValue,
+    isAlertPoint,
+    normalColor,
+    plot,
+    range,
+) {
+    const segments = buildContinuousSegments(
+        chartData,
+        points,
+        getValue,
+        plot,
+        range,
+    ).filter((segment) => segment.length >= 2);
+
+    if (!segments.length) {
+        return;
+    }
+
+    ctx.save();
+    ctx.lineWidth = 1;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+
+    segments.forEach((segment) => {
+        for (let index = 0; index < segment.length - 1; index += 1) {
+            const current = segment[index];
+            const next = segment[index + 1];
+            const previous = index > 0 ? segment[index - 1] : current;
+            const following =
+                index + 2 < segment.length ? segment[index + 2] : next;
+            const controls = getBezierControls(
+                previous,
+                current,
+                next,
+                following,
+            );
+            const startColor = isAlertPoint(current.point)
+                ? CHART_COLORS.alert
+                : normalColor;
+            const endColor = isAlertPoint(next.point)
+                ? CHART_COLORS.alert
+                : normalColor;
+
+            drawEndpointColoredCurveSegment(
+                ctx,
+                current,
+                next,
+                controls.control1,
+                controls.control2,
+                startColor,
+                endColor,
+                false,
+            );
+        }
+    });
+
+    ctx.restore();
 }
 
 function drawRoundedBar(ctx, x, y, width, bottom, color) {
@@ -694,27 +789,23 @@ function drawBloodPressureTrendChart(
     drawXAxisLabels(ctx, chartData.slots, plot, chartData.mode);
 
     if (chartData.mode >= 90) {
-        drawSmoothPolylineByPair(
+        drawSmoothPolylineByPairFlags(
             ctx,
             chartData,
             chartData.points,
             (point) => point.systolic,
-            (value) =>
-                value >= threshold.systolic || value < 90
-                    ? CHART_COLORS.alert
-                    : CHART_COLORS.systolic,
+            (point) => point.systolicAlert,
+            CHART_COLORS.systolic,
             plot,
             range,
         );
-        drawSmoothPolylineByPair(
+        drawSmoothPolylineByPairFlags(
             ctx,
             chartData,
             chartData.points,
             (point) => point.diastolic,
-            (value) =>
-                value >= threshold.diastolic || value < 60
-                    ? CHART_COLORS.alert
-                    : CHART_COLORS.diastolic,
+            (point) => point.diastolicAlert,
+            CHART_COLORS.diastolic,
             plot,
             range,
         );

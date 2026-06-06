@@ -166,6 +166,31 @@ assert.strictEqual(
   '30-day mode should use the latest record of the day instead of averaging',
 );
 
+const fixedThresholdTimeline = helpers.buildChartTimeline([
+  {
+    _id: 'fixed-normal',
+    measuredAt: '2026-05-09T08:30:00+08:00',
+    payload: { systolic: 135, diastolic: 85, heartRate: 70, period: 'morning' },
+  },
+  {
+    _id: 'fixed-alert',
+    measuredAt: '2026-05-10T08:30:00+08:00',
+    payload: { systolic: 145, diastolic: 95, heartRate: 70, period: 'morning' },
+  },
+], 30, { systolic: 120, diastolic: 80 }, now);
+assert.deepStrictEqual(
+  fixedThresholdTimeline.points.map((point) => ({
+    id: point._id,
+    systolicAlert: point.systolicAlert,
+    diastolicAlert: point.diastolicAlert,
+  })),
+  [
+    { id: 'fixed-normal', systolicAlert: false, diastolicAlert: false },
+    { id: 'fixed-alert', systolicAlert: true, diastolicAlert: true },
+  ],
+  'chart point alert flags should use the fixed 140/90 medical threshold instead of the profile threshold',
+);
+
 const sevenDayCtx = createFakeCtx();
 const sevenDayChartData = {
   mode: 7,
@@ -322,6 +347,29 @@ assert.ok(ninetyDayBloodBlueCount > 0, '90-day blood-pressure chart should turn 
 assert.ok(
   ninetyDayHorizontalGridSegments.length > 0,
   '90-day chart should keep regular horizontal grid lines',
+);
+
+const ninetyDayFixedThresholdCtx = createFakeCtx();
+drawBloodPressureTrendChart(ninetyDayFixedThresholdCtx, {
+  mode: 90,
+  slots: [
+    { index: 0, date: new Date('2026-02-10T00:00:00+08:00'), label: '02/10' },
+    { index: 1, date: new Date('2026-02-11T00:00:00+08:00'), label: '02/11' },
+  ],
+  points: [
+    { slotIndex: 0, slotCount: 1, positionInSlot: 0, systolic: 145, diastolic: 95, systolicAlert: true, diastolicAlert: true, hasHeartRate: false },
+    { slotIndex: 1, slotCount: 1, positionInSlot: 0, systolic: 135, diastolic: 85, systolicAlert: false, diastolicAlert: false, hasHeartRate: false },
+  ],
+}, { systolic: 200, diastolic: 200 }, { width: 300, height: 220 }, 90, { hideTitle: true });
+const ninetyDayFixedRedCount = ninetyDayFixedThresholdCtx.segments.filter((segment) => segment.strokeStyle === '#EF4444').length;
+const ninetyDayFixedBlueCount = ninetyDayFixedThresholdCtx.segments.filter((segment) => segment.strokeStyle === '#0356FC').length;
+assert.ok(
+  ninetyDayFixedRedCount > 0,
+  '90-day blood-pressure chart should still render red alert segments when the profile threshold is higher than 140/90',
+);
+assert.ok(
+  ninetyDayFixedBlueCount > 0,
+  '90-day blood-pressure chart should still render blue normal segments when values stay below 140/90',
 );
 
 const heartRateCtx = createFakeCtx();

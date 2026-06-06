@@ -9,6 +9,7 @@ const {
     getBPStatusDisplay,
     getBPLevelForValue,
     getBPLevelMeta,
+    DISPLAY_BP_THRESHOLD,
 } = require("../../utils/bp-status");
 const { getAppLoginStatus } = require("../../utils/app-login-status");
 const {
@@ -295,7 +296,7 @@ function average(values) {
     );
 }
 
-function buildRangeSummary(records, threshold) {
+function buildRangeSummary(records) {
     const safeRecords = Array.isArray(records) ? records : [];
     const systolicValues = safeRecords
         .map((record) =>
@@ -320,8 +321,8 @@ function buildRangeSummary(records, threshold) {
         }
 
         if (
-            systolic < threshold.systolic &&
-            diastolic < threshold.diastolic &&
+            systolic < DISPLAY_BP_THRESHOLD.systolic &&
+            diastolic < DISPLAY_BP_THRESHOLD.diastolic &&
             systolic >= LOW_BP.systolic &&
             diastolic >= LOW_BP.diastolic
         ) {
@@ -1085,7 +1086,7 @@ Page({
             );
         }
 
-        this.chartThreshold = getThreshold(profile);
+        this.chartThreshold = DISPLAY_BP_THRESHOLD;
         this.rangeRecords = getRangeRecords(
             this.allRecords,
             nextSelectedDays,
@@ -1103,10 +1104,7 @@ Page({
         const hasHeartRateData = Boolean(
             this.chartData && this.chartData.hasHeartRateData,
         );
-        const rangeSummary = buildRangeSummary(
-            this.rangeRecords,
-            this.chartThreshold,
-        );
+        const rangeSummary = buildRangeSummary(this.rangeRecords);
         const heartRateSummary = buildHeartRateSummary(this.rangeRecords);
 
         this.setData(

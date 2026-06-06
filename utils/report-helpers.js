@@ -1,7 +1,8 @@
-const { calculateAge, formatPhoneWithSpaces, getThreshold } = require('./profile-detail');
+const { calculateAge, formatPhoneWithSpaces } = require('./profile-detail');
 const {
   LOW_BP,
   BP_LEVELS,
+  DISPLAY_BP_THRESHOLD,
   getBPStatusDisplay,
   getBPLevelForValue,
 } = require('./bp-status');
@@ -145,9 +146,16 @@ function isHeartRateAbnormal(record) {
 }
 
 function decorateAlertFlags(record, threshold, heartRateAlertOverride) {
-  void threshold;
-  const systolicAlert = getBPLevelForValue(record.systolic, 'systolic') !== BP_LEVELS.NORMAL;
-  const diastolicAlert = getBPLevelForValue(record.diastolic, 'diastolic') !== BP_LEVELS.NORMAL;
+  const systolicLevel = getBPLevelForValue(record.systolic, 'systolic');
+  const diastolicLevel = getBPLevelForValue(record.diastolic, 'diastolic');
+  const systolicAlert = systolicLevel === BP_LEVELS.LOW
+    || systolicLevel === BP_LEVELS.STAGE1
+    || systolicLevel === BP_LEVELS.STAGE2
+    || systolicLevel === BP_LEVELS.STAGE3;
+  const diastolicAlert = diastolicLevel === BP_LEVELS.LOW
+    || diastolicLevel === BP_LEVELS.STAGE1
+    || diastolicLevel === BP_LEVELS.STAGE2
+    || diastolicLevel === BP_LEVELS.STAGE3;
   const heartRateAlert = heartRateAlertOverride === undefined
     ? isHeartRateAbnormal(record)
     : Boolean(heartRateAlertOverride);
@@ -487,7 +495,7 @@ function buildPatientInfo(profile, activeMedications, hideSensitive, now = new D
 
 function buildReportViewModel(options) {
   const profile = options && options.profile ? options.profile : null;
-  const threshold = getThreshold(profile);
+  const threshold = DISPLAY_BP_THRESHOLD;
   const generatedAt = options && options.generatedAt ? options.generatedAt : new Date();
   const normalizedRecords = normalizeReportRecords(options && options.records);
   const patient = buildPatientInfo(

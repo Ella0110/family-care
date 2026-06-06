@@ -12,6 +12,11 @@ const LOW_BP = Object.freeze({
   diastolic: 60,
 });
 
+const DISPLAY_BP_THRESHOLD = Object.freeze({
+  systolic: 140,
+  diastolic: 90,
+});
+
 const DEFAULT_REFERENCE_LINES = Object.freeze({
   systolic: Object.freeze({ normal: 120, elevated: 140, high: 160 }),
   diastolic: Object.freeze({ normal: 80, elevated: 90, high: 100 }),
@@ -208,6 +213,7 @@ module.exports = {
   BP_LEVELS,
   BP_LEVEL_ORDER,
   LOW_BP,
+  DISPLAY_BP_THRESHOLD,
   DEFAULT_REFERENCE_LINES,
   getReferenceLines,
   getBPLevelForValue,
