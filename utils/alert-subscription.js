@@ -1,4 +1,4 @@
-const SUBSCRIBE_ALERT_TEMPLATE_ID = 'lrhxG9oawoHDyh1AFVSgiv-cQE7-qTAn87-_nzBDxCY';
+const SUBSCRIBE_ALERT_TEMPLATE_ID = 'EntTrzNRVv1RDKy5AvLgxsUrGJzislhyAPovjgrXJ4U';
 
 function requestAlertSubscription(onComplete) {
   if (typeof wx.requestSubscribeMessage !== 'function') {

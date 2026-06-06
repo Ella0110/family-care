@@ -21,6 +21,22 @@ function createSaveRecordHandler(deps = {}) {
   const auth = deps.auth || authModule;
   const now = deps.now || (() => new Date());
 
+  function resolveMiniprogramState() {
+    try {
+      const wxContext = cloudSdk && typeof cloudSdk.getWXContext === 'function'
+        ? cloudSdk.getWXContext()
+        : null;
+
+      if (wxContext && wxContext.SOURCE === 'wx_devtools') {
+        return 'developer';
+      }
+    } catch (error) {
+      // Ignore context lookup failures and fall back to the release target.
+    }
+
+    return 'formal';
+  }
+
   return async function saveRecordHandler(event, context) {
     const user = await auth.requireCurrentUser(event, context);
     const profileId = assertNonEmptyString(event.profileId, 'profileId');
@@ -113,7 +129,7 @@ function createSaveRecordHandler(deps = {}) {
             templateId: SUBSCRIBE_ALERT_TEMPLATE_ID,
             page: 'pages/data/data',
             data: templateData,
-            miniprogramState: 'formal',
+            miniprogramState: resolveMiniprogramState(),
           }),
         ),
       );

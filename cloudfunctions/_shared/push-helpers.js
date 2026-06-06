@@ -1,4 +1,4 @@
-const SUBSCRIBE_ALERT_TEMPLATE_ID = 'lrhxG9oawoHDyh1AFVSgiv-cQE7-qTAn87-_nzBDxCY';
+const SUBSCRIBE_ALERT_TEMPLATE_ID = 'EntTrzNRVv1RDKy5AvLgxsUrGJzislhyAPovjgrXJ4U';
 
 function truncateThing(value, maxLength = 20) {
   const text = String(value || '').trim();
@@ -41,37 +41,31 @@ function formatPushTime(value) {
   return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
 
-function getAlertType(payload, threshold) {
+function getBpAlertLevel(payload) {
   const systolic = Number(payload && payload.systolic);
   const diastolic = Number(payload && payload.diastolic);
-  const systolicThreshold = Number(threshold && threshold.systolic);
-  const diastolicThreshold = Number(threshold && threshold.diastolic);
 
-  if (systolic >= 180 || diastolic >= 120) {
-    return {
-      alertType: '血压过高·严重异常',
-      alertLevel: 'critical-high',
-    };
+  if (systolic >= 180 || diastolic >= 110) {
+    return '血压偏高3级';
   }
 
-  if (systolic >= systolicThreshold || diastolic >= diastolicThreshold) {
-    return {
-      alertType: '血压偏高',
-      alertLevel: 'high',
-    };
+  if (systolic >= 160 || diastolic >= 100) {
+    return '血压偏高2级';
+  }
+
+  if (systolic >= 140 || diastolic >= 90) {
+    return '血压偏高1级';
+  }
+
+  if (systolic >= 120 || diastolic >= 80) {
+    return '血压临界偏高';
   }
 
   if (systolic < 90 || diastolic < 60) {
-    return {
-      alertType: '血压偏低',
-      alertLevel: 'low',
-    };
+    return '血压偏低';
   }
 
-  return {
-    alertType: '',
-    alertLevel: 'normal',
-  };
+  return '血压异常';
 }
 
 function buildTipText(profileName, payload) {
@@ -87,19 +81,18 @@ function buildTipText(profileName, payload) {
   return candidates.find((candidate) => Array.from(candidate).length <= 20) || candidates[candidates.length - 1];
 }
 
-function buildPushData({ payload, threshold, profileName, measuredAt }) {
-  const { alertType, alertLevel } = getAlertType(payload, threshold);
+function buildPushData({ payload, profileName, measuredAt }) {
+  const alertLevel = getBpAlertLevel(payload);
   const safeProfileName = truncateThing(profileName || '家人');
-  const safeTip = buildTipText(safeProfileName || '家人', payload);
 
   return {
-    alertType,
+    alertType: alertLevel,
     alertLevel,
     templateData: {
-      thing1: { value: truncateThing(alertType || '血压异常') },
-      thing2: { value: safeProfileName || '家人' },
-      time3: { value: formatPushTime(measuredAt) },
-      thing4: { value: safeTip || '请关注血压变化' },
+      thing2: { value: truncateThing(alertLevel) || '血压异常' },
+      character_string3: { value: `${payload.systolic}/${payload.diastolic} mmHg` },
+      thing5: { value: safeProfileName || '家人' },
+      time8: { value: formatPushTime(measuredAt) },
     },
   };
 }
@@ -109,6 +102,6 @@ module.exports = {
   buildPushData,
   buildTipText,
   formatPushTime,
-  getAlertType,
+  getBpAlertLevel,
   truncateThing,
 };

@@ -137,6 +137,40 @@ function verifySettingsPrivacyLink() {
   assert.match(wxss, /\.settings-about__privacy\s*\{[\s\S]*color:\s*#8e8e93;[\s\S]*font-size:\s*20rpx;/i, 'settings privacy entry should use the muted small-link style');
 }
 
+function verifyAlertSubscriptionEntryPoints() {
+  const subscriptionHelper = read('utils/alert-subscription.js');
+  const settingsJs = read('pages/user-settings/user-settings.js');
+
+  assert.match(
+    subscriptionHelper,
+    /const SUBSCRIBE_ALERT_TEMPLATE_ID = 'EntTrzNRVv1RDKy5AvLgxsUrGJzislhyAPovjgrXJ4U';/,
+    'alert subscription helper should request the new 指标异常提醒 template',
+  );
+
+  assert.match(
+    settingsJs,
+    /requestAlertSubscription/,
+    'settings page should reuse the shared alert subscription helper',
+  );
+
+  assert.match(
+    settingsJs,
+    /if\s*\(value\s*&&\s*!previousValue\)\s*\{[\s\S]*await requestAlertSubscription\(/,
+    'settings page should request subscription permission when turning alerts on from the off state',
+  );
+}
+
+function verifyThresholdPageReminderDisabled() {
+  const wxml = read('pages/profile-threshold-edit/profile-threshold-edit.wxml');
+
+  assert.match(wxml, /定时提醒功能即将上线，敬请期待/, 'threshold page should explain that scheduled reminders are not available yet');
+  assert.match(
+    wxml,
+    /<button class="btn-primary threshold-actions__button" bindtap="handleSave" loading="\{\{isSaving\}\}" disabled(?:="\{\{[^"]+\}\}"|="true")>保存<\/button>/,
+    'threshold page save button should stay rendered but be disabled',
+  );
+}
+
 function verifyMedicationEmptyGlassCard() {
   const wxss = read('pages/medication-edit/medication-edit.wxss');
   assert.match(wxss, /\.medication-empty\s*\{[\s\S]*background:\s*rgba\(255,\s*255,\s*255,\s*0\.7\);[\s\S]*backdrop-filter:\s*blur\(20px\);[\s\S]*border-radius:\s*32rpx;/i, 'medication empty state should use the glass card treatment');
@@ -165,6 +199,8 @@ verifyReportChartHeadings();
 verifyImportPlaceholder();
 verifyUserProfileEditStyles();
 verifySettingsPrivacyLink();
+verifyAlertSubscriptionEntryPoints();
+verifyThresholdPageReminderDisabled();
 verifyMedicationEmptyGlassCard();
 verifyInviteAcceptCentering();
 verifyShareImage();

@@ -19,6 +19,7 @@ const {
   getCurrentRelationship,
   isOwner,
 } = require('../../utils/permission-helpers');
+const { requestAlertSubscription } = require('../../utils/alert-subscription');
 
 const SETTINGS_DEBOUNCE_MS = 800;
 
@@ -445,9 +446,18 @@ Page({
     });
 
     try {
-      const result = await memberService.updateRelationship(relationshipId, {
-        subscribeAlerts: value,
-      });
+      let result = null;
+      if (value && !previousValue) {
+        await requestAlertSubscription(async () => {
+          result = await memberService.updateRelationship(relationshipId, {
+            subscribeAlerts: value,
+          });
+        });
+      } else {
+        result = await memberService.updateRelationship(relationshipId, {
+          subscribeAlerts: value,
+        });
+      }
       const nextValue = Boolean(result.relationship && result.relationship.subscribeAlerts);
       this.setData({
         currentSubscribeAlerts: nextValue,
@@ -523,9 +533,18 @@ Page({
     this.updateNotifySubscriberCount(nextItems);
 
     try {
-      const result = await memberService.updateRelationship(relationshipId, {
-        subscribeAlerts: value,
-      });
+      let result = null;
+      if (value && !targetItem.subscribeAlerts && targetItem.isSelf) {
+        await requestAlertSubscription(async () => {
+          result = await memberService.updateRelationship(relationshipId, {
+            subscribeAlerts: value,
+          });
+        });
+      } else {
+        result = await memberService.updateRelationship(relationshipId, {
+          subscribeAlerts: value,
+        });
+      }
       const finalValue = Boolean(result.relationship && result.relationship.subscribeAlerts);
       const resolvedItems = (this.data.memberSheetItems || []).map((item) =>
         item.relationshipId === relationshipId

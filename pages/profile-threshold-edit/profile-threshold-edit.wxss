@@ -69,6 +69,14 @@
   margin-top: 32rpx;
 }
 
+.threshold-actions__hint {
+  margin-bottom: 20rpx;
+  color: #8e8e93;
+  font-size: 28rpx;
+  line-height: 1.6;
+  text-align: center;
+}
+
 .threshold-actions__button + .threshold-actions__button {
   margin-top: 20rpx;
 }

@@ -27,7 +27,8 @@
   <view wx:if="{{errorText}}" class="threshold-error" style="font-size:{{fs.body}}">{{errorText}}</view>
 
   <view class="threshold-actions">
-    <button class="btn-primary threshold-actions__button" bindtap="handleSave" loading="{{isSaving}}" disabled="{{isSaving}}">保存</button>
+    <view class="threshold-actions__hint" style="font-size:{{fs.body}}">定时提醒功能即将上线，敬请期待</view>
+    <button class="btn-primary threshold-actions__button" bindtap="handleSave" loading="{{isSaving}}" disabled="true">保存</button>
     <button class="btn-secondary threshold-actions__button" bindtap="handleRestoreDefault" disabled="{{isSaving}}">恢复默认</button>
   </view>
 </view>
