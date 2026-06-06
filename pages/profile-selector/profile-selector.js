@@ -137,10 +137,9 @@ Page({
 
   initStatusBarInsetTop() {
     try {
-      const systemInfo = wx.getSystemInfoSync();
-      const statusBarHeight = Number(systemInfo.statusBarHeight) || 0;
+      const { statusBarHeight } = wx.getWindowInfo();
       this.setData({
-        statusBarInsetTop: statusBarHeight + PROFILE_SELECTOR_PADDING_TOP_FALLBACK,
+        statusBarInsetTop: (Number(statusBarHeight) || 0) + PROFILE_SELECTOR_PADDING_TOP_FALLBACK,
       });
     } catch (error) {
       this.setData({
