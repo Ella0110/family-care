@@ -3,11 +3,16 @@ const {
     drawHeartRateChart,
 } = require("./report-chart-renderer");
 
-const EXPORT_CANVAS_WIDTH = 750;
+const CARD_X = 28;
+const CARD_Y = 12;
+const CARD_WIDTH = 550;
+const CARD_RADIUS = 32;
+const EXPORT_CANVAS_WIDTH = CARD_X * 2 + CARD_WIDTH;
 const MAX_EXPORT_HEIGHT = 4000;
 const EXPORT_PADDING = 60;
-const PADDING_X = 40;
-const CONTENT_WIDTH = EXPORT_CANVAS_WIDTH - PADDING_X * 2;
+const CONTENT_X = 76;
+const CONTENT_WIDTH = 450;
+const CONTENT_RIGHT = CONTENT_X + CONTENT_WIDTH;
 const SECTION_GAP = 24;
 const EMPTY_TEXT = "该时间段内暂无测量记录";
 const MORE_ALERTS_TEXT = "更多异常记录请在应用中查看";
@@ -236,26 +241,35 @@ function drawReportExportCanvas(ctx, payload) {
     ctx.clearRect(0, 0, EXPORT_CANVAS_WIDTH, layout.height);
     ctx.fillStyle = "#FFFFFF";
     ctx.fillRect(0, 0, EXPORT_CANVAS_WIDTH, layout.height);
+    drawRoundedRect(
+        ctx,
+        CARD_X,
+        CARD_Y,
+        CARD_WIDTH,
+        Math.max(1, layout.height - CARD_Y * 2),
+        CARD_RADIUS,
+        "#FFFFFF",
+    );
 
     y = EXPORT_PADDING;
     ctx.fillStyle = "#111827";
     ctx.font = "bold 24px sans-serif";
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
-    ctx.fillText("血压心率报告", PADDING_X, y);
+    ctx.fillText("血压心率报告", CONTENT_X, y);
 
     y += 42;
     ctx.fillStyle = "#6B7280";
     ctx.font = "14px sans-serif";
-    ctx.fillText(payload.periodLabel, PADDING_X, y);
+    ctx.fillText(payload.periodLabel, CONTENT_X, y);
 
     y += 24;
     ctx.fillStyle = "#94A3B8";
     ctx.font = "12px sans-serif";
-    ctx.fillText(`生成于 ${payload.generatedAtText}`, PADDING_X, y);
+    ctx.fillText(`生成于 ${payload.generatedAtText}`, CONTENT_X, y);
 
     y += 56;
-    drawSectionLabel(ctx, "患者档案", PADDING_X, y);
+    drawSectionLabel(ctx, "患者档案", CONTENT_X, y);
     y += 32;
 
     const columnGap = 24;
@@ -264,7 +278,7 @@ function drawReportExportCanvas(ctx, payload) {
         ctx,
         "患者姓名",
         patient.nameText,
-        PADDING_X,
+        CONTENT_X,
         y,
         columnWidth,
     );
@@ -272,7 +286,7 @@ function drawReportExportCanvas(ctx, payload) {
         ctx,
         "主要用药",
         patient.medicationText,
-        PADDING_X + columnWidth + columnGap,
+        CONTENT_X + columnWidth + columnGap,
         y,
         columnWidth,
     );
@@ -282,7 +296,7 @@ function drawReportExportCanvas(ctx, payload) {
             ctx,
             "紧急联系人",
             patient.emergencyText,
-            PADDING_X,
+            CONTENT_X,
             y,
             CONTENT_WIDTH,
         ) + 6;
@@ -299,7 +313,7 @@ function drawReportExportCanvas(ctx, payload) {
 
         drawRoundedRect(
             ctx,
-            PADDING_X,
+            CONTENT_X,
             y,
             CONTENT_WIDTH,
             bannerHeight,
@@ -308,14 +322,14 @@ function drawReportExportCanvas(ctx, payload) {
         );
         ctx.fillStyle = bannerTitle;
         ctx.font = "bold 22px sans-serif";
-        ctx.fillText(payload.banner.title, PADDING_X + 24, y + 22);
+        ctx.fillText(payload.banner.title, CONTENT_X + 24, y + 22);
 
         ctx.fillStyle = bannerText;
         ctx.font = "15px sans-serif";
         drawWrappedText(
             ctx,
             payload.banner.text,
-            PADDING_X + 24,
+            CONTENT_X + 24,
             y + 58,
             CONTENT_WIDTH - 48,
             24,
@@ -331,7 +345,7 @@ function drawReportExportCanvas(ctx, payload) {
         (payload.summaryCards || []).forEach((item, index) => {
             const column = index % 2;
             const row = Math.floor(index / 2);
-            const cardX = PADDING_X + column * (cardWidth + 18);
+            const cardX = CONTENT_X + column * (cardWidth + 18);
             const cardY = summaryTop + row * (102 + 14);
 
             drawRoundedRect(ctx, cardX, cardY, cardWidth, 102, 18, "#F8FAFC");
@@ -355,7 +369,7 @@ function drawReportExportCanvas(ctx, payload) {
 
         y += SECTION_GAP;
         ctx.save();
-        ctx.translate(PADDING_X, y);
+        ctx.translate(CONTENT_X, y);
         drawBloodPressureTrendChart(
             ctx,
             payload.records,
@@ -369,7 +383,7 @@ function drawReportExportCanvas(ctx, payload) {
         y += SECTION_GAP;
         if (payload.hasHeartRateData) {
             ctx.save();
-            ctx.translate(PADDING_X, y);
+            ctx.translate(CONTENT_X, y);
             drawHeartRateChart(
                 ctx,
                 payload.records,
@@ -382,7 +396,7 @@ function drawReportExportCanvas(ctx, payload) {
         } else {
             drawRoundedRect(
                 ctx,
-                PADDING_X,
+                CONTENT_X,
                 y,
                 CONTENT_WIDTH,
                 92,
@@ -391,12 +405,12 @@ function drawReportExportCanvas(ctx, payload) {
             );
             ctx.fillStyle = "#6B7280";
             ctx.font = "15px sans-serif";
-            ctx.fillText("暂无心率数据", PADDING_X + 24, y + 34);
+            ctx.fillText("暂无心率数据", CONTENT_X + 24, y + 34);
             y += 92;
         }
 
         y += SECTION_GAP;
-        drawSectionLabel(ctx, "最近异常明细", PADDING_X, y);
+        drawSectionLabel(ctx, "最近异常明细", CONTENT_X, y);
         y += 30;
 
         if (exportAlerts.length) {
@@ -405,21 +419,21 @@ function drawReportExportCanvas(ctx, payload) {
                     ctx.strokeStyle = "#E5E7EB";
                     ctx.lineWidth = 1;
                     ctx.beginPath();
-                    ctx.moveTo(PADDING_X, y);
-                    ctx.lineTo(EXPORT_CANVAS_WIDTH - PADDING_X, y);
+                    ctx.moveTo(CONTENT_X, y);
+                    ctx.lineTo(CONTENT_RIGHT, y);
                     ctx.stroke();
                     y += 18;
                 }
 
                 ctx.fillStyle = "#111827";
                 ctx.font = "bold 15px sans-serif";
-                ctx.fillText(item.measuredAtText, PADDING_X, y);
+                ctx.fillText(item.measuredAtText, CONTENT_X, y);
                 ctx.fillStyle = "#B42318";
                 ctx.font = "14px sans-serif";
                 const alertEndY = drawWrappedText(
                     ctx,
                     item.alertText,
-                    PADDING_X,
+                    CONTENT_X,
                     y + 24,
                     360,
                     22,
@@ -428,19 +442,11 @@ function drawReportExportCanvas(ctx, payload) {
                 ctx.fillStyle = "#111827";
                 ctx.font = "bold 24px sans-serif";
                 ctx.textAlign = "right";
-                ctx.fillText(
-                    item.bloodPressureText,
-                    EXPORT_CANVAS_WIDTH - PADDING_X,
-                    y + 2,
-                );
+                ctx.fillText(item.bloodPressureText, CONTENT_RIGHT, y + 2);
                 if (item.heartRateText) {
                     ctx.fillStyle = "#6B7280";
                     ctx.font = "13px sans-serif";
-                    ctx.fillText(
-                        item.heartRateText,
-                        EXPORT_CANVAS_WIDTH - PADDING_X,
-                        y + 32,
-                    );
+                    ctx.fillText(item.heartRateText, CONTENT_RIGHT, y + 32);
                 }
                 ctx.textAlign = "left";
 
@@ -450,18 +456,18 @@ function drawReportExportCanvas(ctx, payload) {
             if (layout.exportAlertsNotice) {
                 ctx.fillStyle = "#6B7280";
                 ctx.font = "13px sans-serif";
-                ctx.fillText(layout.exportAlertsNotice, PADDING_X, y + 8);
+                ctx.fillText(layout.exportAlertsNotice, CONTENT_X, y + 8);
                 y += 40;
             }
         } else {
             ctx.fillStyle = "#6B7280";
             ctx.font = "15px sans-serif";
-            ctx.fillText("该时间段内无异常记录", PADDING_X, y + 8);
+            ctx.fillText("该时间段内无异常记录", CONTENT_X, y + 8);
             y += 54;
         }
     } else {
         y += SECTION_GAP;
-        drawRoundedRect(ctx, PADDING_X, y, CONTENT_WIDTH, 96, 18, "#F8FAFC");
+        drawRoundedRect(ctx, CONTENT_X, y, CONTENT_WIDTH, 96, 18, "#F8FAFC");
         ctx.fillStyle = "#6B7280";
         ctx.font = "15px sans-serif";
         ctx.textAlign = "center";
@@ -474,8 +480,8 @@ function drawReportExportCanvas(ctx, payload) {
     ctx.strokeStyle = "#E5E7EB";
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(PADDING_X, y);
-    ctx.lineTo(EXPORT_CANVAS_WIDTH - PADDING_X, y);
+    ctx.moveTo(CONTENT_X, y);
+    ctx.lineTo(CONTENT_RIGHT, y);
     ctx.stroke();
     y += 24;
 
@@ -484,7 +490,7 @@ function drawReportExportCanvas(ctx, payload) {
     return drawWrappedText(
         ctx,
         payload.disclaimer,
-        PADDING_X,
+        CONTENT_X,
         y,
         CONTENT_WIDTH,
         22,
