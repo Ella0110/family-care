@@ -147,7 +147,7 @@ const thirtyDayTimeline = helpers.buildChartTimeline([
   {
     _id: 'r1',
     measuredAt: '2026-05-08T07:30:00+08:00',
-    payload: { systolic: 120, diastolic: 80, heartRate: 65 },
+    payload: { systolic: 170, diastolic: 96, heartRate: 65 },
   },
   {
     _id: 'r2',
@@ -162,8 +162,31 @@ assert.strictEqual(
 );
 assert.strictEqual(
   thirtyDayTimeline.points[0]._id,
-  'r2',
-  '30-day mode should use the latest record of the day instead of averaging',
+  'r1',
+  '30-day mode should keep the highest-systolic record of the day instead of the latest one',
+);
+
+const ninetyDayTimeline = helpers.buildChartTimeline([
+  {
+    _id: 'r-high',
+    measuredAt: '2026-05-08T07:30:00+08:00',
+    payload: { systolic: 168, diastolic: 96, heartRate: 65 },
+  },
+  {
+    _id: 'r-latest',
+    measuredAt: '2026-05-08T21:10:00+08:00',
+    payload: { systolic: 142, diastolic: 104, heartRate: 92 },
+  },
+], 90, threshold, now);
+assert.strictEqual(
+  ninetyDayTimeline.points.length,
+  1,
+  '90-day mode should keep one point per day',
+);
+assert.strictEqual(
+  ninetyDayTimeline.points[0]._id,
+  'r-high',
+  '90-day mode should keep the highest-systolic record of the day instead of the latest one',
 );
 
 const fixedThresholdTimeline = helpers.buildChartTimeline([

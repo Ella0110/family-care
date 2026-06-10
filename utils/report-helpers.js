@@ -266,6 +266,24 @@ function getLatestPerDay(recordsForDay) {
   return safeRecords.length ? safeRecords[safeRecords.length - 1] : null;
 }
 
+function getHighestSystolicPerDay(recordsForDay) {
+  const safeRecords = (Array.isArray(recordsForDay) ? recordsForDay : [])
+    .slice()
+    .sort((left, right) => {
+      if (right.systolic !== left.systolic) {
+        return right.systolic - left.systolic;
+      }
+
+      if (right.diastolic !== left.diastolic) {
+        return right.diastolic - left.diastolic;
+      }
+
+      return right.measuredAt.getTime() - left.measuredAt.getTime();
+    });
+
+  return safeRecords.length ? safeRecords[0] : null;
+}
+
 function selectSevenDayRecords(recordsForDay) {
   const safeRecords = (Array.isArray(recordsForDay) ? recordsForDay : [])
     .slice()
@@ -317,9 +335,17 @@ function buildChartTimeline(records, days, threshold, now = new Date()) {
       return;
     }
 
-    const selectedRecords = Number(days) <= 7
-      ? selectSevenDayRecords(recordsForDay)
-      : (getLatestPerDay(recordsForDay) ? [getLatestPerDay(recordsForDay)] : []);
+    let selectedRecords = [];
+
+    if (Number(days) <= 7) {
+      selectedRecords = selectSevenDayRecords(recordsForDay);
+    } else if (Number(days) >= 30) {
+      const highestRecord = getHighestSystolicPerDay(recordsForDay);
+      selectedRecords = highestRecord ? [highestRecord] : [];
+    } else {
+      const latestRecord = getLatestPerDay(recordsForDay);
+      selectedRecords = latestRecord ? [latestRecord] : [];
+    }
 
     slot.items = selectedRecords.map((record) => decorateAlertFlags(Object.assign({}, record, {
       label: slot.label,
@@ -540,6 +566,7 @@ module.exports = {
   countUniqueMeasuredDays,
   buildChartTimeline,
   getLatestPerDay,
+  getHighestSystolicPerDay,
   isHighRiskRecord,
   isHighRecord,
   isLowRecord,
