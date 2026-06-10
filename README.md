@@ -11,16 +11,16 @@
 
 ## 产品截图
 
-<p align="center">
+<!-- <p align="center">
   <img width="150" alt="record_panel" src="https://github.com/user-attachments/assets/745222df-c7e7-453a-a5fd-ec0d1cc3a3fe" />
   <img width="150" alt="record_list" src="https://github.com/user-attachments/assets/99f2f9cc-f0c3-4c22-8165-faf9948ba7c0" />
-  <img width="150" alt="profile_page" src="https://github.com/user-attachments/assets/76595d20-d32a-4b50-a0b8-7fef8005d95f" />
+  
   <img width="150" alt="setting_page" src="https://github.com/user-attachments/assets/a0fa34ab-4ce9-4296-87a4-334e19e0f635" />
-</p>
+</p> -->
 
 <p align="center">
-  <img width="200" alt="data_page" src="https://github.com/user-attachments/assets/b5be3a42-eeeb-4b5f-bf1f-cbee7b14e429" />
-  <img width="200" alt="report_page" src="https://github.com/user-attachments/assets/06738854-f5c7-4745-b30d-8940d446398d" />
+  <img width="177" alt="data_page" src="https://github.com/user-attachments/assets/b5be3a42-eeeb-4b5f-bf1f-cbee7b14e429" />
+  <img width="200" alt="profile_page" src="https://github.com/user-attachments/assets/76595d20-d32a-4b50-a0b8-7fef8005d95f" />
 </p>
 
 ## 这是什么
