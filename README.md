@@ -11,6 +11,18 @@
 
 ## 产品截图
 
+<p align="center">
+  <img width="180" alt="record_panel" src="https://github.com/user-attachments/assets/745222df-c7e7-453a-a5fd-ec0d1cc3a3fe" />
+  <img width="180" alt="record_list" src="https://github.com/user-attachments/assets/99f2f9cc-f0c3-4c22-8165-faf9948ba7c0" />
+  <img width="180" alt="profile_page" src="https://github.com/user-attachments/assets/76595d20-d32a-4b50-a0b8-7fef8005d95f" />
+  <img width="180" alt="setting_page" src="https://github.com/user-attachments/assets/a0fa34ab-4ce9-4296-87a4-334e19e0f635" />
+</p>
+
+<p align="center">
+  <img width="300" alt="data_page" src="https://github.com/user-attachments/assets/b5be3a42-eeeb-4b5f-bf1f-cbee7b14e429" />
+  <img width="300" alt="report_page" src="https://github.com/user-attachments/assets/06738854-f5c7-4745-b30d-8940d446398d" />
+</p>
+
 ## 这是什么
 
 中国有大量长期高血压老人，而他们的子女往往不在身边。这个小程序解决一个具体问题：**让子女能远程看到父母的血压数据，并在出现异常时第一时间收到提醒。**
@@ -32,62 +44,6 @@
 | 数据库   | 云开发 NoSQL 文档数据库                      |
 | 图表     | Canvas 2D 自绘（趋势图、长图报告渲染）       |
 | 推送     | 微信订阅消息                                 |
-
-## 架构设计
-
-### 数据模型：三表分离
-
-核心是 `users` / `profiles` / `relationships` 三表分离的设计——用户和健康档案不是一对一绑定，而是通过关系表关联：
-
-```
-users ──┐
-        ├── relationships (role, permissions, subscribeAlerts) ──> profiles
-users ──┘                                                              │
-                                              records / medications ──┘
-```
-
-- 一个用户可关联多个档案（同时关注爸妈两人）
-- 一个档案可被多个用户关联（兄弟姐妹共同关注父亲）
-- 角色与权限挂在关系上而非用户上：同一人可以是 A 档案的管理员、B 档案的查看者
-- 不引入"家庭"中间实体，避免 V1 阶段的过度设计
-
-### 关键写操作使用数据库事务
-
-- **接受邀请**：创建 relationship + 消耗一次性邀请 token，事务保证不会出现"关系建了但邀请没核销"
-- **转让管理员**：双方角色互换在同一事务内完成，并保护"最后一个管理员不可移除"的不变量
-- **创建档案**：档案文档与 owner relationship 在同一事务内创建
-
-### 缓存策略：SWR + 协作场景 staleness 检测
-
-- 读操作先返回本地缓存再后台刷新，缓存按 `profileId` 隔离
-- 写操作本地即时更新缓存，避免整包失效造成的 loading 回退
-- **协作场景的特殊处理**：标准 SWR 假设"用户只改自己的数据"，但协作场景下 A 可以修改 B 的权限。对权限敏感页面引入 30 秒 staleness 检测与强制刷新，解决权限变更不同步问题
-
-### 云函数工程化
-
-- 共享逻辑收敛在 `cloudfunctions/_shared/`，构建脚本在部署前复制进每个函数目录（微信云函数上传只打包当前目录，不能跨目录 require）
-- 构建阶段为每个函数生成 `package.json` manifest 并校验，杜绝 `wx-server-sdk` 缺失类部署事故
-- 三层验证流程：本地逻辑验证 → 部署单元校验 → DevTools 真实环境烟测
-
-## 值得一提的技术细节
-
-**性能优化**
-
-- 登录接口的成员关系查询从 N+1 重构为批量 `WHERE IN` 查询
-- CSV 批量导入从串行逐条保存改为固定并发 5 的批量写入，百条级数据导入耗时缩短约 70%
-- 历史数据导入通过 `skipPush` 标志跳过实时告警推送，避免导入旧异常记录时触发误报
-
-**微信平台的真实约束**
-
-- `wx.getUserProfile` 在新版基础库已无法稳定获取真实昵称，邀请流程改用 `input type="nickname"` + `chooseAvatar` 主动填写方案
-- `requestSubscribeMessage` 必须在用户 tap 的同步调用链内发起，不能放在异步保存之后
-- 订阅消息 `thing` 字段有 20 字符硬限制，推送文案实现了多级回退裁剪
-- 云数据库 `_id` 不保证单调递增，记录排序基于 `measuredAt + createdAt` 复合排序
-
-**Canvas 长图渲染**
-
-- 就诊报告导出采用两次绘制：先试绘测量真实内容高度，再按最终高度重绘并裁切，解决真机底部留白问题
-- 数据页与报告页共享同一图表渲染器，趋势图按血压区间分段着色
 
 ## 项目结构
 
