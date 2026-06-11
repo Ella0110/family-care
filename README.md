@@ -1,5 +1,6 @@
 # 来自儿女的关心（family-care）
 
+> A WeChat Mini Program for family blood pressure monitoring — multi-profile, role-based collaboration, serverless backend
 > 一款帮助子女远程关注父母血压健康的微信小程序 —— 多档案管理 · 家庭协作 · 异常提醒 · 就诊报告
 
 **已上线** | 微信搜索「来自儿女的关心」或扫码体验：
