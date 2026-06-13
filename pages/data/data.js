@@ -1,5 +1,6 @@
 const { store } = require("../../store/index");
 const recordService = require("../../services/record-service");
+const memberService = require("../../services/member-service");
 const { getErrorMessage } = require("../../utils/error-messages");
 const {
     DEFAULT_FONT_SCALE,
@@ -12,6 +13,10 @@ const {
     DISPLAY_BP_THRESHOLD,
 } = require("../../utils/bp-status");
 const { getAppLoginStatus } = require("../../utils/app-login-status");
+const {
+    SUBSCRIBE_ALERT_TEMPLATE_ID,
+    showSubscribeBanModal,
+} = require("../../utils/alert-subscription");
 const {
     getCurrentRelationship,
     isViewer,
@@ -86,6 +91,84 @@ function findProfile(profileId) {
             (profile) => profile && profile._id === profileId,
         ) || null
     );
+}
+
+function getSubscribeAuthStatus(relationship) {
+    return relationship && typeof relationship.subscribeAuthStatus === "string"
+        ? relationship.subscribeAuthStatus
+        : "";
+}
+
+function shouldShowSubscribeGuide(relationship) {
+    return Boolean(
+        relationship &&
+            relationship.subscribeAlerts === true &&
+            getSubscribeAuthStatus(relationship) === "pending",
+    );
+}
+
+function shouldSilentlyRefreshSubscribeAlert(relationship) {
+    return Boolean(
+        relationship &&
+            relationship.subscribeAlerts === true &&
+            getSubscribeAuthStatus(relationship) === "authorized",
+    );
+}
+
+function getSubscribeGuideInviterName(relationship) {
+    const inviterName = String(
+        relationship && relationship.inviterNickname
+            ? relationship.inviterNickname
+            : "",
+    ).trim();
+    return inviterName;
+}
+
+function findMemberNicknameByUserId(members, userId) {
+    if (!userId) {
+        return "";
+    }
+
+    const inviterMember = (Array.isArray(members) ? members : []).find(
+        (member) => member && member.user && member.user._id === userId,
+    );
+    const nickname = String(
+        inviterMember &&
+            inviterMember.user &&
+            inviterMember.user.nickname
+            ? inviterMember.user.nickname
+            : "",
+    ).trim();
+    return nickname;
+}
+
+function findManagerNickname(members) {
+    const managerMember = (Array.isArray(members) ? members : []).find(
+        (member) =>
+            member &&
+            member.user &&
+            ((member.relationship && member.relationship.role === "owner") ||
+                (member.relationship &&
+                    member.relationship.permissions &&
+                    member.relationship.permissions.canManage === true)),
+    );
+    return String(
+        managerMember &&
+            managerMember.user &&
+            managerMember.user.nickname
+            ? managerMember.user.nickname
+            : "",
+    ).trim();
+}
+
+function findSubscribeGuideInviterNameFromMembers(members, relationship) {
+    const invitedBy = relationship && relationship.invitedBy;
+    const inviterName = findMemberNicknameByUserId(members, invitedBy);
+    if (inviterName) {
+        return inviterName;
+    }
+
+    return findManagerNickname(members);
 }
 
 function buildProfilesSignature(profiles) {
@@ -516,6 +599,9 @@ Page({
         exportCanvasHeight: 1,
         isExportingChart: false,
         showPermissionModal: false,
+        showSubscribeGuide: false,
+        subscribeGuideInviterName: "",
+        subscribeGuideProfileName: "",
     },
 
     onLoad() {
@@ -538,6 +624,9 @@ Page({
         this.currentUserId = store.getState().user && store.getState().user._id;
         this.activeLoadPromise = null;
         this.activeRefreshPromise = null;
+        this.isSubscribeGuideSubmitting = false;
+        this.subscribeGuideInviterLookupToken = 0;
+        this._silentSubscribeDone = false;
 
         syncFontData.call(this);
         this.initSystemInfo();
@@ -590,6 +679,8 @@ Page({
         }
 
         this.syncProfileMeta();
+        this.syncSubscribeGuideState();
+        this.refreshSubscribeAlertQuotaSilently();
         if (this.activeLoadPromise || this.activeRefreshPromise) {
             return;
         }
@@ -637,6 +728,7 @@ Page({
             this._unsubscribe();
             this._unsubscribe = null;
         }
+        this._silentSubscribeDone = false;
         this.chartRenderToken += 1;
         this.exportTempFilePath = "";
     },
@@ -707,6 +799,193 @@ Page({
         this.lastProfileMetaSignature = nextSignature;
 
         this.setData(nextMeta);
+    },
+
+    getCurrentRelationshipForSubscribeGuide() {
+        const state = store.getState();
+        const profileId = state.currentProfileId || "";
+        if (!profileId) {
+            return null;
+        }
+
+        return getCurrentRelationship(state, profileId);
+    },
+
+    hideSubscribeGuide() {
+        if (
+            !this.data.showSubscribeGuide &&
+            !this.data.subscribeGuideInviterName &&
+            !this.data.subscribeGuideProfileName
+        ) {
+            return;
+        }
+
+        this.setData({
+            showSubscribeGuide: false,
+            subscribeGuideInviterName: "",
+            subscribeGuideProfileName: "",
+        });
+    },
+
+    syncSubscribeGuideState() {
+        const relationship = this.getCurrentRelationshipForSubscribeGuide();
+        if (!shouldShowSubscribeGuide(relationship)) {
+            this.hideSubscribeGuide();
+            return;
+        }
+
+        if (this.data.showSubscribeGuide) {
+            this.setData({
+                subscribeGuideInviterName:
+                    getSubscribeGuideInviterName(relationship) || "家人",
+                subscribeGuideProfileName: this.data.profileName || "",
+            });
+            this.ensureSubscribeGuideInviterName(relationship);
+            return;
+        }
+
+        const app = getApp();
+        if (
+            app &&
+            typeof app.hasShownSubscribeGuide === "function" &&
+            app.hasShownSubscribeGuide(relationship._id)
+        ) {
+            this.hideSubscribeGuide();
+            return;
+        }
+
+        if (app && typeof app.markSubscribeGuideShown === "function") {
+            app.markSubscribeGuideShown(relationship._id);
+        }
+
+        this.setData({
+            showSubscribeGuide: true,
+            subscribeGuideInviterName:
+                getSubscribeGuideInviterName(relationship) || "家人",
+            subscribeGuideProfileName: this.data.profileName || "",
+        });
+        this.ensureSubscribeGuideInviterName(relationship);
+    },
+
+    async ensureSubscribeGuideInviterName(relationship) {
+        const profileId = relationship && relationship.profileId;
+        const directName = getSubscribeGuideInviterName(relationship);
+
+        if (directName || !profileId) {
+            return;
+        }
+
+        const lookupToken = this.subscribeGuideInviterLookupToken + 1;
+        this.subscribeGuideInviterLookupToken = lookupToken;
+
+        try {
+            const result = await memberService.listProfileMembers(profileId);
+            if (lookupToken !== this.subscribeGuideInviterLookupToken) {
+                return;
+            }
+
+            const inviterName = findSubscribeGuideInviterNameFromMembers(
+                result && result.members,
+                relationship,
+            );
+            if (!inviterName || !this.data.showSubscribeGuide) {
+                return;
+            }
+
+            this.setData({
+                subscribeGuideInviterName: inviterName,
+            });
+        } catch (error) {
+            void error;
+        }
+    },
+
+    refreshSubscribeAlertQuotaSilently() {
+        const relationship = this.getCurrentRelationshipForSubscribeGuide();
+        if (
+            this._silentSubscribeDone ||
+            !shouldSilentlyRefreshSubscribeAlert(relationship) ||
+            typeof wx.requestSubscribeMessage !== "function"
+        ) {
+            return;
+        }
+
+        this._silentSubscribeDone = true;
+        wx.requestSubscribeMessage({
+            tmplIds: [SUBSCRIBE_ALERT_TEMPLATE_ID],
+            success() {},
+            fail() {},
+        });
+    },
+
+    async updateSubscribeGuideRelationship(status) {
+        const relationship = this.getCurrentRelationshipForSubscribeGuide();
+        if (!relationship || !relationship._id) {
+            this.hideSubscribeGuide();
+            return;
+        }
+
+        const patch =
+            status === "accept"
+                ? {
+                      subscribeAlerts: true,
+                      subscribeAuthStatus: "authorized",
+                  }
+                : {
+                      subscribeAlerts: false,
+                      subscribeAuthStatus: "declined",
+                  };
+
+        await memberService.updateRelationship(relationship._id, patch);
+    },
+
+    async handleSubscribeGuideResult(event) {
+        const status =
+            event && event.detail && typeof event.detail.status === "string"
+                ? event.detail.status
+                : "";
+
+        if (
+            this.isSubscribeGuideSubmitting ||
+            (status !== "accept" && status !== "reject" && status !== "ban")
+        ) {
+            return;
+        }
+
+        this.isSubscribeGuideSubmitting = true;
+        try {
+            await this.updateSubscribeGuideRelationship(status);
+            this.hideSubscribeGuide();
+            if (status === "ban") {
+                showSubscribeBanModal();
+            }
+        } catch (error) {
+            wx.showToast({
+                title: getErrorMessage(error),
+                icon: "none",
+            });
+        } finally {
+            this.isSubscribeGuideSubmitting = false;
+        }
+    },
+
+    async handleSubscribeGuideReject() {
+        if (this.isSubscribeGuideSubmitting) {
+            return;
+        }
+
+        this.isSubscribeGuideSubmitting = true;
+        try {
+            await this.updateSubscribeGuideRelationship("reject");
+            this.hideSubscribeGuide();
+        } catch (error) {
+            wx.showToast({
+                title: getErrorMessage(error),
+                icon: "none",
+            });
+        } finally {
+            this.isSubscribeGuideSubmitting = false;
+        }
     },
 
     setTabBarVisible(visible) {

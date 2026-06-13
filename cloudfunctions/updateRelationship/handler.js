@@ -7,7 +7,7 @@ const { getDocumentOrNull } = require('./_shared/documents');
 
 function normalizeRelationshipPatch(value) {
   const patch = assertPlainObject(value, 'patch');
-  assertAllowedKeys(patch, ['role', 'subscribeAlerts'], 'patch');
+  assertAllowedKeys(patch, ['role', 'subscribeAlerts', 'subscribeAuthStatus'], 'patch');
 
   if (Object.keys(patch).length === 0) {
     throw invalidArgument('patch must contain at least one editable field');
@@ -28,6 +28,23 @@ function normalizeRelationshipPatch(value) {
       throw invalidArgument('patch.subscribeAlerts must be a boolean');
     }
     normalized.subscribeAlerts = patch.subscribeAlerts;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(patch, 'subscribeAuthStatus')) {
+    const subscribeAuthStatus = assertNonEmptyString(
+      patch.subscribeAuthStatus,
+      'patch.subscribeAuthStatus',
+    );
+    if (
+      subscribeAuthStatus !== 'pending'
+      && subscribeAuthStatus !== 'authorized'
+      && subscribeAuthStatus !== 'declined'
+    ) {
+      throw invalidArgument(
+        'patch.subscribeAuthStatus must be one of: pending, authorized, declined',
+      );
+    }
+    normalized.subscribeAuthStatus = subscribeAuthStatus;
   }
 
   return normalized;
@@ -66,6 +83,11 @@ function createUpdateRelationshipHandler(deps = {}) {
     const patch = normalizeRelationshipPatch(event.patch);
     const isSelf = relationship.userId === user._id;
     const isOwner = requesterRelationship.role === 'owner';
+    const canManage = Boolean(
+      requesterRelationship
+      && requesterRelationship.permissions
+      && requesterRelationship.permissions.canManage === true,
+    );
 
     if (Object.prototype.hasOwnProperty.call(patch, 'role')) {
       if (!isOwner || isSelf) {
@@ -76,11 +98,36 @@ function createUpdateRelationshipHandler(deps = {}) {
       }
     }
 
-    if (Object.prototype.hasOwnProperty.call(patch, 'subscribeAlerts') && !isOwner && !isSelf) {
+    if (
+      (Object.prototype.hasOwnProperty.call(patch, 'subscribeAlerts')
+        || Object.prototype.hasOwnProperty.call(patch, 'subscribeAuthStatus'))
+      && !isOwner
+      && !isSelf
+    ) {
       throw createError(
         'PERMISSION_DENIED',
         'Only owners can update other members alert settings',
       );
+    }
+
+    if (Object.prototype.hasOwnProperty.call(patch, 'subscribeAuthStatus')) {
+      if (patch.subscribeAuthStatus === 'pending' && (!canManage || isSelf)) {
+        throw createError(
+          'FORBIDDEN',
+          'Only owners can mark another member subscription auth as pending',
+        );
+      }
+
+      if (
+        (patch.subscribeAuthStatus === 'authorized'
+          || patch.subscribeAuthStatus === 'declined')
+        && !isSelf
+      ) {
+        throw createError(
+          'FORBIDDEN',
+          'Only the member can confirm or decline their own subscription auth state',
+        );
+      }
     }
 
     const nextRelationship = Object.assign({}, relationship, {
@@ -101,6 +148,11 @@ function createUpdateRelationshipHandler(deps = {}) {
     if (Object.prototype.hasOwnProperty.call(patch, 'subscribeAlerts')) {
       nextRelationship.subscribeAlerts = patch.subscribeAlerts;
       updateData.subscribeAlerts = patch.subscribeAlerts;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(patch, 'subscribeAuthStatus')) {
+      nextRelationship.subscribeAuthStatus = patch.subscribeAuthStatus;
+      updateData.subscribeAuthStatus = patch.subscribeAuthStatus;
     }
 
     await database.collection(COLLECTIONS.RELATIONSHIPS).doc(relationshipId).update({

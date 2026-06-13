@@ -5,6 +5,7 @@
   "usingComponents": {
     "profile-empty-guide": "/components/profile-empty-guide/profile-empty-guide",
     "profile-switcher": "/components/profile-switcher/profile-switcher",
-    "record-panel": "/components/record-panel/record-panel"
+    "record-panel": "/components/record-panel/record-panel",
+    "subscribe-guide": "/components/subscribe-guide/subscribe-guide"
   }
 }

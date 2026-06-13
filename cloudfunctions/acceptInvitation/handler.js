@@ -86,11 +86,13 @@ function createAcceptInvitationHandler(deps = {}) {
           role: roleDefaults.role,
           permissions: roleDefaults.permissions,
           subscribeAlerts: roleDefaults.subscribeAlerts,
+          subscribeAuthStatus: null,
           displayName: null,
           createdAt: timestamp,
           updatedAt: timestamp,
           acceptedAt: timestamp,
           invitedBy: currentInvitation.inviterUserId,
+          inviterNickname: currentInvitation.inviterNickname || null,
         };
 
         await transaction.collection(COLLECTIONS.RELATIONSHIPS).doc(relationshipId).set({
@@ -100,11 +102,13 @@ function createAcceptInvitationHandler(deps = {}) {
             role: relationship.role,
             permissions: relationship.permissions,
             subscribeAlerts: relationship.subscribeAlerts,
+            subscribeAuthStatus: relationship.subscribeAuthStatus,
             displayName: relationship.displayName,
             createdAt: relationship.createdAt,
             updatedAt: relationship.updatedAt,
             acceptedAt: relationship.acceptedAt,
             invitedBy: relationship.invitedBy,
+            inviterNickname: relationship.inviterNickname,
           },
         });
 

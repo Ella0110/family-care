@@ -45,10 +45,12 @@ function createCreateProfileHandler(deps = {}) {
       role: ownerDefaults.role,
       permissions: ownerDefaults.permissions,
       subscribeAlerts: ownerDefaults.subscribeAlerts,
+      subscribeAuthStatus: null,
       displayName: null,
       createdAt: timestamp,
       acceptedAt: timestamp,
       invitedBy: null,
+      inviterNickname: null,
     };
 
     const transaction = await database.startTransaction();
@@ -76,10 +78,12 @@ function createCreateProfileHandler(deps = {}) {
           role: relationship.role,
           permissions: relationship.permissions,
           subscribeAlerts: relationship.subscribeAlerts,
+          subscribeAuthStatus: relationship.subscribeAuthStatus,
           displayName: relationship.displayName,
           createdAt: relationship.createdAt,
           acceptedAt: relationship.acceptedAt,
           invitedBy: relationship.invitedBy,
+          inviterNickname: relationship.inviterNickname,
         },
       });
       await transaction.commit();

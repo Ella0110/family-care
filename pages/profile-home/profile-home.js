@@ -20,7 +20,11 @@ const {
     syncFontData,
 } = require("../../utils/font-scale");
 const { getAppLoginStatus } = require("../../utils/app-login-status");
-const { requestAlertSubscription } = require("../../utils/alert-subscription");
+const {
+    SUBSCRIBE_ALERT_TEMPLATE_ID,
+    requestAlertSubscription,
+    showSubscribeBanModal,
+} = require("../../utils/alert-subscription");
 const {
     findProfileById,
     removeProfileFromStore,
@@ -119,6 +123,90 @@ function buildProfilesSignature(profiles) {
             ].join(":");
         })
         .join("|");
+}
+
+function getSubscribeAuthStatus(relationship) {
+    return relationship && typeof relationship.subscribeAuthStatus === "string"
+        ? relationship.subscribeAuthStatus
+        : "";
+}
+
+function isSubscribeAlertsEnabled(relationship) {
+    return getSubscribeAuthStatus(relationship) === "declined"
+        ? false
+        : Boolean(relationship && relationship.subscribeAlerts);
+}
+
+function shouldShowSubscribeGuide(relationship) {
+    return Boolean(
+        relationship &&
+            relationship.subscribeAlerts === true &&
+            getSubscribeAuthStatus(relationship) === "pending",
+    );
+}
+
+function shouldSilentlyRefreshSubscribeAlert(relationship) {
+    return Boolean(
+        relationship &&
+            relationship.subscribeAlerts === true &&
+            getSubscribeAuthStatus(relationship) === "authorized",
+    );
+}
+
+function getSubscribeGuideInviterName(relationship) {
+    const inviterName = String(
+        relationship && relationship.inviterNickname
+            ? relationship.inviterNickname
+            : "",
+    ).trim();
+    return inviterName;
+}
+
+function findMemberNicknameByUserId(members, userId) {
+    if (!userId) {
+        return "";
+    }
+
+    const inviterMember = (Array.isArray(members) ? members : []).find(
+        (member) => member && member.user && member.user._id === userId,
+    );
+    const nickname = String(
+        inviterMember &&
+            inviterMember.user &&
+            inviterMember.user.nickname
+            ? inviterMember.user.nickname
+            : "",
+    ).trim();
+    return nickname;
+}
+
+function findManagerNickname(members) {
+    const managerMember = (Array.isArray(members) ? members : []).find(
+        (member) =>
+            member &&
+            member.user &&
+            ((member.relationship && member.relationship.role === "owner") ||
+                (member.relationship &&
+                    member.relationship.permissions &&
+                    member.relationship.permissions.canManage === true)),
+    );
+    return String(
+        managerMember &&
+            managerMember.user &&
+            managerMember.user.nickname
+            ? managerMember.user.nickname
+            : "",
+    ).trim();
+}
+
+function findSubscribeGuideInviterNameFromMembers(members, relationship) {
+    const invitedBy = relationship && relationship.invitedBy;
+    const inviterName = findMemberNicknameByUserId(members, invitedBy);
+    if (inviterName) {
+        return inviterName;
+    }
+
+    return findManagerNickname(members);
 }
 
 function buildLatestRecordDisplay(record, profile) {
@@ -302,6 +390,9 @@ Page({
         inviteNicknameDraft: "",
         isSavingInviteNickname: false,
         isPreparingInvitation: false,
+        showSubscribeGuide: false,
+        subscribeGuideInviterName: "",
+        subscribeGuideProfileName: "",
         fontScaleLabel: getFontScaleLabel(DEFAULT_FONT_SCALE),
         selectedFontScale: DEFAULT_FONT_SCALE,
         fontScaleOptions: FONT_SCALE_OPTIONS.map((value) => ({
@@ -327,6 +418,9 @@ Page({
         this.historicalMedications = [];
         this.activeLoadPromise = null;
         this.activeRefreshPromise = null;
+        this.isSubscribeGuideSubmitting = false;
+        this.subscribeGuideInviterLookupToken = 0;
+        this._silentSubscribeDone = false;
 
         this.syncFontScale();
         this.syncProfileMeta();
@@ -404,14 +498,9 @@ Page({
                 ? app.hasPendingMemberListRefresh()
                 : Boolean(app && app.globalData && app.globalData.memberListDirty);
 
-        console.log("[profile-home] member refresh gate", {
-            profileId,
-            memberListDirty,
-            memberRefreshAt,
-            membersStale,
-        });
-
         this.syncProfileMeta();
+        this.syncSubscribeGuideState();
+        this.refreshSubscribeAlertQuotaSilently();
         if (this.activeLoadPromise || this.activeRefreshPromise) {
             return;
         }
@@ -481,6 +570,7 @@ Page({
             this._unsubscribe();
             this._unsubscribe = null;
         }
+        this._silentSubscribeDone = false;
     },
 
     syncFontScale() {
@@ -564,8 +654,8 @@ Page({
                 : false,
             relationshipRole: relationship ? relationship.role : "",
             activeRelationshipId: relationship ? relationship._id : "",
-            activeRelationshipSubscribeAlerts: Boolean(
-                relationship ? relationship.subscribeAlerts : false,
+            activeRelationshipSubscribeAlerts: isSubscribeAlertsEnabled(
+                relationship,
             ),
         };
         const nextSignature = [
@@ -893,20 +983,229 @@ Page({
         });
     },
 
-    async persistOwnSubscribeAlerts(subscribeAlerts, previousValue) {
+    async persistOwnSubscribeAlerts(patch, previousValue) {
         const relationshipId = this.data.activeRelationshipId;
 
         try {
-            await memberService.updateRelationship(relationshipId, {
-                subscribeAlerts,
-            });
-            this.setOwnSubscribeAlertsUI(subscribeAlerts);
+            const result = await memberService.updateRelationship(
+                relationshipId,
+                patch,
+            );
+            this.setOwnSubscribeAlertsUI(
+                isSubscribeAlertsEnabled(result.relationship),
+            );
         } catch (error) {
             this.setOwnSubscribeAlertsUI(previousValue);
             wx.showToast({
                 title: getErrorMessage(error),
                 icon: "none",
             });
+        }
+    },
+
+    getCurrentRelationshipForSubscribeGuide() {
+        const state = store.getState();
+        const profileId = state.currentProfileId || "";
+        if (!profileId) {
+            return null;
+        }
+
+        return getCurrentRelationship(state, profileId);
+    },
+
+    hideSubscribeGuide() {
+        if (
+            !this.data.showSubscribeGuide &&
+            !this.data.subscribeGuideInviterName &&
+            !this.data.subscribeGuideProfileName
+        ) {
+            return;
+        }
+
+        this.setData({
+            showSubscribeGuide: false,
+            subscribeGuideInviterName: "",
+            subscribeGuideProfileName: "",
+        });
+    },
+
+    syncSubscribeGuideState() {
+        const relationship = this.getCurrentRelationshipForSubscribeGuide();
+        if (!shouldShowSubscribeGuide(relationship)) {
+            this.hideSubscribeGuide();
+            return;
+        }
+
+        if (this.data.showSubscribeGuide) {
+            this.setData({
+                subscribeGuideInviterName:
+                    getSubscribeGuideInviterName(relationship) || "家人",
+                subscribeGuideProfileName: this.data.profileName || "",
+            });
+            this.ensureSubscribeGuideInviterName(relationship);
+            return;
+        }
+
+        const app = getApp();
+        if (
+            app &&
+            typeof app.hasShownSubscribeGuide === "function" &&
+            app.hasShownSubscribeGuide(relationship._id)
+        ) {
+            this.hideSubscribeGuide();
+            return;
+        }
+
+        if (app && typeof app.markSubscribeGuideShown === "function") {
+            app.markSubscribeGuideShown(relationship._id);
+        }
+
+        this.setData({
+            showSubscribeGuide: true,
+            subscribeGuideInviterName:
+                getSubscribeGuideInviterName(relationship) || "家人",
+            subscribeGuideProfileName: this.data.profileName || "",
+        });
+        this.ensureSubscribeGuideInviterName(relationship);
+    },
+
+    async ensureSubscribeGuideInviterName(relationship) {
+        const profileId = relationship && relationship.profileId;
+        const directName = getSubscribeGuideInviterName(relationship);
+
+        if (directName || !profileId) {
+            return;
+        }
+
+        const cachedMembers = Array.isArray(this.memberCache[profileId])
+            ? this.memberCache[profileId]
+            : [];
+        const cachedInviterName = findSubscribeGuideInviterNameFromMembers(
+            cachedMembers,
+            relationship,
+        );
+
+        if (cachedInviterName) {
+            if (this.data.showSubscribeGuide) {
+                this.setData({
+                    subscribeGuideInviterName: cachedInviterName,
+                });
+            }
+            return;
+        }
+
+        const lookupToken = this.subscribeGuideInviterLookupToken + 1;
+        this.subscribeGuideInviterLookupToken = lookupToken;
+
+        try {
+            const members = await this.loadMembers(profileId, { force: false });
+            if (lookupToken !== this.subscribeGuideInviterLookupToken) {
+                return;
+            }
+
+            const inviterName = findSubscribeGuideInviterNameFromMembers(
+                members,
+                relationship,
+            );
+            if (!inviterName || !this.data.showSubscribeGuide) {
+                return;
+            }
+
+            this.setData({
+                subscribeGuideInviterName: inviterName,
+            });
+        } catch (error) {
+            void error;
+        }
+    },
+
+    refreshSubscribeAlertQuotaSilently() {
+        const relationship = this.getCurrentRelationshipForSubscribeGuide();
+        if (
+            this._silentSubscribeDone ||
+            !shouldSilentlyRefreshSubscribeAlert(relationship) ||
+            typeof wx.requestSubscribeMessage !== "function"
+        ) {
+            return;
+        }
+
+        this._silentSubscribeDone = true;
+        wx.requestSubscribeMessage({
+            tmplIds: [SUBSCRIBE_ALERT_TEMPLATE_ID],
+            success() {},
+            fail() {},
+        });
+    },
+
+    async updateSubscribeGuideRelationship(status) {
+        const relationship = this.getCurrentRelationshipForSubscribeGuide();
+        if (!relationship || !relationship._id) {
+            this.hideSubscribeGuide();
+            return;
+        }
+
+        const patch =
+            status === "accept"
+                ? {
+                      subscribeAlerts: true,
+                      subscribeAuthStatus: "authorized",
+                  }
+                : {
+                      subscribeAlerts: false,
+                      subscribeAuthStatus: "declined",
+                  };
+
+        await memberService.updateRelationship(relationship._id, patch);
+    },
+
+    async handleSubscribeGuideResult(event) {
+        const status =
+            event && event.detail && typeof event.detail.status === "string"
+                ? event.detail.status
+                : "";
+
+        if (
+            this.isSubscribeGuideSubmitting ||
+            (status !== "accept" && status !== "reject" && status !== "ban")
+        ) {
+            return;
+        }
+
+        this.isSubscribeGuideSubmitting = true;
+        try {
+            await this.updateSubscribeGuideRelationship(status);
+            this.hideSubscribeGuide();
+            this.syncProfileMeta();
+            if (status === "ban") {
+                showSubscribeBanModal();
+            }
+        } catch (error) {
+            wx.showToast({
+                title: getErrorMessage(error),
+                icon: "none",
+            });
+        } finally {
+            this.isSubscribeGuideSubmitting = false;
+        }
+    },
+
+    async handleSubscribeGuideReject() {
+        if (this.isSubscribeGuideSubmitting) {
+            return;
+        }
+
+        this.isSubscribeGuideSubmitting = true;
+        try {
+            await this.updateSubscribeGuideRelationship("reject");
+            this.hideSubscribeGuide();
+            this.syncProfileMeta();
+        } catch (error) {
+            wx.showToast({
+                title: getErrorMessage(error),
+                icon: "none",
+            });
+        } finally {
+            this.isSubscribeGuideSubmitting = false;
         }
     },
 
@@ -1428,14 +1727,53 @@ Page({
 
         this.setOwnSubscribeAlertsUI(subscribeAlerts);
 
-        if (subscribeAlerts && !previousValue) {
-            await requestAlertSubscription(() =>
-                this.persistOwnSubscribeAlerts(subscribeAlerts, previousValue),
-            );
-            return;
-        }
+        try {
+            if (subscribeAlerts && !previousValue) {
+                await requestAlertSubscription({
+                    onAccept: () =>
+                        this.persistOwnSubscribeAlerts(
+                            {
+                                subscribeAlerts: true,
+                                subscribeAuthStatus: "authorized",
+                            },
+                            previousValue,
+                        ),
+                    onReject: () =>
+                        this.persistOwnSubscribeAlerts(
+                            {
+                                subscribeAlerts: false,
+                                subscribeAuthStatus: "declined",
+                            },
+                            previousValue,
+                        ),
+                    onBan: async () => {
+                        await this.persistOwnSubscribeAlerts(
+                            {
+                                subscribeAlerts: false,
+                                subscribeAuthStatus: "declined",
+                            },
+                            previousValue,
+                        );
+                        showSubscribeBanModal();
+                    },
+                    onFail: ({ error }) => {
+                        throw error;
+                    },
+                });
+                return;
+            }
 
-        await this.persistOwnSubscribeAlerts(subscribeAlerts, previousValue);
+            await this.persistOwnSubscribeAlerts(
+                { subscribeAlerts },
+                previousValue,
+            );
+        } catch (error) {
+            this.setOwnSubscribeAlertsUI(previousValue);
+            wx.showToast({
+                title: getErrorMessage(error),
+                icon: "none",
+            });
+        }
     },
 
     async handleDeleteProfile() {

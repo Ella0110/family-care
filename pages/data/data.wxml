@@ -235,4 +235,12 @@
       </view>
     </view>
   </view>
+
+  <subscribe-guide
+    show="{{showSubscribeGuide}}"
+    inviter-name="{{subscribeGuideInviterName}}"
+    profile-name="{{subscribeGuideProfileName}}"
+    bind:result="handleSubscribeGuideResult"
+    bind:reject="handleSubscribeGuideReject"
+  />
 </view>

@@ -54,51 +54,62 @@
 
       <view wx:if="{{hasProfile}}" class="settings-card__divider"></view>
 
-      <view wx:if="{{hasProfile}}" class="settings-stepper-block settings-stepper-block--split">
-        <view class="settings-stepper-block__title" style="font-size:{{fs.body}}">高压超过多少提醒</view>
-        <view class="settings-stepper-block__row">
-          <view class="settings-stepper-block__label" style="font-size:{{fs.caption}}">高压（mmHg）</view>
-          <view class="settings-stepper">
-            <view
-              class="settings-stepper__button {{thresholdSystolic <= thresholdSystolicMin ? 'settings-stepper__button--disabled' : ''}}"
-              data-field="systolic"
-              data-delta="-5"
-              bindtap="handleAdjustThreshold"
-             style="font-size:{{fs.body}}">−</view>
-            <view class="settings-stepper__value" style="font-size:{{fs.title}}">{{thresholdSystolic}}</view>
-            <view
-              class="settings-stepper__button {{thresholdSystolic >= thresholdSystolicMax ? 'settings-stepper__button--disabled' : ''}}"
-              data-field="systolic"
-              data-delta="5"
-              bindtap="handleAdjustThreshold"
-             style="font-size:{{fs.body}}">+</view>
+      <block wx:if="{{hasProfile && isOwnerProfile}}">
+        <view class="settings-stepper-block settings-stepper-block--split">
+          <view class="settings-stepper-block__title" style="font-size:{{fs.body}}">高压超过多少提醒</view>
+          <view class="settings-stepper-block__row">
+            <view class="settings-stepper-block__label" style="font-size:{{fs.caption}}">高压（mmHg）</view>
+            <view class="settings-stepper">
+              <view
+                class="settings-stepper__button {{thresholdSystolic <= thresholdSystolicMin ? 'settings-stepper__button--disabled' : ''}}"
+                data-field="systolic"
+                data-delta="-5"
+                bindtap="handleAdjustThreshold"
+               style="font-size:{{fs.body}}">−</view>
+              <view class="settings-stepper__value" style="font-size:{{fs.title}}">{{thresholdSystolic}}</view>
+              <view
+                class="settings-stepper__button {{thresholdSystolic >= thresholdSystolicMax ? 'settings-stepper__button--disabled' : ''}}"
+                data-field="systolic"
+                data-delta="5"
+                bindtap="handleAdjustThreshold"
+               style="font-size:{{fs.body}}">+</view>
+            </view>
           </view>
         </view>
-      </view>
 
-      <view wx:if="{{hasProfile}}" class="settings-card__divider"></view>
+        <view class="settings-card__divider"></view>
 
-      <view wx:if="{{hasProfile}}" class="settings-stepper-block settings-stepper-block--split">
-        <view class="settings-stepper-block__title" style="font-size:{{fs.body}}">低压超过多少提醒</view>
-        <view class="settings-stepper-block__row">
-          <view class="settings-stepper-block__label" style="font-size:{{fs.caption}}">低压（mmHg）</view>
-          <view class="settings-stepper">
-            <view
-              class="settings-stepper__button {{thresholdDiastolic <= thresholdDiastolicMin ? 'settings-stepper__button--disabled' : ''}}"
-              data-field="diastolic"
-              data-delta="-5"
-              bindtap="handleAdjustThreshold"
-             style="font-size:{{fs.body}}">−</view>
-            <view class="settings-stepper__value" style="font-size:{{fs.title}}">{{thresholdDiastolic}}</view>
-            <view
-              class="settings-stepper__button {{thresholdDiastolic >= thresholdDiastolicMax ? 'settings-stepper__button--disabled' : ''}}"
-              data-field="diastolic"
-              data-delta="5"
-              bindtap="handleAdjustThreshold"
-             style="font-size:{{fs.body}}">+</view>
+        <view class="settings-stepper-block settings-stepper-block--split">
+          <view class="settings-stepper-block__title" style="font-size:{{fs.body}}">低压超过多少提醒</view>
+          <view class="settings-stepper-block__row">
+            <view class="settings-stepper-block__label" style="font-size:{{fs.caption}}">低压（mmHg）</view>
+            <view class="settings-stepper">
+              <view
+                class="settings-stepper__button {{thresholdDiastolic <= thresholdDiastolicMin ? 'settings-stepper__button--disabled' : ''}}"
+                data-field="diastolic"
+                data-delta="-5"
+                bindtap="handleAdjustThreshold"
+               style="font-size:{{fs.body}}">−</view>
+              <view class="settings-stepper__value" style="font-size:{{fs.title}}">{{thresholdDiastolic}}</view>
+              <view
+                class="settings-stepper__button {{thresholdDiastolic >= thresholdDiastolicMax ? 'settings-stepper__button--disabled' : ''}}"
+                data-field="diastolic"
+                data-delta="5"
+                bindtap="handleAdjustThreshold"
+               style="font-size:{{fs.body}}">+</view>
+            </view>
           </view>
         </view>
-      </view>
+      </block>
+
+      <block wx:elif="{{hasProfile}}">
+        <view class="settings-threshold-readonly">
+          <view class="settings-threshold-readonly__value" style="font-size:{{fs.body}}">
+            当前提醒阈值：高压 {{thresholdSystolic}} / 低压 {{thresholdDiastolic}} mmHg
+          </view>
+          <view class="settings-threshold-readonly__hint" style="font-size:{{fs.caption}}">阈值由管理员设置</view>
+        </view>
+      </block>
 
       <view wx:if="{{!hasProfile}}" class="settings-empty-hint" style="font-size:{{fs.label}}">当前暂无档案，创建档案后可配置提醒与通知。</view>
     </view>
@@ -259,6 +270,7 @@
           <view class="settings-sheet__member-body">
             <view class="settings-sheet__member-name" style="font-size:{{fs.body}}">{{item.isSelf ? '我' : item.nickname}}</view>
             <view class="settings-sheet__member-role" style="font-size:{{fs.caption}}">{{item.role === 'owner' ? '管理员' : item.role === 'collaborator' ? '共同记录' : '仅查看'}}</view>
+            <view wx:if="{{item.subscribeAlerts && item.subscribeAuthStatus === 'pending'}}" class="settings-sheet__member-status-pending">等待对方确认</view>
           </view>
         </view>
 

@@ -58,6 +58,8 @@ function createListProfileMembersHandler(deps = {}) {
           role: relationship.role,
           permissions: relationship.permissions,
           subscribeAlerts: relationship.subscribeAlerts,
+          subscribeAuthStatus: relationship.subscribeAuthStatus || null,
+          inviterNickname: relationship.inviterNickname || null,
           createdAt: relationship.createdAt,
         },
         user: {

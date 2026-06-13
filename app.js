@@ -278,6 +278,7 @@ App({
     inviteLaunchToken: null,
     openRecordPanelOnDataTab: false,
     memberListDirty: false,
+    shownSubscribeGuideRelationships: {},
   },
 
   onShow() {
@@ -395,6 +396,26 @@ App({
     const pending = Boolean(this.globalData.memberListDirty);
     this.globalData.memberListDirty = false;
     return pending;
+  },
+
+  hasShownSubscribeGuide(relationshipId) {
+    return Boolean(
+      relationshipId
+      && this.globalData.shownSubscribeGuideRelationships
+      && this.globalData.shownSubscribeGuideRelationships[relationshipId],
+    );
+  },
+
+  markSubscribeGuideShown(relationshipId) {
+    if (!relationshipId) {
+      return;
+    }
+
+    this.globalData.shownSubscribeGuideRelationships = Object.assign(
+      {},
+      this.globalData.shownSubscribeGuideRelationships,
+      { [relationshipId]: true },
+    );
   },
 
   applyFontScale(fontScale, options = {}) {

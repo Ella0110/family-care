@@ -6,6 +6,7 @@
     "profile-empty-guide": "/components/profile-empty-guide/profile-empty-guide",
     "profile-switcher": "/components/profile-switcher/profile-switcher",
     "member-panel": "/components/member-panel/member-panel",
-    "profile-edit-panel": "/components/profile-edit-panel/profile-edit-panel"
+    "profile-edit-panel": "/components/profile-edit-panel/profile-edit-panel",
+    "subscribe-guide": "/components/subscribe-guide/subscribe-guide"
   }
 }

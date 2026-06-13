@@ -226,6 +226,7 @@ async function main() {
   );
 
   const viewerRelationship = membersBeforeUpdate.members.find((item) => item.user._id === 'viewer_user');
+  const ownerRelationship = membersBeforeUpdate.members.find((item) => item.user._id === 'owner_user');
   const promoted = await updateRelationship({
     relationshipId: viewerRelationship.relationship._id,
     patch: {
@@ -238,7 +239,44 @@ async function main() {
   assert.strictEqual(promoted.relationship.permissions.canWrite, true);
   assert.strictEqual(promoted.relationship.subscribeAlerts, false);
 
+  const ownerSetsPending = await updateRelationship({
+    relationshipId: viewerRelationship.relationship._id,
+    patch: {
+      subscribeAlerts: true,
+      subscribeAuthStatus: 'pending',
+    },
+  }, {});
+  assert.strictEqual(ownerSetsPending.success, true);
+  assert.strictEqual(ownerSetsPending.relationship.subscribeAuthStatus, 'pending');
+
+  const ownerSetsSelfPending = await updateRelationship({
+    relationshipId: ownerRelationship.relationship._id,
+    patch: {
+      subscribeAuthStatus: 'pending',
+    },
+  }, {});
+  assert.strictEqual(ownerSetsSelfPending.success, false);
+  assert.strictEqual(ownerSetsSelfPending.code, 'FORBIDDEN');
+
+  const ownerSetsAuthorizedForOther = await updateRelationship({
+    relationshipId: viewerRelationship.relationship._id,
+    patch: {
+      subscribeAuthStatus: 'authorized',
+    },
+  }, {});
+  assert.strictEqual(ownerSetsAuthorizedForOther.success, false);
+  assert.strictEqual(ownerSetsAuthorizedForOther.code, 'FORBIDDEN');
+
   runtime.setOpenId('viewer_user');
+  const selfSetsPending = await updateRelationship({
+    relationshipId: viewerRelationship.relationship._id,
+    patch: {
+      subscribeAuthStatus: 'pending',
+    },
+  }, {});
+  assert.strictEqual(selfSetsPending.success, false);
+  assert.strictEqual(selfSetsPending.code, 'FORBIDDEN');
+
   const collaboratorSave = await saveRecord({
     profileId: profileA._id,
     measuredAt: '2026-05-01T00:20:00.000Z',

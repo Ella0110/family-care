@@ -57,6 +57,7 @@ function buildRecord(id, measuredAt, systolic, diastolic) {
 }
 
 function createDataInstance(definition, profile) {
+  const measuredAt = new Date().toISOString();
   return Object.assign({}, definition, {
     data: Object.assign({}, definition.data, {
       currentProfileId: profile._id,
@@ -66,9 +67,9 @@ function createDataInstance(definition, profile) {
     }),
     chartRenderToken: 0,
     currentUserId: 'user-1',
-    coverageDayCount: 1,
-    latestRecord: buildRecord('record-latest', '2026-06-06T08:00:00.000Z', 135, 85),
-    allRecords: [buildRecord('record-latest', '2026-06-06T08:00:00.000Z', 135, 85)],
+    coverageDayCount: 8,
+    latestRecord: buildRecord('record-latest', measuredAt, 135, 85),
+    allRecords: [buildRecord('record-latest', measuredAt, 135, 85)],
     rangeRecords: [],
     chartData: null,
     chartThreshold: null,
@@ -208,13 +209,18 @@ try {
   const userSettingsWxml = read('pages/user-settings/user-settings.wxml');
   assert.match(
     userSettingsWxml,
-    /<view wx:if="\{\{hasProfile\}\}" class="settings-stepper-block settings-stepper-block--split">[\s\S]*高压超过多少提醒/i,
-    'user-settings should keep the custom systolic threshold stepper block rendered when a profile exists',
+    /<block wx:if="\{\{hasProfile && isOwnerProfile\}\}">[\s\S]*高压超过多少提醒/i,
+    'user-settings should keep the custom systolic threshold stepper block rendered for owner profiles',
   );
   assert.match(
     userSettingsWxml,
-    /<view wx:if="\{\{hasProfile\}\}" class="settings-stepper-block settings-stepper-block--split">[\s\S]*低压超过多少提醒/i,
-    'user-settings should keep the custom diastolic threshold stepper block rendered when a profile exists',
+    /<block wx:if="\{\{hasProfile && isOwnerProfile\}\}">[\s\S]*低压超过多少提醒/i,
+    'user-settings should keep the custom diastolic threshold stepper block rendered for owner profiles',
+  );
+  assert.match(
+    userSettingsWxml,
+    /当前提醒阈值：高压 \{\{thresholdSystolic\}\} \/ 低压 \{\{thresholdDiastolic\}\} mmHg/i,
+    'user-settings should show a read-only threshold summary for non-owner profiles',
   );
 
   console.log('verify-fixed-bp-display-thresholds: ok');

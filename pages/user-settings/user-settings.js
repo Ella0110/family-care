@@ -19,7 +19,10 @@ const {
   getCurrentRelationship,
   isOwner,
 } = require('../../utils/permission-helpers');
-const { requestAlertSubscription } = require('../../utils/alert-subscription');
+const {
+  requestAlertSubscription,
+  showSubscribeBanModal,
+} = require('../../utils/alert-subscription');
 
 const SETTINGS_DEBOUNCE_MS = 800;
 
@@ -127,6 +130,18 @@ function buildMemberFallback(member) {
   return buildInvitationNicknameInitial(member && member.user && member.user.nickname, '家');
 }
 
+function getSubscribeAuthStatus(relationship) {
+  return relationship && typeof relationship.subscribeAuthStatus === 'string'
+    ? relationship.subscribeAuthStatus
+    : '';
+}
+
+function isSubscribeAlertsEnabled(relationship) {
+  return getSubscribeAuthStatus(relationship) === 'declined'
+    ? false
+    : Boolean(relationship && relationship.subscribeAlerts);
+}
+
 function decorateMembers(members, currentUserId) {
   return (Array.isArray(members) ? members : [])
     .map((member) => {
@@ -139,7 +154,8 @@ function decorateMembers(members, currentUserId) {
         nickname: user.nickname || '未命名',
         avatarUrl: user.avatarUrl || '',
         avatarFallback: buildMemberFallback(member),
-        subscribeAlerts: Boolean(relationship.subscribeAlerts),
+        subscribeAlerts: isSubscribeAlertsEnabled(relationship),
+        subscribeAuthStatus: getSubscribeAuthStatus(relationship),
         role: relationship.role || '',
         isSelf,
         updating: false,
@@ -178,6 +194,25 @@ function updateProfileInStore(profile) {
   });
 }
 
+function confirmDisableMemberAlert(nickname) {
+  const safeName = String(nickname || '该成员').trim() || '该成员';
+  return new Promise((resolve) => {
+    wx.showModal({
+      title: '关闭通知',
+      content: `关闭后，${safeName} 将不再收到血压异常提醒。`,
+      confirmText: '确认关闭',
+      cancelText: '取消',
+      confirmColor: '#b42318',
+      success(result) {
+        resolve(Boolean(result && result.confirm));
+      },
+      fail() {
+        resolve(false);
+      },
+    });
+  });
+}
+
 function showToast(title, icon = 'none') {
   wx.showToast({
     title,
@@ -202,6 +237,7 @@ Page({
     isOwnerProfile: false,
     currentRelationshipId: '',
     currentSubscribeAlerts: false,
+    currentSubscribeAuthStatus: '',
     notifySubscriberCount: 0,
     showReferenceLineSettings: false,
     thresholdSystolic: DEFAULT_BP_THRESHOLD.systolic,
@@ -285,7 +321,8 @@ Page({
       hasProfile: Boolean(profileId && profile),
       isOwnerProfile: Boolean(profileId && isOwner(state, profileId)),
       currentRelationshipId: relationship ? relationship._id || '' : '',
-      currentSubscribeAlerts: Boolean(relationship && relationship.subscribeAlerts),
+      currentSubscribeAlerts: isSubscribeAlertsEnabled(relationship),
+      currentSubscribeAuthStatus: getSubscribeAuthStatus(relationship),
       thresholdSystolic: settingsViewModel.thresholdSystolic,
       thresholdDiastolic: settingsViewModel.thresholdDiastolic,
       referenceSystolicElevated: settingsViewModel.referenceSystolicElevated,
@@ -304,6 +341,7 @@ Page({
       memberSheetItems: [],
       memberSheetErrorText: '',
       isMemberSheetVisible: false,
+      currentSubscribeAuthStatus: '',
     });
   },
 
@@ -441,6 +479,7 @@ Page({
     }
 
     const previousValue = this.data.currentSubscribeAlerts;
+    const previousStatus = this.data.currentSubscribeAuthStatus;
     this.setData({
       currentSubscribeAlerts: value,
     });
@@ -448,37 +487,62 @@ Page({
     try {
       let result = null;
       if (value && !previousValue) {
-        await requestAlertSubscription(async () => {
-          result = await memberService.updateRelationship(relationshipId, {
-            subscribeAlerts: value,
-          });
+        await requestAlertSubscription({
+          onAccept: async () => {
+            result = await memberService.updateRelationship(relationshipId, {
+              subscribeAlerts: true,
+              subscribeAuthStatus: 'authorized',
+            });
+          },
+          onReject: async () => {
+            result = await memberService.updateRelationship(relationshipId, {
+              subscribeAlerts: false,
+              subscribeAuthStatus: 'declined',
+            });
+          },
+          onBan: async () => {
+            result = await memberService.updateRelationship(relationshipId, {
+              subscribeAlerts: false,
+              subscribeAuthStatus: 'declined',
+            });
+            showSubscribeBanModal();
+          },
+          onFail: ({ error }) => {
+            throw error;
+          },
         });
       } else {
         result = await memberService.updateRelationship(relationshipId, {
           subscribeAlerts: value,
         });
       }
-      const nextValue = Boolean(result.relationship && result.relationship.subscribeAlerts);
+      const nextValue = isSubscribeAlertsEnabled(result.relationship);
+      const nextStatus = getSubscribeAuthStatus(result.relationship);
       this.setData({
         currentSubscribeAlerts: nextValue,
+        currentSubscribeAuthStatus: nextStatus,
       });
-      this.patchMemberSubscribeState(relationshipId, nextValue);
+      this.patchMemberSubscribeState(relationshipId, {
+        subscribeAlerts: nextValue,
+        subscribeAuthStatus: nextStatus,
+      });
     } catch (error) {
       this.setData({
         currentSubscribeAlerts: previousValue,
+        currentSubscribeAuthStatus: previousStatus,
       });
       showToast(getErrorMessage(error));
     }
   },
 
-  patchMemberSubscribeState(relationshipId, subscribeAlerts) {
+  patchMemberSubscribeState(relationshipId, patch = {}) {
     if (!relationshipId || !this.data.memberSheetItems.length) {
       return;
     }
 
     const nextItems = this.data.memberSheetItems.map((item) =>
       item.relationshipId === relationshipId
-        ? Object.assign({}, item, { subscribeAlerts: Boolean(subscribeAlerts) })
+        ? Object.assign({}, item, patch)
         : item
     );
 
@@ -522,6 +586,26 @@ Page({
       return;
     }
 
+    if (!value && !targetItem.isSelf) {
+      const confirmed = await confirmDisableMemberAlert(targetItem.nickname);
+      if (!confirmed) {
+        const restoredItems = items.map((item) =>
+          item.relationshipId === relationshipId
+            ? Object.assign({}, item, {
+              subscribeAlerts: Boolean(targetItem.subscribeAlerts),
+              subscribeAuthStatus: targetItem.subscribeAuthStatus || '',
+              updating: false,
+            })
+            : item
+        );
+        this.setData({
+          memberSheetItems: restoredItems,
+        });
+        this.updateNotifySubscriberCount(restoredItems);
+        return;
+      }
+    }
+
     const nextItems = items.map((item) =>
       item.relationshipId === relationshipId
         ? Object.assign({}, item, { subscribeAlerts: value, updating: true })
@@ -535,20 +619,49 @@ Page({
     try {
       let result = null;
       if (value && !targetItem.subscribeAlerts && targetItem.isSelf) {
-        await requestAlertSubscription(async () => {
-          result = await memberService.updateRelationship(relationshipId, {
-            subscribeAlerts: value,
-          });
+        await requestAlertSubscription({
+          onAccept: async () => {
+            result = await memberService.updateRelationship(relationshipId, {
+              subscribeAlerts: true,
+              subscribeAuthStatus: 'authorized',
+            });
+          },
+          onReject: async () => {
+            result = await memberService.updateRelationship(relationshipId, {
+              subscribeAlerts: false,
+              subscribeAuthStatus: 'declined',
+            });
+          },
+          onBan: async () => {
+            result = await memberService.updateRelationship(relationshipId, {
+              subscribeAlerts: false,
+              subscribeAuthStatus: 'declined',
+            });
+            showSubscribeBanModal();
+          },
+          onFail: ({ error }) => {
+            throw error;
+          },
+        });
+      } else if (value && !targetItem.subscribeAlerts && !targetItem.isSelf) {
+        result = await memberService.updateRelationship(relationshipId, {
+          subscribeAlerts: true,
+          subscribeAuthStatus: 'pending',
         });
       } else {
         result = await memberService.updateRelationship(relationshipId, {
           subscribeAlerts: value,
         });
       }
-      const finalValue = Boolean(result.relationship && result.relationship.subscribeAlerts);
+      const finalValue = isSubscribeAlertsEnabled(result.relationship);
+      const finalStatus = getSubscribeAuthStatus(result.relationship);
       const resolvedItems = (this.data.memberSheetItems || []).map((item) =>
         item.relationshipId === relationshipId
-          ? Object.assign({}, item, { subscribeAlerts: finalValue, updating: false })
+          ? Object.assign({}, item, {
+            subscribeAlerts: finalValue,
+            subscribeAuthStatus: finalStatus,
+            updating: false,
+          })
           : item
       );
       this.setData({
@@ -559,6 +672,7 @@ Page({
       if (relationshipId === this.data.currentRelationshipId) {
         this.setData({
           currentSubscribeAlerts: finalValue,
+          currentSubscribeAuthStatus: finalStatus,
         });
       }
     } catch (error) {
@@ -566,6 +680,7 @@ Page({
         item.relationshipId === relationshipId
           ? Object.assign({}, item, {
             subscribeAlerts: Boolean(targetItem.subscribeAlerts),
+            subscribeAuthStatus: targetItem.subscribeAuthStatus || '',
             updating: false,
           })
           : item
@@ -578,6 +693,7 @@ Page({
       if (relationshipId === this.data.currentRelationshipId) {
         this.setData({
           currentSubscribeAlerts: Boolean(targetItem.subscribeAlerts),
+          currentSubscribeAuthStatus: targetItem.subscribeAuthStatus || '',
         });
       }
 
@@ -586,6 +702,10 @@ Page({
   },
 
   handleAdjustThreshold(event) {
+    if (!this.data.isOwnerProfile) {
+      return;
+    }
+
     const field = event.currentTarget.dataset.field;
     const delta = Number(event.currentTarget.dataset.delta) || 0;
     if (!Object.prototype.hasOwnProperty.call(THRESHOLD_LIMITS, field)) {
