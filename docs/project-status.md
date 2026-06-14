@@ -1,9 +1,10 @@
 # 来自儿女的关心（family-care）项目状态
 
 ## 当前阶段
-- 已完成：T0、T1、T2.1-T2.6、T3.1a、T3.1b、T3.2、T3.3、T4.1、T4.2a、T4.2b、T5
-- 当前切入点：T6（代码中已落地双 tab + custom tabBar；数据页、档案页和共享图表仍在持续调整）
-- 未开始：T6 后续子阶段待确认
+- 已上线版本：V1.0（正式审核通过发布）
+- 当前阶段：V1.1 进行中
+- V1.1 重点：共享图表口径统一、异常通知授权闭环、协作与字号体验收尾
+- V1.2 规划：血糖模块
 
 ## 核心模型（Path B）
 - 三表核心：`users`、`profiles`、`relationships`
@@ -14,7 +15,7 @@
 ## 数据模型
 - `users`：`_id/openId`、`nickname`、`avatarUrl`、`settings`、`createdAt`、`updatedAt`、`lastActiveAt`
 - `profiles`：`_id`、`name`、`relation`、`gender`、`birthDate`、`note`、`emergencyContact`、`longTermMedication`、`settings.bp`、`createdBy`、`createdAt`、`updatedAt`、`deletedAt`
-- `relationships`：`_id`、`userId`、`profileId`、`role`、`permissions`、`subscribeAlerts`、`createdAt`、`updatedAt`、`acceptedAt`、`invitedBy`
+- `relationships`：`_id`、`userId`、`profileId`、`role`、`permissions`、`subscribeAlerts`、`subscribeAuthStatus`、`createdAt`、`updatedAt`、`acceptedAt`、`invitedBy`、`inviterNickname`
 - `records`：`_id`、`profileId`、`type`、`measuredAt`、`payload`、`period`、`note`、`recordedBy`、`recordedByName`、`createdAt`、`updatedAt`、`deletedAt`
 - `medications`：`_id`、`profileId`、`drug`、`dose`、`frequency`、`timing`、`startDate`、`endDate`、`note`、`addedBy`、`createdAt`、`updatedAt`、`deletedAt`
 - `invitations`：`_id`、`token`、`status`、`profileIds`、`defaultRole`、`inviterUserId`、`inviterNickname`、`inviterAvatarUrl`、`inviteeUserId`、`message`、`expiresAt`、`createdAt`、`acceptedAt`、`revokedAt`
@@ -42,7 +43,7 @@
 - `updateRelationship`：更新成员角色或异常提醒订阅
 - `removeRelationship`：移除成员或成员主动退出，保护最后一个 owner
 - `transferOwnership`：事务性转让管理员角色
-- `listProfileMembers`：返回档案成员及昵称/头像信息
+- `listProfileMembers`：返回档案成员及昵称/头像信息，并带 relationship 侧的通知授权状态
 
 云函数部署与打包约定见 [deployment-notes.md](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/docs/deployment-notes.md:1)。
 
@@ -71,7 +72,7 @@
   - 当前不再在页面内直接渲染悬浮 `+` 按钮，录入入口由 custom tabBar 中央按钮承载
 - 档案页（`pages/profile-home/profile-home`）：
   - 等待 `loginReady` + `pageReady` 后渲染
-  - 展示档案信息、健康概览、成员横滑列表、就诊报告入口、药物管理入口、异常通知 toggle、字体大小入口、删除档案
+  - 展示档案信息、健康概览、成员横滑列表、血压报告入口、药物管理入口、异常通知 toggle、字体大小入口、删除档案
   - 与数据页共用 `currentProfileId` 和 `profile-switcher`
 - 服务层：`services/request.js`、`services/profile-service.js`、`services/record-service.js`、`services/medication-service.js`、`services/invitation-service.js`、`services/member-service.js`、`services/user-service.js`
 - 当前运行中的工具文件（`utils/*.js`）：
@@ -84,6 +85,7 @@
 - T5.1 / T6 共享图表基础设施：
   - `report` 和 `data` 当前共用 `utils/report-helpers.js` 与 `utils/report-chart-renderer.js`
   - 因此时间轴、点位、阈值着色、辅助线等调整会同时影响报告页和数据页
+  - 当前图表颜色、达标统计、参考线已统一使用固定医学阈值 `140/90`；用户自定义阈值仅影响异常推送触发
 - T5.5 数据导出导入：
   - `pages/import-records/import-records`
   - `utils/csv-helpers.js`
@@ -91,9 +93,9 @@
   - 导入当前支持并发批量保存；导入链路会透传 `skipPush: true`
 - T5.3 推送基础设施：
   - `cloudfunctions/_shared/push-helpers.js` 统一构建订阅消息 payload
-  - 模板为“健康上报异常提醒”（模板 ID：`lrhxG9oawoHDyh1AFVSgiv-cQE7-qTAn87-_nzBDxCY`）
-  - 当前前端只在“异常血压通知” toggle 从关闭切到开启时请求订阅授权；录入页和 `record-panel` 当前都不会主动请求订阅授权
-  - 订阅消息当前仍使用 `miniprogramState: 'developer'`，上线前必须改为 `formal`
+  - 当前模板为“指标异常提醒”（模板 ID：`EntTrzNRVv1RDKy5AvLgxsUrGJzislhyAPovjgrXJ4U`）
+  - 前端已补齐“管理员打开他人通知 → 成员进入小程序 → subscribe-guide 引导授权 → accept/reject/ban 分流写回”的完整闭环
+  - `miniprogramState` 已按 `develop / trial / release` 三态映射 `developer / trial / formal`
 - 缓存与错误处理：
   - 仍沿用 T2.5 SWR；缓存按 `profileId` 隔离
   - T2.6 的统一错误文案映射仍在用
@@ -188,3 +190,42 @@ Bug 修复：
 - P0 bug 全部修复
 - UI 适配全部完成
 - 性能优化阶段完成
+
+## 版本状态
+
+V1.0：
+- 已上线（正式审核通过发布）
+
+V1.1 已完成的改动：
+- 图表颜色统一为固定医学分级（`140/90`），7/30/90 天三视图一致，不再读用户自定义阈值
+- 数据页“已达标/不达标”统计改为固定 `140/90`
+- 图表参考线固定 `140/90`
+- 用户自定义阈值设置入口已恢复（推送触发继续使用用户阈值）
+- 非管理员设置页阈值改为只读展示
+- 30 天 / 90 天图表数据选取改为“每天收缩压最高一条”（`getHighestSystolicPerDay`），不再取最新一条
+- 90 天视图判断条件改为“最早记录距今超过 30 天”
+- 报告页导航栏标题从“就诊报告”改为“血压报告”
+- 报告导出图宽度已对齐预览页网格
+- 异常通知授权闭环已补齐：
+- 新增 `subscribeAuthStatus` 字段（`pending / authorized / declined`）
+- 新增 `subscribe-guide` 引导组件
+- 修复 `alert-subscription.js` 的 `accept / reject / ban` 分流
+- 静默补充订阅配额，并做 session 级节流
+- 管理员关闭他人通知增加确认弹窗
+- 云函数状态机写入限制已补齐
+- 非管理员阈值改为只读展示
+- 面板组件 `visibilitychange` 事件时序修复
+- `profile-empty-guide` CSS 死循环修复（`flex: 1`）
+- `lazyCodeLoading` 已开启
+- `login` N+1 查询已完成优化
+
+V1.1 待完成：
+- 删除档案清理机制（30 天冷静期 + 定时物理清理）
+- 成员管理头像交互优化
+- 大号 / 超大号字体 UI 优化
+- 用户手册
+- 报告告警 banner 加时间范围文案
+- 最近异常明细规则优化
+
+V1.2 计划：
+- 血糖模块
