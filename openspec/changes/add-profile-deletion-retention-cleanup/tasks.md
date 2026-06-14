@@ -14,10 +14,9 @@
 
 ## 3. Frontend restore flow
 
-- [ ] 3.1 Add service-layer support for calling `restoreProfile`
-- [ ] 3.2 Add a recoverable deleted-profile UI path in the relevant profile management surface
-- [ ] 3.3 Ensure restored profiles re-enter store state and profile selection flows without requiring manual cache resets
-- [ ] 3.4 Add or update frontend verification for delete → hidden → restore behavior
+> **Deferred to V1.2** — Backend restore capability (`restoreProfile`) will be
+> implemented in V1.1. Frontend UI (deleted profile list + restore entry point)
+> is out of scope for V1.1 and will be designed and implemented in V1.2.
 
 ## 4. Deployment and rollout
 
