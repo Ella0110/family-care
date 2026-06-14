@@ -27,6 +27,7 @@
 - `createProfile`：创建档案，并在同一事务内创建 owner relationship
 - `updateProfile`：更新档案基本资料
 - `deleteProfile`：软删除档案
+- `restoreProfile`：在 30 天恢复期内恢复软删除档案
 - `updateProfileSettings`：更新档案 `settings`
 - `updateUserProfile`：更新用户昵称和头像，当前主要给邀请卡片复用
 - `updateUserSettings`：更新用户级设置，当前用于字号 `fontScale`
@@ -44,6 +45,7 @@
 - `removeRelationship`：移除成员或成员主动退出，保护最后一个 owner
 - `transferOwnership`：事务性转让管理员角色
 - `listProfileMembers`：返回档案成员及昵称/头像信息，并带 relationship 侧的通知授权状态
+- `cleanupDeletedProfiles`：定时物理清理超过 30 天恢复期的软删除档案及其关联数据
 
 云函数部署与打包约定见 [deployment-notes.md](/Users/ella/Documents/Code/Demo/WeChatProjects/family-care-prod/docs/deployment-notes.md:1)。
 
@@ -218,9 +220,9 @@ V1.1 已完成的改动：
 - `profile-empty-guide` CSS 死循环修复（`flex: 1`）
 - `lazyCodeLoading` 已开启
 - `login` N+1 查询已完成优化
+- 删除档案清理机制已完成（软删除后 30 天内可恢复，超期由定时任务物理清理 `profiles / relationships / records / medications`）
 
 V1.1 待完成：
-- 删除档案清理机制（30 天冷静期 + 定时物理清理）
 - 成员管理头像交互优化
 - 大号 / 超大号字体 UI 优化
 - 用户手册

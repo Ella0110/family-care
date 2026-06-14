@@ -16,6 +16,8 @@ const FUNCTION_NAMES = [
   "listProfileMembers",
   "updateProfile",
   "deleteProfile",
+  "restoreProfile",
+  "cleanupDeletedProfiles",
   "updateProfileSettings",
   "updateUserProfile",
   "updateUserSettings",

@@ -7,6 +7,7 @@ runVerifySuite([
   'verify-save-record-env-version.js',
   'verify-visibilitychange-boot.js',
   'verify-fixed-bp-display-thresholds.js',
+  'verify-profile-deletion-retention.js',
   'verify-subscribe-auth-flow.js',
   'verify-t5.5.js',
   'verify-t6.0a.js',

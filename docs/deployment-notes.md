@@ -54,6 +54,37 @@ T4 阶段对 `invitations` 的业务 schema 做了扩展：
    - 改了某个共享层文件但只有部分函数引用 → 保险起见，仍然全部重新上传，避免部分函数残留旧 `_shared` 副本
 5. 上传完成后，在“云开发控制台 -> 云函数 -> 云端测试”中重新执行手动测试
 
+## Profile Deletion Retention Rollout
+
+档案删除清理机制涉及两个新增云函数：
+
+- `restoreProfile`
+- `cleanupDeletedProfiles`
+
+其中 `cleanupDeletedProfiles` 带定时触发器配置：
+
+```json
+{
+  "triggers": [
+    {
+      "name": "dailyCleanup",
+      "type": "timer",
+      "config": "0 0 2 * * * *"
+    }
+  ]
+}
+```
+
+含义：每天凌晨 `02:00` 执行一次，清理 `deletedAt` 超过 30 天的档案及其 `relationships / records / medications`。
+
+手工验证建议：
+
+1. 先上传 `restoreProfile` 和 `cleanupDeletedProfiles`
+2. 在云端测试里准备一条 `deletedAt` 距今未超过 30 天的档案，确认 `restoreProfile` 可恢复
+3. 再准备一条 `deletedAt` 超过 30 天的档案，确认 `restoreProfile` 返回 `RESTORE_EXPIRED`
+4. 用云端测试执行 `cleanupDeletedProfiles`，确认超期档案及其关联 `relationships / records / medications` 被级联删除
+5. 重复执行 `cleanupDeletedProfiles`，确认不会因已删除数据报错
+
 ## Local Verification
 
 本地 `scripts/verify-*.js` 依赖函数目录内的 `./_shared/` 构建产物。

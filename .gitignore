@@ -3,6 +3,6 @@ project.config.json
 project.private.config.json
 local.config.js
 .env
-/node_modules
 cloudfunctions/*/_shared/
 design-references/
+node_modules/

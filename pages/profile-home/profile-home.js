@@ -140,16 +140,16 @@ function isSubscribeAlertsEnabled(relationship) {
 function shouldShowSubscribeGuide(relationship) {
     return Boolean(
         relationship &&
-            relationship.subscribeAlerts === true &&
-            getSubscribeAuthStatus(relationship) === "pending",
+        relationship.subscribeAlerts === true &&
+        getSubscribeAuthStatus(relationship) === "pending",
     );
 }
 
 function shouldSilentlyRefreshSubscribeAlert(relationship) {
     return Boolean(
         relationship &&
-            relationship.subscribeAlerts === true &&
-            getSubscribeAuthStatus(relationship) === "authorized",
+        relationship.subscribeAlerts === true &&
+        getSubscribeAuthStatus(relationship) === "authorized",
     );
 }
 
@@ -171,9 +171,7 @@ function findMemberNicknameByUserId(members, userId) {
         (member) => member && member.user && member.user._id === userId,
     );
     const nickname = String(
-        inviterMember &&
-            inviterMember.user &&
-            inviterMember.user.nickname
+        inviterMember && inviterMember.user && inviterMember.user.nickname
             ? inviterMember.user.nickname
             : "",
     ).trim();
@@ -191,9 +189,7 @@ function findManagerNickname(members) {
                     member.relationship.permissions.canManage === true)),
     );
     return String(
-        managerMember &&
-            managerMember.user &&
-            managerMember.user.nickname
+        managerMember && managerMember.user && managerMember.user.nickname
             ? managerMember.user.nickname
             : "",
     ).trim();
@@ -496,7 +492,9 @@ Page({
         const memberListDirty =
             app && typeof app.hasPendingMemberListRefresh === "function"
                 ? app.hasPendingMemberListRefresh()
-                : Boolean(app && app.globalData && app.globalData.memberListDirty);
+                : Boolean(
+                      app && app.globalData && app.globalData.memberListDirty,
+                  );
 
         this.syncProfileMeta();
         this.syncSubscribeGuideState();
@@ -528,7 +526,10 @@ Page({
             !this.data.pageReady || profileId !== this.data._lastProfileId;
         if (!shouldResetReady && this.shouldRefreshOnShow(profileId)) {
             this.refreshPageData({ silent: true }).catch((error) => {
-                console.error("[profile-home] onShow silent refresh failed", error);
+                console.error(
+                    "[profile-home] onShow silent refresh failed",
+                    error,
+                );
             });
             return;
         }
@@ -654,9 +655,8 @@ Page({
                 : false,
             relationshipRole: relationship ? relationship.role : "",
             activeRelationshipId: relationship ? relationship._id : "",
-            activeRelationshipSubscribeAlerts: isSubscribeAlertsEnabled(
-                relationship,
-            ),
+            activeRelationshipSubscribeAlerts:
+                isSubscribeAlertsEnabled(relationship),
         };
         const nextSignature = [
             nextMeta.currentProfileId,
@@ -815,11 +815,7 @@ Page({
             const profileId = store.getState().currentProfileId || "";
             const forceMembers = options.forceMembers === true || force;
             const membersStale = profileId
-                ? store.isStale(
-                      "members",
-                      profileId,
-                      MEMBER_STALE_THRESHOLD,
-                  )
+                ? store.isStale("members", profileId, MEMBER_STALE_THRESHOLD)
                 : false;
 
             if (resetReady) {
@@ -877,13 +873,12 @@ Page({
             const requestId = this.requestId;
 
             try {
-                const [latestResult, medicationResult, members] = await Promise.all(
-                    [
+                const [latestResult, medicationResult, members] =
+                    await Promise.all([
                         recordService.fetchLatestRecord(profileId),
                         medicationService.fetchMedications(profileId),
                         this.loadMembers(profileId, { force: forceMembers }),
-                    ],
-                );
+                    ]);
 
                 if (requestId !== this.requestId) {
                     return;
@@ -1372,9 +1367,9 @@ Page({
         const state = store.getState();
         const selfMembershipChanged = Boolean(
             detail &&
-                detail.affectedUserId &&
-                this.currentUserId &&
-                detail.affectedUserId === this.currentUserId,
+            detail.affectedUserId &&
+            this.currentUserId &&
+            detail.affectedUserId === this.currentUserId,
         );
 
         if (detail.member) {
@@ -1792,9 +1787,10 @@ Page({
 
         const result = await new Promise((resolve) => {
             wx.showModal({
-                title: `确定删除「${profile.name}」？`,
-                content: "删除后所有记录无法恢复",
+                title: "删除档案",
+                content: `档案删除后 30 天内可联系恢复，超期数据将永久删除。\n\n确认删除"${profile.name}"？`,
                 confirmText: "删除",
+                cancelText: "取消",
                 confirmColor: "#b42318",
                 success: resolve,
                 fail() {

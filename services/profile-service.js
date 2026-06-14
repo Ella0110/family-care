@@ -56,9 +56,21 @@ async function deleteProfile(profileId) {
   return { success: true };
 }
 
+/**
+ * Restores a soft-deleted profile through the unified request layer.
+ *
+ * @param {string} profileId
+ * @returns {Promise<{ success: boolean }>}
+ */
+async function restoreProfile(profileId) {
+  await call('restoreProfile', { profileId }, { silent: true });
+  return { success: true };
+}
+
 module.exports = {
   createProfile,
   updateProfile,
   updateProfileSettings,
   deleteProfile,
+  restoreProfile,
 };
