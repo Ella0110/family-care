@@ -592,6 +592,324 @@
     line-height: 1.5;
 }
 
+.profile-home__self-action-dialog {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 60;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.profile-home__self-action-mask {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.profile-home__self-action-sheet {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    border-radius: 32rpx 32rpx 0 0;
+    padding: 40rpx 28rpx calc(16rpx + env(safe-area-inset-bottom));
+    background: #ffffff;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    animation: profile-home-sheet-up 0.18s ease-out;
+}
+
+.profile-home__self-action-avatar {
+    width: 104rpx;
+    height: 104rpx;
+    margin: 0 auto;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+    color: #0f172a;
+    font-size: 40rpx;
+    font-weight: 700;
+}
+
+.profile-home__self-action-avatar--image {
+    background: #e5e7eb;
+}
+
+.profile-home__self-action-avatar-image {
+    width: 100%;
+    height: 100%;
+}
+
+.profile-home__self-action-name {
+    margin-top: 20rpx;
+    color: #0f172a;
+    font-size: 32rpx;
+    font-weight: 700;
+    line-height: 1.4;
+    text-align: center;
+}
+
+.profile-home__self-action-role {
+    margin-top: 8rpx;
+    color: #94a3b8;
+    font-size: 24rpx;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.profile-home__self-action-divider {
+    width: 100%;
+    height: 1rpx;
+    margin: 28rpx 0 32rpx;
+    background: #e5e7eb;
+}
+
+.profile-home__self-action-button {
+    width: 100%;
+    min-height: 96rpx;
+    border-radius: 24rpx;
+    font-size: 32rpx;
+    font-weight: 700;
+    line-height: 1.4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.profile-home__self-action-button::after,
+.profile-home__self-action-cancel::after {
+    border: none;
+}
+
+.profile-home__self-action-button--wechat {
+    background: #07c160;
+    color: #ffffff;
+}
+
+.profile-home__self-action-button--outline {
+    margin-top: 20rpx;
+    border: 2rpx solid #d1d5db;
+    background: #ffffff;
+    color: #6b7280;
+}
+
+.profile-home__self-action-button--primary {
+    background: #007aff;
+    color: #ffffff;
+}
+
+.profile-home__self-action-cancel {
+    margin-top: 20rpx;
+    padding: 0;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 28rpx;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.profile-home__quick-sync-dialog {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 56rpx;
+    box-sizing: border-box;
+}
+
+.profile-home__quick-sync-mask {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.profile-home__quick-sync-sheet {
+    position: relative;
+    z-index: 1;
+    width: 85%;
+    max-width: 640rpx;
+    border-radius: 32rpx;
+    padding: 48rpx;
+    background: #ffffff;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.profile-home__quick-sync-title {
+    color: #0f172a;
+    font-size: 34rpx;
+    font-weight: 700;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.profile-home__quick-sync-text {
+    margin-top: 16rpx;
+    color: #94a3b8;
+    font-size: 26rpx;
+    line-height: 1.7;
+    text-align: center;
+}
+
+.profile-home__quick-sync-avatar-button {
+    position: relative;
+    width: 168rpx;
+    height: 168rpx;
+    margin: 32rpx auto 0;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-home__quick-sync-avatar-button::after,
+.profile-home__quick-sync-save::after,
+.profile-home__quick-sync-cancel::after {
+    border: none;
+}
+
+.profile-home__quick-sync-avatar {
+    width: 168rpx;
+    height: 168rpx;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+    color: #0f172a;
+    font-size: 48rpx;
+    font-weight: 700;
+}
+
+.profile-home__quick-sync-avatar--image {
+    background: #e5e7eb;
+}
+
+.profile-home__quick-sync-avatar-image {
+    width: 100%;
+    height: 100%;
+}
+
+.profile-home__quick-sync-avatar-badge {
+    position: absolute;
+    right: -4rpx;
+    bottom: -4rpx;
+    padding: 10rpx 16rpx;
+    border-radius: 999rpx;
+    background: #007aff;
+    color: #ffffff;
+    font-size: 20rpx;
+    font-weight: 600;
+    line-height: 1.2;
+    box-shadow: 0 10rpx 18rpx rgba(0, 122, 255, 0.22);
+}
+
+.profile-home__quick-sync-field-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 20rpx;
+    margin-top: 36rpx;
+}
+
+.profile-home__quick-sync-label {
+    color: #475569;
+    font-size: 26rpx;
+    font-weight: 600;
+}
+
+.profile-home__quick-sync-count {
+    color: #94a3b8;
+    font-size: 22rpx;
+    line-height: 1.4;
+}
+
+.profile-home__quick-sync-input {
+    width: 100%;
+    min-height: 96rpx;
+    margin-top: 16rpx;
+    padding: 20rpx 24rpx;
+    border-radius: 16rpx;
+    border: none;
+    background: #f2f2f7;
+    color: #0f172a;
+    line-height: 1.5;
+    box-sizing: border-box;
+}
+
+.profile-home__quick-sync-error {
+    margin-top: 16rpx;
+    color: #ff3b30;
+    line-height: 1.5;
+    text-align: left;
+}
+
+.profile-home__quick-sync-save {
+    margin-top: 36rpx;
+    width: 100%;
+    min-height: 96rpx;
+    border-radius: 24rpx;
+    background: #007aff;
+    color: #ffffff;
+    font-size: 32rpx;
+    font-weight: 700;
+    line-height: 1.4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.profile-home__quick-sync-cancel {
+    margin-top: 24rpx;
+    padding: 8rpx 0;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 28rpx;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+@keyframes profile-home-sheet-up {
+    from {
+        transform: translateY(24rpx);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
 @keyframes profile-home-loading-spin {
     from {
         transform: rotate(0deg);

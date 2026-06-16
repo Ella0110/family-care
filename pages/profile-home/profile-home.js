@@ -46,6 +46,14 @@ const {
     normalizeGrantedUserProfile,
     isAnonymousInvitationNickname,
 } = require("../../utils/invitation");
+const {
+    buildUserProfileForm,
+    hasConfiguredUserAvatar,
+    normalizeNicknameInput,
+    trimText: trimUserProfileText,
+    uploadAvatarIfNeeded,
+    validateUserProfileForm,
+} = require("../../utils/user-profile-form");
 
 const REFRESH_TTL_MS = 5 * 1000;
 const MEMBER_STALE_THRESHOLD = 30 * 1000;
@@ -344,6 +352,40 @@ function getInviteNicknameFromUser(user) {
     return normalized ? normalized.nickname : "";
 }
 
+function openSelfActionDialog(page, member) {
+    if (!page || typeof page.setData !== "function") {
+        return;
+    }
+
+    const user = (member && member.user) || {};
+    const avatarUrl = member && member.avatarUrl ? member.avatarUrl : user.avatarUrl || "";
+    const avatarFallback =
+        (member && member.avatarFallback) ||
+        buildInvitationNicknameInitial(user.nickname, "我");
+    const roleLabel =
+        (member && member.roleLabel) ||
+        MEMBER_ROLE_LABELS[(member && member.role) || ""] ||
+        "成员";
+
+    page.setData({
+        showSelfActionDialog: true,
+        selfActionDialogHasAvatar: hasConfiguredUserAvatar(
+            avatarUrl ? { avatarUrl } : user,
+        ),
+        selfActionDialogMember: {
+            avatarUrl,
+            avatarFallback,
+            roleLabel,
+        },
+    });
+
+    if (typeof page.syncTabBarVisibility === "function") {
+        page.syncTabBarVisibility({
+            showSelfActionDialog: true,
+        });
+    }
+}
+
 Page({
     data: {
         fontScale: DEFAULT_FONT_SCALE,
@@ -380,6 +422,14 @@ Page({
         selectedMember: null,
         showEditPanel: false,
         showInviteDialog: false,
+        showSelfActionDialog: false,
+        selfActionDialogMember: null,
+        selfActionDialogHasAvatar: false,
+        showQuickProfileSyncDialog: false,
+        quickProfileSyncForm: buildUserProfileForm(store.getState().user || {}),
+        quickProfileSyncErrorText: "",
+        quickProfileSyncNicknameFocus: false,
+        isSavingQuickProfileSync: false,
         pendingInvitationToken: "",
         showNicknameInput: false,
         inviteNickname: "",
@@ -420,6 +470,7 @@ Page({
 
         this.syncFontScale();
         this.syncProfileMeta();
+        this.syncQuickProfileSyncForm();
 
         this._unsubscribe = store.subscribe((nextState) => {
             const loginStatus = getAppLoginStatus();
@@ -473,6 +524,7 @@ Page({
 
         this.syncTabBarVisibility();
         this.syncFontScale();
+        this.syncQuickProfileSyncForm();
         const loginStatus = getAppLoginStatus();
         this.lastLoginReady = loginStatus.isLoginReady;
 
@@ -717,15 +769,41 @@ Page({
         )
             ? overrides.showInviteDialog
             : this.data.showInviteDialog;
+        const showSelfActionDialog = Object.prototype.hasOwnProperty.call(
+            overrides,
+            "showSelfActionDialog",
+        )
+            ? overrides.showSelfActionDialog
+            : this.data.showSelfActionDialog;
+        const showQuickProfileSyncDialog = Object.prototype.hasOwnProperty.call(
+            overrides,
+            "showQuickProfileSyncDialog",
+        )
+            ? overrides.showQuickProfileSyncDialog
+            : this.data.showQuickProfileSyncDialog;
 
         this.setTabBarVisible(
             !(
                 showProfileSwitcher ||
                 showMemberPanel ||
                 showEditPanel ||
-                showInviteDialog
+                showInviteDialog ||
+                showSelfActionDialog ||
+                showQuickProfileSyncDialog
             ),
         );
+    },
+
+    syncQuickProfileSyncForm() {
+        if (this.data.showQuickProfileSyncDialog) {
+            return;
+        }
+
+        this.setData({
+            quickProfileSyncForm: buildUserProfileForm(store.getState().user || {}),
+            quickProfileSyncErrorText: "",
+            quickProfileSyncNicknameFocus: false,
+        });
     },
 
     enterPageLoading() {
@@ -1336,10 +1414,267 @@ Page({
             return;
         }
 
+        if (member.isSelf) {
+            openSelfActionDialog(this, member);
+            return;
+        }
+
         this.setData({
             selectedMember: member,
             showMemberPanel: true,
         });
+    },
+
+    handleSelfMemberTap(member) {
+        openSelfActionDialog(this, member);
+    },
+
+    handleCloseSelfActionDialog() {
+        if (!this.data.showSelfActionDialog) {
+            return;
+        }
+
+        this.setData({
+            showSelfActionDialog: false,
+            selfActionDialogMember: null,
+            selfActionDialogHasAvatar: false,
+        });
+        this.syncTabBarVisibility({
+            showSelfActionDialog: false,
+        });
+    },
+
+    handleSelfActionAuthorizeTap() {
+        if (this.data.selfActionDialogHasAvatar) {
+            return;
+        }
+
+        this.setData(
+            {
+                showSelfActionDialog: false,
+                selfActionDialogMember: null,
+                selfActionDialogHasAvatar: false,
+            },
+            () => {
+                this.syncTabBarVisibility({
+                    showSelfActionDialog: false,
+                });
+                this.openQuickProfileSyncDialog();
+            },
+        );
+    },
+
+    handleOpenUserProfileEdit() {
+        if (this.data.showSelfActionDialog) {
+            this.setData({
+                showSelfActionDialog: false,
+                selfActionDialogMember: null,
+                selfActionDialogHasAvatar: false,
+            });
+            this.syncTabBarVisibility({
+                showSelfActionDialog: false,
+            });
+        }
+
+        wx.navigateTo({
+            url: "/pages/user-profile-edit/user-profile-edit",
+        });
+    },
+
+    openQuickProfileSyncDialog() {
+        this.setData({
+            showQuickProfileSyncDialog: true,
+            quickProfileSyncForm: buildUserProfileForm(store.getState().user || {}),
+            quickProfileSyncErrorText: "",
+            quickProfileSyncNicknameFocus: false,
+            isSavingQuickProfileSync: false,
+        });
+        this.syncTabBarVisibility({
+            showQuickProfileSyncDialog: true,
+        });
+    },
+
+    handleCloseQuickProfileSyncDialog() {
+        if (!this.data.showQuickProfileSyncDialog) {
+            return;
+        }
+
+        this.setData({
+            showQuickProfileSyncDialog: false,
+            quickProfileSyncForm: buildUserProfileForm(store.getState().user || {}),
+            quickProfileSyncErrorText: "",
+            quickProfileSyncNicknameFocus: false,
+            isSavingQuickProfileSync: false,
+        });
+        this.syncTabBarVisibility({
+            showQuickProfileSyncDialog: false,
+        });
+    },
+
+    handleQuickProfileSyncChooseAvatar(event) {
+        const avatarUrl = trimUserProfileText(
+            event && event.detail && event.detail.avatarUrl,
+        );
+        const nextForm = buildUserProfileForm(
+            Object.assign({}, this.data.quickProfileSyncForm, {
+                nickname: this.data.quickProfileSyncForm.nickname,
+                avatarUrl,
+            }),
+        );
+        this.setData({
+            quickProfileSyncForm: nextForm,
+            quickProfileSyncErrorText: "",
+            quickProfileSyncNicknameFocus: true,
+        });
+    },
+
+    handleQuickProfileSyncNicknameInput(event) {
+        const nickname = normalizeNicknameInput(
+            event && event.detail && event.detail.value,
+        );
+        const nextForm = buildUserProfileForm(
+            Object.assign({}, this.data.quickProfileSyncForm, {
+                nickname,
+                avatarUrl: this.data.quickProfileSyncForm.avatarUrl,
+            }),
+        );
+        this.setData({
+            quickProfileSyncForm: nextForm,
+            quickProfileSyncErrorText: "",
+        });
+    },
+
+    syncCurrentUserLocally(userPatch) {
+        const currentProfileId = this.data.currentProfileId || "";
+        const nextUser = Object.assign({}, store.getState().user || {}, userPatch || {});
+        const nextForm = buildUserProfileForm(nextUser);
+
+        Object.keys(this.memberCache || {}).forEach((profileId) => {
+            const members = this.memberCache[profileId];
+            if (!Array.isArray(members)) {
+                return;
+            }
+
+            this.memberCache[profileId] = members.map((member) => {
+                const memberUser = (member && member.user) || {};
+                if (!this.currentUserId || memberUser._id !== this.currentUserId) {
+                    return member;
+                }
+
+                return Object.assign({}, member, {
+                    user: Object.assign({}, memberUser, {
+                        nickname: nextUser.nickname || "",
+                        avatarUrl: nextUser.avatarUrl || "",
+                    }),
+                });
+            });
+        });
+
+        const nextData = {
+            quickProfileSyncForm: nextForm,
+            quickProfileSyncErrorText: "",
+            quickProfileSyncNicknameFocus: false,
+        };
+
+        if (currentProfileId && Array.isArray(this.memberCache[currentProfileId])) {
+            const nextMemberItems = buildMemberItems(
+                this.memberCache[currentProfileId],
+                this.currentUserId,
+            );
+            nextData.memberItems = nextMemberItems;
+            nextData.memberCount = nextMemberItems.length;
+
+            if (this.data.selectedMember && this.data.selectedMember.isSelf) {
+                nextData.selectedMember =
+                    nextMemberItems.find((item) => item.isSelf) || null;
+            }
+        }
+
+        this.setData(nextData);
+    },
+
+    async handleQuickProfileSyncSave() {
+        if (this.data.isSavingQuickProfileSync) {
+            return;
+        }
+
+        if (!trimUserProfileText(this.data.quickProfileSyncForm.avatarUrl)) {
+            const message = "请先选择头像";
+            this.setData({ quickProfileSyncErrorText: message });
+            wx.showToast({
+                title: message,
+                icon: "none",
+            });
+            return;
+        }
+
+        const validationMessage = validateUserProfileForm(
+            this.data.quickProfileSyncForm,
+        );
+        if (validationMessage) {
+            this.setData({ quickProfileSyncErrorText: validationMessage });
+            wx.showToast({
+                title: validationMessage,
+                icon: "none",
+            });
+            return;
+        }
+
+        this.setData({
+            isSavingQuickProfileSync: true,
+            quickProfileSyncErrorText: "",
+        });
+
+        try {
+            const avatarUrl = await uploadAvatarIfNeeded(
+                trimUserProfileText(this.data.quickProfileSyncForm.avatarUrl),
+                this.currentUserId,
+            );
+            const result = await userService.updateProfile({
+                nickname: trimUserProfileText(
+                    this.data.quickProfileSyncForm.nickname,
+                ),
+                avatarUrl,
+            });
+            const nextUser = (result && result.user) || {};
+            store.setState({
+                user: nextUser,
+            });
+            store.clearRefresh("members");
+
+            const app = getApp();
+            if (app && typeof app.markMemberListDirty === "function") {
+                app.markMemberListDirty();
+            } else if (app && app.globalData) {
+                app.globalData.memberListDirty = true;
+            }
+            if (app && typeof app.syncInviterProfileState === "function") {
+                app.syncInviterProfileState(nextUser);
+            }
+
+            this.syncCurrentUserLocally(nextUser);
+            this.setData({
+                showQuickProfileSyncDialog: false,
+                isSavingQuickProfileSync: false,
+            });
+            this.syncTabBarVisibility({
+                showQuickProfileSyncDialog: false,
+            });
+            wx.showToast({
+                title: "已同步",
+                icon: "success",
+            });
+        } catch (error) {
+            const message = getErrorMessage(error);
+            this.setData({
+                isSavingQuickProfileSync: false,
+                quickProfileSyncErrorText: message,
+            });
+            wx.showToast({
+                title: message,
+                icon: "none",
+            });
+        }
     },
 
     handleMemberPanelClose() {

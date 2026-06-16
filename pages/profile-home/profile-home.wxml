@@ -222,6 +222,136 @@
     </view>
   </view>
 
+  <view wx:if="{{showSelfActionDialog}}" class="profile-home__self-action-dialog">
+    <view class="profile-home__self-action-mask" bindtap="handleCloseSelfActionDialog"></view>
+    <view class="profile-home__self-action-sheet" catchtap="noop">
+      <view wx:if="{{selfActionDialogMember.avatarUrl}}" class="profile-home__self-action-avatar profile-home__self-action-avatar--image" style="font-size:{{fs.title}}">
+        <image class="profile-home__self-action-avatar-image" src="{{selfActionDialogMember.avatarUrl}}" mode="aspectFill" />
+      </view>
+      <view wx:else class="profile-home__self-action-avatar" style="font-size:{{fs.title}}">
+        {{selfActionDialogMember.avatarFallback}}
+      </view>
+      <view class="profile-home__self-action-name" style="font-size:{{fs.body}}">我</view>
+      <view class="profile-home__self-action-role" style="font-size:{{fs.caption}}">
+        当前角色：{{selfActionDialogMember.roleLabel}}
+      </view>
+      <view class="profile-home__self-action-divider"></view>
+
+      <block wx:if="{{!selfActionDialogHasAvatar}}">
+        <button
+          class="profile-home__self-action-button profile-home__self-action-button--wechat"
+          bindtap="handleSelfActionAuthorizeTap"
+          style="font-size:{{fs.button}}"
+        >
+          一键授权微信昵称与头像
+        </button>
+        <button
+          class="profile-home__self-action-button profile-home__self-action-button--outline"
+          bindtap="handleOpenUserProfileEdit"
+          style="font-size:{{fs.button}}"
+        >
+          自行修改个人资料
+        </button>
+      </block>
+      <button
+        wx:else
+        class="profile-home__self-action-button profile-home__self-action-button--primary"
+        bindtap="handleOpenUserProfileEdit"
+        style="font-size:{{fs.button}}"
+      >
+        修改个人资料
+      </button>
+      <button
+        class="profile-home__self-action-cancel"
+        bindtap="handleCloseSelfActionDialog"
+        style="font-size:{{fs.secondary}}"
+      >
+        取消
+      </button>
+    </view>
+  </view>
+
+  <view wx:if="{{showQuickProfileSyncDialog}}" class="profile-home__quick-sync-dialog">
+    <view class="profile-home__quick-sync-mask" bindtap="handleCloseQuickProfileSyncDialog"></view>
+    <view class="profile-home__quick-sync-sheet" catchtap="noop">
+      <view class="profile-home__quick-sync-title" style="font-size:{{fs.body}}">
+        一键同步微信昵称与头像
+      </view>
+      <view class="profile-home__quick-sync-text" style="font-size:{{fs.secondary}}">
+        先选择微信头像，再补充昵称，即可同步到家人协作资料中。
+      </view>
+
+      <button
+        class="profile-home__quick-sync-avatar-button"
+        open-type="chooseAvatar"
+        bindchooseavatar="handleQuickProfileSyncChooseAvatar"
+      >
+        <view
+          wx:if="{{quickProfileSyncForm.avatarUrl}}"
+          class="profile-home__quick-sync-avatar profile-home__quick-sync-avatar--image"
+          style="font-size:{{fs.title}}"
+        >
+          <image
+            class="profile-home__quick-sync-avatar-image"
+            src="{{quickProfileSyncForm.avatarUrl}}"
+            mode="aspectFill"
+          />
+        </view>
+        <view
+          wx:else
+          class="profile-home__quick-sync-avatar"
+          style="font-size:{{fs.title}}"
+        >
+          {{quickProfileSyncForm.avatarFallback}}
+        </view>
+        <view class="profile-home__quick-sync-avatar-badge">微信头像</view>
+      </button>
+
+      <view class="profile-home__quick-sync-field-head">
+        <view class="profile-home__quick-sync-label" style="font-size:{{fs.secondary}}">昵称</view>
+        <view class="profile-home__quick-sync-count" style="font-size:{{fs.caption}}">
+          {{quickProfileSyncForm.nickname.length}}/20
+        </view>
+      </view>
+      <input
+        class="profile-home__quick-sync-input"
+        type="nickname"
+        maxlength="20"
+        placeholder="请输入昵称"
+        value="{{quickProfileSyncForm.nickname}}"
+        focus="{{quickProfileSyncNicknameFocus}}"
+        bindinput="handleQuickProfileSyncNicknameInput"
+        style="font-size:{{fs.body}}"
+      />
+
+      <view
+        wx:if="{{quickProfileSyncErrorText}}"
+        class="profile-home__quick-sync-error"
+        style="font-size:{{fs.caption}}"
+      >
+        {{quickProfileSyncErrorText}}
+      </view>
+
+      <button
+        class="profile-home__quick-sync-save"
+        bindtap="handleQuickProfileSyncSave"
+        loading="{{isSavingQuickProfileSync}}"
+        disabled="{{isSavingQuickProfileSync}}"
+        style="font-size:{{fs.button}}"
+      >
+        保存同步
+      </button>
+      <button
+        class="profile-home__quick-sync-cancel"
+        bindtap="handleCloseQuickProfileSyncDialog"
+        disabled="{{isSavingQuickProfileSync}}"
+        style="font-size:{{fs.secondary}}"
+      >
+        取消
+      </button>
+    </view>
+  </view>
+
   <profile-switcher
     show="{{showProfileSwitcher}}"
     profiles="{{profiles}}"

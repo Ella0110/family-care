@@ -10,7 +10,7 @@
 
         <view class="settings-profile__body">
           <view class="settings-profile__row">
-            <view class="settings-profile__headline" style="font-size:{{fs.body}}">昵称：{{profileSummary.nickname}}</view>
+            <view class="settings-profile__headline" style="font-size:{{fs.body}}">{{profileSummary.nickname}}</view>
             <view class="settings-profile__link" bindtap="handleOpenUserProfileEdit" style="font-size:{{fs.body}}">修改</view>
           </view>
           <view class="settings-profile__hint" style="font-size:{{fs.caption}}">邀请家人时会显示这个昵称</view>

@@ -5,6 +5,7 @@ runVerifySuite([
   'verify-launch-routing.js',
   'verify-round-i-ui.js',
   'verify-save-record-env-version.js',
+  'verify-user-profile-avatar-actions.js',
   'verify-visibilitychange-boot.js',
   'verify-fixed-bp-display-thresholds.js',
   'verify-profile-deletion-retention.js',

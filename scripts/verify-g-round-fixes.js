@@ -14,6 +14,7 @@ function expectMatch(source, pattern, message) {
 }
 
 const userProfileEditSource = read('pages/user-profile-edit/user-profile-edit.js');
+const userProfileFormSource = read('utils/user-profile-form.js');
 const dataPageSource = read('pages/data/data.js');
 const dataPageWxmlSource = read('pages/data/data.wxml');
 const recordsListSource = read('pages/records-list/records-list.js');
@@ -23,15 +24,15 @@ const profileMembersSource = read('pages/profile-members/profile-members.js');
 const importRecordsSource = read('pages/import-records/import-records.js');
 
 expectMatch(
-  userProfileEditSource,
+  `${userProfileEditSource}\n${userProfileFormSource}`,
   /async function uploadAvatarIfNeeded\(/,
-  'user-profile-edit should define an avatar upload helper for chooseAvatar temp files',
+  'profile editing flow should define an avatar upload helper for chooseAvatar temp files',
 );
 
 expectMatch(
-  userProfileEditSource,
+  `${userProfileEditSource}\n${userProfileFormSource}`,
   /wx\.cloud\.uploadFile\(/,
-  'user-profile-edit should upload chooseAvatar temp files to cloud storage',
+  'profile editing flow should upload chooseAvatar temp files to cloud storage',
 );
 
 expectMatch(

@@ -1,78 +1,17 @@
 const { store } = require('../../store/index');
 const userService = require('../../services/user-service');
 const { getErrorMessage } = require('../../utils/error-messages');
-const { DEFAULT_FONT_SCALE, normalizeFontScale, syncFontData } = require('../../utils/font-scale');
+const { DEFAULT_FONT_SCALE, syncFontData } = require('../../utils/font-scale');
 const {
-  normalizeGrantedUserProfile,
-  isAnonymousInvitationNickname,
-  buildInvitationNicknameInitial,
-} = require('../../utils/invitation');
-
-function trimText(value) {
-  return String(value || '').trim();
-}
-
-function isLocalAvatarPath(value) {
-  const normalized = trimText(value);
-  return /^wxfile:\/\//i.test(normalized)
-    || /^https?:\/\/tmp\//i.test(normalized)
-    || /^\/(private\/)?var\//i.test(normalized)
-    || /^\/tmp\//i.test(normalized);
-}
-
-function getAvatarFileExtension(filePath) {
-  const normalized = String(filePath || '').split('?')[0];
-  const match = normalized.match(/\.(jpg|jpeg|png|webp)$/i);
-  return match ? match[1].toLowerCase() : 'png';
-}
-
-async function uploadAvatarIfNeeded(avatarUrl, userId) {
-  const normalized = trimText(avatarUrl);
-  if (!normalized || !isLocalAvatarPath(normalized)) {
-    return normalized;
-  }
-
-  if (!wx.cloud || typeof wx.cloud.uploadFile !== 'function') {
-    throw new Error('CLOUD_UPLOAD_UNAVAILABLE');
-  }
-
-  const extension = getAvatarFileExtension(normalized);
-  const cloudPath = [
-    'user-avatars',
-    userId || 'anonymous',
-    `${Date.now()}-${Math.random().toString(16).slice(2, 8)}.${extension}`,
-  ].join('/');
-
-  const result = await wx.cloud.uploadFile({
-    cloudPath,
-    filePath: normalized,
-  });
-
-  if (!result || !result.fileID) {
-    throw new Error('AVATAR_UPLOAD_FAILED');
-  }
-
-  return result.fileID;
-}
-
-function getCurrentFontScale() {
-  const app = getApp();
-  return normalizeFontScale(app && app.globalData ? app.globalData.fontScale : DEFAULT_FONT_SCALE);
-}
+  buildUserProfileForm,
+  normalizeNicknameInput,
+  trimText,
+  uploadAvatarIfNeeded,
+  validateUserProfileForm,
+} = require('../../utils/user-profile-form');
 
 function getInitialForm() {
-  const state = store.getState();
-  const user = state.user || {};
-  const normalized = normalizeGrantedUserProfile({
-    nickname: user.nickname,
-    avatarUrl: user.avatarUrl,
-  });
-
-  return {
-    nickname: normalized ? normalized.nickname : '',
-    avatarUrl: normalized ? normalized.avatarUrl || '' : '',
-    avatarFallback: buildInvitationNicknameInitial(normalized ? normalized.nickname : '', '我'),
-  };
+  return buildUserProfileForm(store.getState().user || {});
 }
 
 Page({
@@ -109,33 +48,31 @@ Page({
   },
 
   onNicknameInput(event) {
-    const nickname = trimText(event.detail.value).slice(0, 20);
+    const nickname = normalizeNicknameInput(event.detail.value);
+    const nextForm = buildUserProfileForm(Object.assign({}, this.data.form, {
+      nickname,
+      avatarUrl: this.data.form.avatarUrl,
+    }));
     this.setData({
-      'form.nickname': nickname,
-      'form.avatarFallback': buildInvitationNicknameInitial(nickname, '我'),
+      form: nextForm,
       errorText: '',
     });
   },
 
   onChooseAvatar(event) {
     const avatarUrl = trimText(event.detail && event.detail.avatarUrl);
+    const nextForm = buildUserProfileForm(Object.assign({}, this.data.form, {
+      nickname: this.data.form.nickname,
+      avatarUrl,
+    }));
     this.setData({
-      'form.avatarUrl': avatarUrl,
+      form: nextForm,
       errorText: '',
     });
   },
 
   validateForm() {
-    const nickname = trimText(this.data.form.nickname);
-    if (!nickname || isAnonymousInvitationNickname(nickname)) {
-      return '请填写有效昵称';
-    }
-
-    if (nickname.length > 20) {
-      return '昵称不能超过 20 个字';
-    }
-
-    return '';
+    return validateUserProfileForm(this.data.form);
   },
 
   async handleSave() {
@@ -164,9 +101,7 @@ Page({
         nickname: trimText(this.data.form.nickname),
         avatarUrl,
       });
-      this.setData({
-        'form.avatarUrl': avatarUrl,
-      });
+      this.setData({ form: buildUserProfileForm(result.user) });
       store.setState({
         user: result.user,
       });
@@ -175,10 +110,8 @@ Page({
       const app = getApp();
       if (app && typeof app.markMemberListDirty === 'function') {
         app.markMemberListDirty();
-        console.log('[user-profile-edit] memberListDirty = true');
       } else if (app && app.globalData) {
         app.globalData.memberListDirty = true;
-        console.log('[user-profile-edit] memberListDirty = true');
       }
       if (app && typeof app.syncInviterProfileState === 'function') {
         app.syncInviterProfileState(result.user);
