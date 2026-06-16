@@ -88,6 +88,28 @@ function formatMonthDayTime(value) {
   return `${pad(parts.month)}/${pad(parts.day)} ${pad(parts.hours)}:${pad(parts.minutes)}`;
 }
 
+function formatReportRangeLabel(days) {
+  const safeDays = Number(days) || 7;
+
+  if (safeDays === 7) {
+    return '近7天';
+  }
+
+  if (safeDays === 30) {
+    return '近30天';
+  }
+
+  if (safeDays === 90) {
+    return '近90天';
+  }
+
+  return `近${safeDays}天`;
+}
+
+function prefixBannerTextWithRange(text, days) {
+  return `${formatReportRangeLabel(days)}内${text}`;
+}
+
 function getSinceForDays(days, now = new Date()) {
   const safeDays = Math.max(1, Number(days) || 1);
   const startOfToday = getEast8StartOfDay(now);
@@ -393,13 +415,13 @@ function getAlertLabels(record, threshold) {
   return labels;
 }
 
-function buildAlertBanner(records, threshold) {
+function buildAlertBanner(records, threshold, days) {
   void threshold;
   if ((records || []).some((record) => isHighRiskRecord(record))) {
     return {
       type: 'critical',
       title: '血压偏高提示',
-      text: '存在较高血压记录，请及时就医咨询。',
+      text: prefixBannerTextWithRange('存在较高血压记录，请及时就医咨询。', days),
       pulse: true,
     };
   }
@@ -408,7 +430,7 @@ function buildAlertBanner(records, threshold) {
     return {
       type: 'warning',
       title: '血压偏高提示',
-      text: '部分测量值超出正常范围，建议持续监测。',
+      text: prefixBannerTextWithRange('部分测量值超出正常范围，建议持续监测。', days),
       pulse: false,
     };
   }
@@ -417,7 +439,7 @@ function buildAlertBanner(records, threshold) {
     return {
       type: 'warning',
       title: '低血压提示',
-      text: '存在血压偏低记录，注意避免体位性低血压引发跌倒。',
+      text: prefixBannerTextWithRange('存在血压偏低记录，注意避免体位性低血压引发跌倒。', days),
       pulse: false,
     };
   }
@@ -523,6 +545,7 @@ function buildReportViewModel(options) {
   const profile = options && options.profile ? options.profile : null;
   const threshold = DISPLAY_BP_THRESHOLD;
   const generatedAt = options && options.generatedAt ? options.generatedAt : new Date();
+  const days = options && options.days ? options.days : 7;
   const normalizedRecords = normalizeReportRecords(options && options.records);
   const patient = buildPatientInfo(
     profile,
@@ -533,7 +556,7 @@ function buildReportViewModel(options) {
   const recentAlerts = buildRecentAlerts(normalizedRecords, threshold);
   const chartData = buildChartTimeline(
     normalizedRecords,
-    options && options.days ? options.days : 7,
+    days,
     threshold,
     generatedAt,
   );
@@ -543,7 +566,7 @@ function buildReportViewModel(options) {
     patient,
     hasRecords: normalizedRecords.length > 0,
     generatedAtText: formatGeneratedAt(generatedAt),
-    banner: buildAlertBanner(normalizedRecords, threshold),
+    banner: buildAlertBanner(normalizedRecords, threshold, days),
     summaryCards: normalizedRecords.length ? buildSummaryCards(normalizedRecords, threshold) : [],
     chartData,
     hasHeartRateData: chartData.hasHeartRateData,

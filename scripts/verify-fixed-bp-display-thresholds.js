@@ -196,6 +196,50 @@ try {
     false,
     'report chart points should treat 85 diastolic as normal for display purposes',
   );
+  assert.strictEqual(
+    viewModel.banner.text,
+    '近30天内部分测量值超出正常范围，建议持续监测。',
+    'report warning banner should include the active 30-day range in its copy',
+  );
+
+  const criticalBannerViewModel = buildReportViewModel({
+    profile,
+    activeMedications: [],
+    records: [buildRecord('report-record-critical', '2026-06-06T08:00:00.000Z', 185, 115)],
+    days: 90,
+    generatedAt: new Date('2026-06-06T12:00:00.000Z'),
+  });
+  assert.strictEqual(
+    criticalBannerViewModel.banner.text,
+    '近90天内存在较高血压记录，请及时就医咨询。',
+    'report critical banner should include the active 90-day range in its copy',
+  );
+
+  const lowBannerViewModel = buildReportViewModel({
+    profile,
+    activeMedications: [],
+    records: [buildRecord('report-record-low', '2026-06-06T08:00:00.000Z', 85, 55)],
+    days: 7,
+    generatedAt: new Date('2026-06-06T12:00:00.000Z'),
+  });
+  assert.strictEqual(
+    lowBannerViewModel.banner.text,
+    '近7天内存在血压偏低记录，注意避免体位性低血压引发跌倒。',
+    'report low-blood-pressure banner should include the active 7-day range in its copy',
+  );
+
+  const normalBannerViewModel = buildReportViewModel({
+    profile,
+    activeMedications: [],
+    records: [buildRecord('report-record-normal', '2026-06-06T08:00:00.000Z', 110, 75)],
+    days: 30,
+    generatedAt: new Date('2026-06-06T12:00:00.000Z'),
+  });
+  assert.strictEqual(
+    normalBannerViewModel.banner,
+    null,
+    'report should remain banner-free when no banner condition is met',
+  );
 
   const reportDefinition = loadPageDefinition(reportPagePath);
   const reportInstance = createReportInstance(reportDefinition, profile);
@@ -204,6 +248,18 @@ try {
     reportInstance.chartThreshold,
     { systolic: 140, diastolic: 90 },
     'report page should keep using the fixed 140/90 display threshold after applying the view model',
+  );
+  assert.strictEqual(
+    reportInstance.data.banner.text,
+    '近30天内部分测量值超出正常范围，建议持续监测。',
+    'report preview should surface the shared period-qualified banner copy',
+  );
+
+  const exportPayload = reportDefinition.buildExportPayload.call(reportInstance);
+  assert.strictEqual(
+    exportPayload.banner.text,
+    reportInstance.data.banner.text,
+    'report export payload should reuse the same banner text shown in preview',
   );
 
   const userSettingsWxml = read('pages/user-settings/user-settings.wxml');
