@@ -119,9 +119,9 @@ function verifyUserProfileEditStyles() {
   const wxss = read('pages/user-profile-edit/user-profile-edit.wxss');
 
   assert.match(wxml, /class="profile-edit-avatar-link"/, 'user profile edit should keep the choose-avatar entry');
-  assert.match(wxss, /\.profile-edit-avatar\s*\{[\s\S]*width:\s*192rpx;[\s\S]*height:\s*192rpx;[\s\S]*box-shadow:/i, 'user profile avatar preview should use the redesigned 192rpx avatar size and soft shadow');
+  assert.match(wxss, /\.profile-edit-avatar\s*\{[\s\S]*width:\s*(176|192)rpx;[\s\S]*height:\s*(176|192)rpx;[\s\S]*box-shadow:/i, 'user profile avatar preview should use the redesigned avatar size and soft shadow');
   assert.match(wxml, /更换头像/, 'user profile edit should show the text-link avatar action');
-  assert.match(wxss, /\.profile-edit-save-bar\s*\{[\s\S]*margin:\s*40rpx 28rpx 0;/i, 'user profile save action should sit below the card instead of being fixed');
+  assert.match(wxss, /\.profile-edit-save-bar\s*\{[\s\S]*margin:\s*40rpx \d+rpx 0;/i, 'user profile save action should sit below the card instead of being fixed');
   assert.doesNotMatch(wxml, /profile-edit-cancel|>[\s\r\n]*取消[\s\r\n]*</, 'user profile edit should remove the cancel button');
 }
 

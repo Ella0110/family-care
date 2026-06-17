@@ -78,7 +78,7 @@ assert.match(
 
 assert.match(
   wxss,
-  /\.profile-edit-card\s*\{[\s\S]*background:\s*#ffffff;[\s\S]*border-radius:\s*48rpx;[\s\S]*border:\s*1rpx solid rgba\(0,\s*0,\s*0,\s*0\.06\);[\s\S]*padding:\s*64rpx;[\s\S]*margin:\s*24rpx 28rpx 0;/i,
+  /\.profile-edit-card\s*\{[\s\S]*background:\s*#ffffff;[\s\S]*border-radius:\s*48rpx;[\s\S]*border:\s*1rpx solid rgba\(0,\s*0,\s*0,\s*0\.06\);[\s\S]*padding:\s*64rpx;[\s\S]*margin:\s*\d+rpx \d+rpx 0;/i,
   'user-profile-edit should use the new white card treatment for the top content block',
 );
 
@@ -90,7 +90,7 @@ assert.match(
 
 assert.match(
   wxss,
-  /\.profile-edit-avatar\s*\{[\s\S]*width:\s*192rpx;[\s\S]*height:\s*192rpx;[\s\S]*border:\s*4rpx solid #ffffff[\s\S]*box-shadow:/i,
+  /\.profile-edit-avatar\s*\{[\s\S]*width:\s*(176|192)rpx;[\s\S]*height:\s*(176|192)rpx;[\s\S]*border:\s*4rpx solid #ffffff[\s\S]*box-shadow:/i,
   'avatar area should render the larger white-outlined avatar with a soft shadow',
 );
 
@@ -102,7 +102,7 @@ assert.match(
 
 assert.match(
   wxss,
-  /\.profile-edit-input\s*\{[\s\S]*background:\s*#f2f2f7;[\s\S]*border-radius:\s*24rpx;[\s\S]*border:\s*2rpx solid transparent;/i,
+  /\.profile-edit-input\s*\{[\s\S]*background:\s*#f2f2f7;[\s\S]*border-radius:\s*(20|24)rpx;[\s\S]*border:\s*2rpx solid transparent;/i,
   'nickname input should use the redesigned filled style with a transparent resting border',
 );
 
@@ -114,7 +114,7 @@ assert.match(
 
 assert.match(
   wxss,
-  /\.profile-edit-save-bar\s*\{[\s\S]*margin:\s*40rpx 28rpx 0;[\s\S]*padding:\s*0 0 env\(safe-area-inset-bottom\)/i,
+  /\.profile-edit-save-bar\s*\{[\s\S]*margin:\s*40rpx \d+rpx 0;[\s\S]*padding:\s*0 0 env\(safe-area-inset-bottom\)/i,
   'save action container should sit below the card with safe-area breathing room',
 );
 

@@ -47,12 +47,7 @@ const {
     isAnonymousInvitationNickname,
 } = require("../../utils/invitation");
 const {
-    buildUserProfileForm,
     hasConfiguredUserAvatar,
-    normalizeNicknameInput,
-    trimText: trimUserProfileText,
-    uploadAvatarIfNeeded,
-    validateUserProfileForm,
 } = require("../../utils/user-profile-form");
 
 const REFRESH_TTL_MS = 5 * 1000;
@@ -71,6 +66,9 @@ const MEMBER_ROLE_ORDER = {
     collaborator: 1,
     viewer: 2,
 };
+
+const MEMBER_AVATAR_PLACEHOLDER_SVG =
+    "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MCA0MCI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNDN0M3Q0MiLz48Y2lyY2xlIGN4PSIyMCIgY3k9IjE1IiByPSI2IiBmaWxsPSJ3aGl0ZSIvPjxwYXRoIGQ9Ik04IDM0IFE4IDI0IDIwIDI0IFEzMiAyNCAzMiAzNCIgZmlsbD0id2hpdGUiLz48L3N2Zz4=";
 
 function pad(value) {
     return String(value).padStart(2, "0");
@@ -278,10 +276,9 @@ function buildMemberItems(members, currentUserId) {
             const relationship = member.relationship || {};
             const isSelf = Boolean(currentUserId && user._id === currentUserId);
             const role = relationship.role || "";
-            let displayName = user.nickname || "未命名";
-            if (isSelf) {
-                displayName = role === "owner" ? "我" : "我";
-            }
+            const nickname = trimText(user.nickname);
+            const hasAvatar = hasConfiguredUserAvatar(user);
+            const displayName = isSelf ? nickname : nickname || "未命名";
 
             return {
                 relationshipId: relationship._id || "",
@@ -289,12 +286,15 @@ function buildMemberItems(members, currentUserId) {
                 user,
                 relationship,
                 avatarUrl: user.avatarUrl || "",
+                avatarPlaceholderSrc: MEMBER_AVATAR_PLACEHOLDER_SVG,
+                useAvatarPlaceholderIcon: !hasAvatar,
                 avatarFallback: buildInvitationNicknameInitial(
                     user.nickname,
                     isSelf ? "我" : "家",
                 ),
-                nickname: user.nickname || "",
+                nickname,
                 displayName,
+                showUnnamedNote: isSelf && !nickname,
                 roleLabel: MEMBER_ROLE_LABELS[role] || role,
                 role,
                 isSelf,
@@ -362,19 +362,23 @@ function openSelfActionDialog(page, member) {
     const avatarFallback =
         (member && member.avatarFallback) ||
         buildInvitationNicknameInitial(user.nickname, "我");
+    const useAvatarPlaceholderIcon =
+        Boolean(member && member.useAvatarPlaceholderIcon) ||
+        !hasConfiguredUserAvatar(avatarUrl ? { avatarUrl } : user);
     const roleLabel =
         (member && member.roleLabel) ||
         MEMBER_ROLE_LABELS[(member && member.role) || ""] ||
         "成员";
+    const displayName = trimText(user.nickname) || "未命名";
 
     page.setData({
         showSelfActionDialog: true,
-        selfActionDialogHasAvatar: hasConfiguredUserAvatar(
-            avatarUrl ? { avatarUrl } : user,
-        ),
         selfActionDialogMember: {
             avatarUrl,
+            avatarPlaceholderSrc: MEMBER_AVATAR_PLACEHOLDER_SVG,
+            useAvatarPlaceholderIcon,
             avatarFallback,
+            displayName,
             roleLabel,
         },
     });
@@ -424,12 +428,6 @@ Page({
         showInviteDialog: false,
         showSelfActionDialog: false,
         selfActionDialogMember: null,
-        selfActionDialogHasAvatar: false,
-        showQuickProfileSyncDialog: false,
-        quickProfileSyncForm: buildUserProfileForm(store.getState().user || {}),
-        quickProfileSyncErrorText: "",
-        quickProfileSyncNicknameFocus: false,
-        isSavingQuickProfileSync: false,
         pendingInvitationToken: "",
         showNicknameInput: false,
         inviteNickname: "",
@@ -470,7 +468,6 @@ Page({
 
         this.syncFontScale();
         this.syncProfileMeta();
-        this.syncQuickProfileSyncForm();
 
         this._unsubscribe = store.subscribe((nextState) => {
             const loginStatus = getAppLoginStatus();
@@ -524,7 +521,6 @@ Page({
 
         this.syncTabBarVisibility();
         this.syncFontScale();
-        this.syncQuickProfileSyncForm();
         const loginStatus = getAppLoginStatus();
         this.lastLoginReady = loginStatus.isLoginReady;
 
@@ -775,12 +771,6 @@ Page({
         )
             ? overrides.showSelfActionDialog
             : this.data.showSelfActionDialog;
-        const showQuickProfileSyncDialog = Object.prototype.hasOwnProperty.call(
-            overrides,
-            "showQuickProfileSyncDialog",
-        )
-            ? overrides.showQuickProfileSyncDialog
-            : this.data.showQuickProfileSyncDialog;
 
         this.setTabBarVisible(
             !(
@@ -788,22 +778,9 @@ Page({
                 showMemberPanel ||
                 showEditPanel ||
                 showInviteDialog ||
-                showSelfActionDialog ||
-                showQuickProfileSyncDialog
+                showSelfActionDialog
             ),
         );
-    },
-
-    syncQuickProfileSyncForm() {
-        if (this.data.showQuickProfileSyncDialog) {
-            return;
-        }
-
-        this.setData({
-            quickProfileSyncForm: buildUserProfileForm(store.getState().user || {}),
-            quickProfileSyncErrorText: "",
-            quickProfileSyncNicknameFocus: false,
-        });
     },
 
     enterPageLoading() {
@@ -1437,31 +1414,10 @@ Page({
         this.setData({
             showSelfActionDialog: false,
             selfActionDialogMember: null,
-            selfActionDialogHasAvatar: false,
         });
         this.syncTabBarVisibility({
             showSelfActionDialog: false,
         });
-    },
-
-    handleSelfActionAuthorizeTap() {
-        if (this.data.selfActionDialogHasAvatar) {
-            return;
-        }
-
-        this.setData(
-            {
-                showSelfActionDialog: false,
-                selfActionDialogMember: null,
-                selfActionDialogHasAvatar: false,
-            },
-            () => {
-                this.syncTabBarVisibility({
-                    showSelfActionDialog: false,
-                });
-                this.openQuickProfileSyncDialog();
-            },
-        );
     },
 
     handleOpenUserProfileEdit() {
@@ -1469,7 +1425,6 @@ Page({
             this.setData({
                 showSelfActionDialog: false,
                 selfActionDialogMember: null,
-                selfActionDialogHasAvatar: false,
             });
             this.syncTabBarVisibility({
                 showSelfActionDialog: false,
@@ -1481,73 +1436,13 @@ Page({
         });
     },
 
-    openQuickProfileSyncDialog() {
-        this.setData({
-            showQuickProfileSyncDialog: true,
-            quickProfileSyncForm: buildUserProfileForm(store.getState().user || {}),
-            quickProfileSyncErrorText: "",
-            quickProfileSyncNicknameFocus: false,
-            isSavingQuickProfileSync: false,
-        });
-        this.syncTabBarVisibility({
-            showQuickProfileSyncDialog: true,
-        });
-    },
-
-    handleCloseQuickProfileSyncDialog() {
-        if (!this.data.showQuickProfileSyncDialog) {
-            return;
-        }
-
-        this.setData({
-            showQuickProfileSyncDialog: false,
-            quickProfileSyncForm: buildUserProfileForm(store.getState().user || {}),
-            quickProfileSyncErrorText: "",
-            quickProfileSyncNicknameFocus: false,
-            isSavingQuickProfileSync: false,
-        });
-        this.syncTabBarVisibility({
-            showQuickProfileSyncDialog: false,
-        });
-    },
-
-    handleQuickProfileSyncChooseAvatar(event) {
-        const avatarUrl = trimUserProfileText(
-            event && event.detail && event.detail.avatarUrl,
-        );
-        const nextForm = buildUserProfileForm(
-            Object.assign({}, this.data.quickProfileSyncForm, {
-                nickname: this.data.quickProfileSyncForm.nickname,
-                avatarUrl,
-            }),
-        );
-        this.setData({
-            quickProfileSyncForm: nextForm,
-            quickProfileSyncErrorText: "",
-            quickProfileSyncNicknameFocus: true,
-        });
-    },
-
-    handleQuickProfileSyncNicknameInput(event) {
-        const nickname = normalizeNicknameInput(
-            event && event.detail && event.detail.value,
-        );
-        const nextForm = buildUserProfileForm(
-            Object.assign({}, this.data.quickProfileSyncForm, {
-                nickname,
-                avatarUrl: this.data.quickProfileSyncForm.avatarUrl,
-            }),
-        );
-        this.setData({
-            quickProfileSyncForm: nextForm,
-            quickProfileSyncErrorText: "",
-        });
-    },
-
     syncCurrentUserLocally(userPatch) {
         const currentProfileId = this.data.currentProfileId || "";
-        const nextUser = Object.assign({}, store.getState().user || {}, userPatch || {});
-        const nextForm = buildUserProfileForm(nextUser);
+        const nextUser = Object.assign(
+            {},
+            store.getState().user || {},
+            userPatch || {},
+        );
 
         Object.keys(this.memberCache || {}).forEach((profileId) => {
             const members = this.memberCache[profileId];
@@ -1570,11 +1465,7 @@ Page({
             });
         });
 
-        const nextData = {
-            quickProfileSyncForm: nextForm,
-            quickProfileSyncErrorText: "",
-            quickProfileSyncNicknameFocus: false,
-        };
+        const nextData = {};
 
         if (currentProfileId && Array.isArray(this.memberCache[currentProfileId])) {
             const nextMemberItems = buildMemberItems(
@@ -1591,90 +1482,6 @@ Page({
         }
 
         this.setData(nextData);
-    },
-
-    async handleQuickProfileSyncSave() {
-        if (this.data.isSavingQuickProfileSync) {
-            return;
-        }
-
-        if (!trimUserProfileText(this.data.quickProfileSyncForm.avatarUrl)) {
-            const message = "请先选择头像";
-            this.setData({ quickProfileSyncErrorText: message });
-            wx.showToast({
-                title: message,
-                icon: "none",
-            });
-            return;
-        }
-
-        const validationMessage = validateUserProfileForm(
-            this.data.quickProfileSyncForm,
-        );
-        if (validationMessage) {
-            this.setData({ quickProfileSyncErrorText: validationMessage });
-            wx.showToast({
-                title: validationMessage,
-                icon: "none",
-            });
-            return;
-        }
-
-        this.setData({
-            isSavingQuickProfileSync: true,
-            quickProfileSyncErrorText: "",
-        });
-
-        try {
-            const avatarUrl = await uploadAvatarIfNeeded(
-                trimUserProfileText(this.data.quickProfileSyncForm.avatarUrl),
-                this.currentUserId,
-            );
-            const result = await userService.updateProfile({
-                nickname: trimUserProfileText(
-                    this.data.quickProfileSyncForm.nickname,
-                ),
-                avatarUrl,
-            });
-            const nextUser = (result && result.user) || {};
-            store.setState({
-                user: nextUser,
-            });
-            store.clearRefresh("members");
-
-            const app = getApp();
-            if (app && typeof app.markMemberListDirty === "function") {
-                app.markMemberListDirty();
-            } else if (app && app.globalData) {
-                app.globalData.memberListDirty = true;
-            }
-            if (app && typeof app.syncInviterProfileState === "function") {
-                app.syncInviterProfileState(nextUser);
-            }
-
-            this.syncCurrentUserLocally(nextUser);
-            this.setData({
-                showQuickProfileSyncDialog: false,
-                isSavingQuickProfileSync: false,
-            });
-            this.syncTabBarVisibility({
-                showQuickProfileSyncDialog: false,
-            });
-            wx.showToast({
-                title: "已同步",
-                icon: "success",
-            });
-        } catch (error) {
-            const message = getErrorMessage(error);
-            this.setData({
-                isSavingQuickProfileSync: false,
-                quickProfileSyncErrorText: message,
-            });
-            wx.showToast({
-                title: message,
-                icon: "none",
-            });
-        }
     },
 
     handleMemberPanelClose() {

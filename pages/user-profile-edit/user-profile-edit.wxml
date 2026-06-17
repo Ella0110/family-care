@@ -5,14 +5,21 @@
         <view wx:if="{{form.avatarUrl}}" class="profile-edit-avatar profile-edit-avatar--image" style="font-size:{{fs.title}}">
           <image class="profile-edit-avatar__image" src="{{form.avatarUrl}}" mode="aspectFill" />
         </view>
-        <view wx:else class="profile-edit-avatar" style="font-size:{{fs.title}}">{{form.avatarFallback}}</view>
+        <view wx:else class="profile-edit-avatar profile-edit-avatar--placeholder">
+          <image
+            class="profile-edit-avatar__placeholder-icon"
+            src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MCA0MCI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNDN0M3Q0MiLz48Y2lyY2xlIGN4PSIyMCIgY3k9IjE1IiByPSI2IiBmaWxsPSJ3aGl0ZSIvPjxwYXRoIGQ9Ik04IDM0IFE4IDI0IDIwIDI0IFEzMiAyNCAzMiAzNCIgZmlsbD0id2hpdGUiLz48L3N2Zz4="
+            mode="aspectFit"
+          />
+        </view>
         <button
           class="profile-edit-avatar-link"
           open-type="chooseAvatar"
           bindchooseavatar="onChooseAvatar"
           style="font-size:{{fs.body}}"
         >
-          更换头像
+          <block wx:if="{{form.avatarUrl}}">更换头像</block>
+          <block wx:else>添加头像</block>
         </button>
       </view>
 
