@@ -39,6 +39,9 @@
       <view wx:if="{{panelMember.avatarUrl}}" class="member-panel__avatar member-panel__avatar--image" style="font-size:{{fs.body}}">
         <image class="member-panel__avatar-image" src="{{panelMember.avatarUrl}}" mode="aspectFill" />
       </view>
+      <view wx:elif="{{panelMember.useAvatarPlaceholderIcon}}" class="member-panel__avatar member-panel__avatar--image" style="font-size:{{fs.body}}">
+        <image class="member-panel__avatar-image" src="{{panelMember.avatarPlaceholderSrc}}" mode="aspectFit" />
+      </view>
       <view wx:else class="member-panel__avatar" style="font-size:{{fs.body}}">{{panelMember.avatarFallback}}</view>
       <view class="member-panel__hero-body">
         <view class="member-panel__name" style="font-size:{{fs.body}}">{{panelMember.displayName}}</view>
