@@ -278,7 +278,7 @@ function buildMemberItems(members, currentUserId) {
             const role = relationship.role || "";
             const nickname = trimText(user.nickname);
             const hasAvatar = hasConfiguredUserAvatar(user);
-            const displayName = isSelf ? nickname : nickname || "未命名";
+            const displayName = nickname || "未命名";
 
             return {
                 relationshipId: relationship._id || "",
@@ -294,7 +294,6 @@ function buildMemberItems(members, currentUserId) {
                 ),
                 nickname,
                 displayName,
-                showUnnamedNote: isSelf && !nickname,
                 roleLabel: MEMBER_ROLE_LABELS[role] || role,
                 role,
                 isSelf,
@@ -359,9 +358,6 @@ function openSelfActionDialog(page, member) {
 
     const user = (member && member.user) || {};
     const avatarUrl = member && member.avatarUrl ? member.avatarUrl : user.avatarUrl || "";
-    const avatarFallback =
-        (member && member.avatarFallback) ||
-        buildInvitationNicknameInitial(user.nickname, "我");
     const useAvatarPlaceholderIcon =
         Boolean(member && member.useAvatarPlaceholderIcon) ||
         !hasConfiguredUserAvatar(avatarUrl ? { avatarUrl } : user);
@@ -377,7 +373,6 @@ function openSelfActionDialog(page, member) {
             avatarUrl,
             avatarPlaceholderSrc: MEMBER_AVATAR_PLACEHOLDER_SVG,
             useAvatarPlaceholderIcon,
-            avatarFallback,
             displayName,
             roleLabel,
         },
@@ -1400,10 +1395,6 @@ Page({
             selectedMember: member,
             showMemberPanel: true,
         });
-    },
-
-    handleSelfMemberTap(member) {
-        openSelfActionDialog(this, member);
     },
 
     handleCloseSelfActionDialog() {

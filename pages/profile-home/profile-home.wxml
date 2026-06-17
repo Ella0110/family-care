@@ -74,10 +74,8 @@
               <view wx:elif="{{item.useAvatarPlaceholderIcon}}" class="profile-home__member-avatar profile-home__member-avatar--placeholder">
                 <image class="profile-home__member-avatar-icon" src="{{item.avatarPlaceholderSrc}}" mode="aspectFit" />
               </view>
-              <view wx:else class="profile-home__member-avatar" style="font-size:{{fs.body}}">{{item.avatarFallback}}</view>
               <view class="profile-home__member-name-row">
                 <view wx:if="{{item.displayName}}" class="profile-home__member-name" style="font-size:{{fs.secondary}}">{{item.displayName}}</view>
-                <view wx:if="{{item.showUnnamedNote}}" class="profile-home__member-name" style="font-size:{{fs.secondary}}">我</view>
               </view>
               <view class="profile-home__member-role" style="font-size:{{fs.caption}}">{{item.roleLabel}}</view>
             </view>
@@ -236,9 +234,6 @@
       </view>
       <view wx:elif="{{selfActionDialogMember.useAvatarPlaceholderIcon}}" class="profile-home__self-action-avatar profile-home__self-action-avatar--placeholder">
         <image class="profile-home__self-action-avatar-icon" src="{{selfActionDialogMember.avatarPlaceholderSrc}}" mode="aspectFit" />
-      </view>
-      <view wx:else class="profile-home__self-action-avatar" style="font-size:{{fs.title}}">
-        {{selfActionDialogMember.avatarFallback}}
       </view>
       <view class="profile-home__self-action-name" style="font-size:{{fs.body}}">{{selfActionDialogMember.displayName}}</view>
       <view class="profile-home__self-action-role" style="font-size:{{fs.caption}}">

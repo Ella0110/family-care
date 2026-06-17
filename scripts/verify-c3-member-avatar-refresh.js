@@ -24,10 +24,10 @@ function main() {
     'profile-home should log member refresh decisions while debugging this avatar issue',
   );
 
-  assert.match(
+  assert.doesNotMatch(
     userProfileEditJs,
     /console\.log\(['"]clearRefresh members called['"]\)/,
-    'saving nickname or avatar should log the member refresh invalidation step',
+    'saving nickname or avatar should no longer keep the temporary member refresh log',
   );
 
   assert.match(

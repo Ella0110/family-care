@@ -105,7 +105,6 @@ Page({
       store.setState({
         user: result.user,
       });
-      console.log('clearRefresh members called');
       store.clearRefresh('members');
       const app = getApp();
       if (app && typeof app.markMemberListDirty === 'function') {

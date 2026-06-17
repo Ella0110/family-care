@@ -45,7 +45,6 @@
 .profile-edit-count {
     color: #C7C7CC;
     font-size: 24rpx;
-    font-mono: true; /* 字符计数用等宽字体不易跳动 */
 }
 
 .profile-edit-avatar {

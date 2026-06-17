@@ -90,6 +90,11 @@ try {
         true,
         "self avatar without an uploaded avatar should keep using the placeholder icon inside the sheet",
     );
+    assert.strictEqual(
+        selfWithoutAvatar.data.selfActionDialogMember.displayName,
+        "未命名",
+        "self avatar without a nickname should now use the unified 未命名 label in the sheet",
+    );
 
     const selfWithAvatar = Object.assign({}, baseInstance, {
         data: Object.assign({}, baseInstance.data, {
@@ -174,10 +179,22 @@ try {
         "profile-home should render the member placeholder svg image when the current user has no avatar",
     );
 
-    assert.match(
+    assert.doesNotMatch(
         profileHomeWxml,
-        /profile-home__member-name-row[\s\S]*showUnnamedNote/,
-        "profile-home should keep the unnamed note slot next to the member nickname row",
+        /item\.avatarFallback|selfActionDialogMember\.avatarFallback|showUnnamedNote/,
+        "profile-home should remove the unreachable text avatar fallbacks and unnamed-note branch",
+    );
+
+    assert.doesNotMatch(
+        read("pages/profile-home/profile-home.js"),
+        /handleSelfMemberTap|showUnnamedNote|const avatarFallback =/,
+        "profile-home should remove the dead self-member handler and self-action avatar fallback plumbing",
+    );
+
+    assert.doesNotMatch(
+        profileHomeWxss,
+        /\.profile-home__member-name-note|\.profile-home__setting-link|\.profile-home__footer-link|\.profile-home__invite-name/,
+        "profile-home should remove the orphaned stylesheet classes called out by cleanup",
     );
 
     assert.match(
@@ -208,6 +225,18 @@ try {
         read("pages/profile-home/profile-home.js"),
         /showQuickProfileSyncDialog|quickProfileSyncForm|handleQuickProfileSync|openQuickProfileSyncDialog|handleSelfActionAuthorizeTap|handleSelfActionChooseAvatar|selfActionDialogHasAvatar/,
         "profile-home should remove the obsolete quick authorize branch state and handlers",
+    );
+
+    assert.doesNotMatch(
+        read("pages/user-profile-edit/user-profile-edit.js"),
+        /console\.log\('clearRefresh members called'\)/,
+        "user-profile-edit should remove the temporary clearRefresh console log",
+    );
+
+    assert.doesNotMatch(
+        read("pages/user-profile-edit/user-profile-edit.wxss"),
+        /font-mono:\s*true/,
+        "user-profile-edit should drop the invalid font-mono declaration",
     );
 
     assert.match(
