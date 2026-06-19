@@ -12,6 +12,14 @@ const FONT_SIZES_RPX = Object.freeze({
   label: Object.freeze([24, 28, 31]),
   caption: Object.freeze([22, 25, 29]),
 });
+const SPACING_RPX = Object.freeze({
+  spaceXS: Object.freeze([8, 8, 10]),
+  spaceSM: Object.freeze([12, 14, 16]),
+  spaceMD: Object.freeze([16, 18, 20]),
+  spaceLG: Object.freeze([24, 26, 28]),
+  spaceXL: Object.freeze([32, 34, 38]),
+  space2XL: Object.freeze([48, 50, 54]),
+});
 const FONT_SCALE_LABELS = Object.freeze({
   1: '标准',
   1.15: '大号',
@@ -43,6 +51,10 @@ function getFontSizes(scale) {
 
   Object.keys(FONT_SIZES_RPX).forEach((key) => {
     nextFontSizes[key] = `${FONT_SIZES_RPX[key][scaleIndex]}rpx`;
+  });
+
+  Object.keys(SPACING_RPX).forEach((key) => {
+    nextFontSizes[key] = `${SPACING_RPX[key][scaleIndex]}rpx`;
   });
 
   return nextFontSizes;
@@ -136,6 +148,7 @@ module.exports = {
   DEFAULT_FONT_SCALE,
   FONT_SCALE_STORAGE_KEY,
   FONT_SIZES_RPX,
+  SPACING_RPX,
   FONT_SCALE_LABELS,
   isValidFontScale,
   normalizeFontScale,

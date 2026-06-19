@@ -1,10 +1,50 @@
 page {
-  --color-primary: #2563eb;
-  --color-danger: #ff3b30;
-  --color-text: #111827;
-  --color-text-secondary: #8E8E93;
-  --color-bg: #f2f2f7;
-  --color-card: #ffffff;
+  --text-primary: #1C1C1E;
+  --text-secondary: #8E8E93;
+  --text-tertiary: #C7C7CC;
+  --text-on-primary: #FFFFFF;
+  --text-link: #007AFF;
+
+  --bg-page: #F2F2F7;
+  --bg-card: #FFFFFF;
+  --bg-input: #F2F2F7;
+  --bg-overlay: rgba(0,0,0,0.4);
+
+  --color-primary: #007AFF;
+  --color-success: #34C759;
+  --color-warning: #FF9500;
+  --color-danger: #FF3B30;
+  --color-wechat: #07C160;
+
+  --bp-low: #007AFF;
+  --bp-normal: #34C759;
+  --bp-elevated: #F5A623;
+  --bp-high1: #FF9500;
+  --bp-high2: #FF3B30;
+
+  --border-light: #E5E5EA;
+  --border-focus: rgba(0,122,255,0.12);
+
+  --bg-primary-light: #EFF6FF;
+  --bg-danger-light: #FEF2F2;
+  --bg-warning-light: #FFF8F0;
+  --bg-success-light: #F0FFF4;
+
+  --radius-sm: 16rpx;
+  --radius-md: 24rpx;
+  --radius-lg: 32rpx;
+  --radius-full: 50%;
+
+  --shadow-card: 0 4rpx 20rpx rgba(0,0,0,0.02);
+  --shadow-float: 0 12rpx 32rpx rgba(0,0,0,0.08);
+  --shadow-sheet: 0 -12rpx 32rpx rgba(0,0,0,0.08);
+  --shadow-button: 0 8rpx 24rpx rgba(0,122,255,0.2);
+
+  /* Legacy aliases kept during Wave 0 migration. */
+  --color-text: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-bg: var(--bg-page);
+  --color-card: var(--bg-card);
 
   min-height: 100%;
   font-size: 32rpx;
