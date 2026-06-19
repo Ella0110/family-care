@@ -1,100 +1,100 @@
 page {
-  --text-primary: #1C1C1E;
-  --text-secondary: #8E8E93;
-  --text-tertiary: #C7C7CC;
-  --text-on-primary: #FFFFFF;
-  --text-link: #007AFF;
+    --text-primary: #1c1c1e;
+    --text-secondary: #8e8e93;
+    --text-tertiary: #c7c7cc;
+    --text-on-primary: #ffffff;
+    --text-link: #007aff;
 
-  --bg-page: #F2F2F7;
-  --bg-card: #FFFFFF;
-  --bg-input: #F2F2F7;
-  --bg-overlay: rgba(0,0,0,0.4);
+    --bg-page: #f2f2f7;
+    --bg-card: #ffffff;
+    --bg-input: #f2f2f7;
+    --bg-overlay: rgba(0, 0, 0, 0.4);
 
-  --color-primary: #007AFF;
-  --color-success: #34C759;
-  --color-warning: #FF9500;
-  --color-danger: #FF3B30;
-  --color-wechat: #07C160;
+    --color-primary: #007aff;
+    --color-success: #34c759;
+    --color-warning: #ff9500;
+    --color-danger: #ff3b30;
+    --color-wechat: #07c160;
 
-  --bp-low: #007AFF;
-  --bp-normal: #34C759;
-  --bp-elevated: #F5A623;
-  --bp-high1: #FF9500;
-  --bp-high2: #FF3B30;
+    --bp-low: #007aff;
+    --bp-normal: #34c759;
+    --bp-elevated: #f5a623;
+    --bp-high1: #ff9500;
+    --bp-high2: #ff3b30;
 
-  --border-light: #E5E5EA;
-  --border-focus: rgba(0,122,255,0.12);
+    --border-light: #e5e5ea;
+    --border-focus: rgba(0, 122, 255, 0.12);
 
-  --bg-primary-light: #EFF6FF;
-  --bg-danger-light: #FEF2F2;
-  --bg-warning-light: #FFF8F0;
-  --bg-success-light: #F0FFF4;
+    --bg-primary-light: #eff6ff;
+    --bg-danger-light: #fef2f2;
+    --bg-warning-light: #fff8f0;
+    --bg-success-light: #f0fff4;
 
-  --radius-sm: 16rpx;
-  --radius-md: 24rpx;
-  --radius-lg: 32rpx;
-  --radius-full: 50%;
+    --radius-sm: 16rpx;
+    --radius-md: 24rpx;
+    --radius-lg: 32rpx;
+    --radius-full: 50%;
 
-  --shadow-card: 0 4rpx 20rpx rgba(0,0,0,0.02);
-  --shadow-float: 0 12rpx 32rpx rgba(0,0,0,0.08);
-  --shadow-sheet: 0 -12rpx 32rpx rgba(0,0,0,0.08);
-  --shadow-button: 0 8rpx 24rpx rgba(0,122,255,0.2);
+    --shadow-card: 0 8rpx 30rpx rgba(0, 0, 0, 0.015);
+    --shadow-float: 0 12rpx 32rpx rgba(0, 0, 0, 0.08);
+    --shadow-sheet: 0 -12rpx 32rpx rgba(0, 0, 0, 0.08);
+    --shadow-button: 0 8rpx 24rpx rgba(0, 122, 255, 0.2);
 
-  /* Legacy aliases kept during Wave 0 migration. */
-  --color-text: var(--text-primary);
-  --color-text-secondary: var(--text-secondary);
-  --color-bg: var(--bg-page);
-  --color-card: var(--bg-card);
+    /* Legacy aliases kept during Wave 0 migration. */
+    --color-text: var(--text-primary);
+    --color-text-secondary: var(--text-secondary);
+    --color-bg: var(--bg-page);
+    --color-card: var(--bg-card);
 
-  min-height: 100%;
-  font-size: 32rpx;
-  line-height: 1.6;
-  color: var(--color-text);
-  background: var(--color-bg);
+    min-height: 100%;
+    font-size: 32rpx;
+    line-height: 1.6;
+    color: var(--color-text);
+    background: var(--color-bg);
 }
 
 .page-root {
-  min-height: 100vh;
+    min-height: 100vh;
 }
 
 .page {
-  min-height: 100vh;
-  box-sizing: border-box;
-  padding: 32rpx;
-  background: var(--color-bg);
-  color: var(--color-text);
+    min-height: 100vh;
+    box-sizing: border-box;
+    padding: 32rpx;
+    background: var(--color-bg);
+    color: var(--color-text);
 }
 
 .card {
-  box-sizing: border-box;
-  padding: 48rpx;
-  border-radius: 32rpx;
-  background: var(--color-card);
-  box-shadow: 0 12rpx 32rpx rgba(17, 24, 39, 0.08);
+    box-sizing: border-box;
+    padding: 48rpx;
+    border-radius: 32rpx;
+    background: var(--color-card);
+    box-shadow: 0 12rpx 32rpx rgba(17, 24, 39, 0.08);
 }
 
 .btn-primary,
 .btn-secondary {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 96rpx;
-  padding: 24rpx 32rpx;
-  border-radius: 24rpx;
-  box-sizing: border-box;
-  font-size: 32rpx;
-  font-weight: 600;
-  line-height: 1.4;
-  text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 96rpx;
+    padding: 24rpx 32rpx;
+    border-radius: 24rpx;
+    box-sizing: border-box;
+    font-size: 32rpx;
+    font-weight: 600;
+    line-height: 1.4;
+    text-align: center;
 }
 
 .btn-primary {
-  background: var(--color-primary);
-  color: #ffffff;
+    background: var(--color-primary);
+    color: #ffffff;
 }
 
 .btn-secondary {
-  background: var(--color-card);
-  color: var(--color-primary);
-  border: 2rpx solid var(--color-primary);
+    background: var(--color-card);
+    color: var(--color-primary);
+    border: 2rpx solid var(--color-primary);
 }

@@ -1,13 +1,11 @@
 /* ========== 页面基础 ========== */
 page {
-    background-color: #f2f2f7;
+    background-color: var(--bg-page);
 }
 
 .data-page {
     min-height: 100vh;
-    padding: 0 28rpx;
-    padding-bottom: calc(188rpx + env(safe-area-inset-bottom));
-    background: #f2f2f7;
+    background: var(--bg-page);
 }
 
 /* ========== Loading ========== */
@@ -16,15 +14,15 @@ page {
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    background: #f2f2f7;
+    background: var(--bg-page);
 }
 
 .data-loading__spinner {
     width: 56rpx;
     height: 56rpx;
-    border-radius: 50%;
-    border: 6rpx solid #dbeafe;
-    border-top-color: #3182f7;
+    border-radius: var(--radius-full);
+    border: 6rpx solid var(--bg-primary-light);
+    border-top-color: var(--color-primary);
     animation: data-loading-spin 0.8s linear infinite;
 }
 
@@ -40,28 +38,26 @@ page {
 .data-profile-entry {
     display: inline-flex;
     align-items: center;
-    gap: 12rpx;
-    padding: 24rpx 0 20rpx;
 }
 
 .data-profile-entry__dot {
     width: 18rpx;
     height: 18rpx;
-    border-radius: 50%;
-    background: #ff3b30;
+    border-radius: var(--radius-full);
+    background: var(--color-danger);
     flex-shrink: 0;
 }
 
 .data-profile-entry__text {
     font-size: 36rpx;
     font-weight: 800;
-    color: #0f172a;
+    color: var(--text-primary);
     letter-spacing: 1rpx;
 }
 
 .data-profile-entry__arrow {
     font-size: 22rpx;
-    color: #94a3b8;
+    color: var(--text-secondary);
     margin-left: 4rpx;
 }
 
@@ -75,20 +71,16 @@ page {
 }
 
 /* ========== 错误态 ========== */
-.data-state {
-    margin-bottom: 24rpx;
-}
 
 .data-state__title {
     font-size: 36rpx;
     font-weight: 700;
-    color: #111827;
+    color: var(--text-primary);
 }
 
 .data-state__text {
-    margin-top: 12rpx;
     font-size: 26rpx;
-    color: #64748b;
+    color: var(--text-secondary);
     line-height: 1.6;
 }
 
@@ -98,9 +90,9 @@ page {
 .data-latest {
     margin-bottom: 36rpx;
     padding: 64rpx 64rpx 48rpx;
-    border-radius: 32rpx;
-    background: #ffffff;
-    box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.04);
+    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    box-shadow: var(--shadow-card);
 }
 
 .data-latest--empty {
@@ -123,27 +115,27 @@ page {
 }
 
 .data-latest__status.is-normal {
-    color: #0f172a;
+    color: var(--text-primary);
 }
 .data-latest__status.is-low {
-    color: #007aff;
+    color: var(--bp-low);
 }
 .data-latest__status.is-elevated {
-    color: #f5a623;
+    color: var(--bp-elevated);
 }
 .data-latest__status.is-stage1 {
-    color: #ff9500;
+    color: var(--bp-high1);
 }
 .data-latest__status.is-stage2,
 .data-latest__status.is-stage3,
 .data-latest__status.is-danger {
-    color: #ff3b30;
+    color: var(--bp-high2);
 }
 
 .data-latest__status-dot {
     width: 18rpx;
     height: 18rpx;
-    border-radius: 50%;
+    border-radius: var(--radius-full);
     background: currentColor;
 }
 
@@ -151,9 +143,6 @@ page {
     display: flex;
     align-items: baseline;
     flex-wrap: nowrap;
-    column-gap: 8rpx;
-    row-gap: 12rpx;
-    margin-top: 24rpx;
     margin-bottom: 56rpx;
     line-height: 1;
 }
@@ -168,27 +157,27 @@ page {
 }
 
 .data-latest__systolic.is-normal {
-    color: #0f172a;
+    color: var(--text-primary);
 }
 .data-latest__systolic.is-low {
-    color: #007aff;
+    color: var(--bp-low);
 }
 .data-latest__systolic.is-elevated {
-    color: #f5a623;
+    color: var(--bp-elevated);
 }
 .data-latest__systolic.is-stage1 {
-    color: #ff9500;
+    color: var(--bp-high1);
 }
 .data-latest__systolic.is-stage2,
 .data-latest__systolic.is-stage3,
 .data-latest__systolic.is-danger {
-    color: #ff3b30;
+    color: var(--bp-high2);
 }
 
 .data-latest__separator {
     font-size: 36rpx;
     font-weight: 900;
-    color: #cbd5e1;
+    color: var(--text-tertiary);
     line-height: 1.2;
 }
 
@@ -202,36 +191,34 @@ page {
 }
 
 .data-latest__diastolic.is-normal {
-    color: #0f172a;
+    color: var(--text-primary);
 }
 .data-latest__diastolic.is-low {
-    color: #007aff;
+    color: var(--bp-low);
 }
 .data-latest__diastolic.is-elevated {
-    color: #f5a623;
+    color: var(--bp-elevated);
 }
 .data-latest__diastolic.is-stage1 {
-    color: #ff9500;
+    color: var(--bp-high1);
 }
 .data-latest__diastolic.is-stage2,
 .data-latest__diastolic.is-stage3,
 .data-latest__diastolic.is-danger {
-    color: #ff3b30;
+    color: var(--bp-high2);
 }
 
 .data-latest__unit {
     font-size: 22rpx;
     font-weight: 900;
-    color: #94a3b8;
+    color: var(--text-secondary);
     align-self: flex-end;
-    padding-bottom: 12rpx;
     line-height: 1.4;
 }
 
 .data-latest__divider {
     height: 1rpx;
-    background: #e5e7eb;
-    margin: 28rpx 0 24rpx;
+    background: var(--border-light);
 }
 
 .data-latest__meta {
@@ -249,27 +236,26 @@ page {
 
 .data-latest__meta-label {
     font-size: 24rpx;
-    color: #94a3b8;
+    color: var(--text-secondary);
     font-weight: 400;
 }
 
 .data-latest__meta-value {
     font-size: 30rpx;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--text-primary);
     line-height: 1.5;
 }
 
 .data-latest__meta-hr {
-    color: #0f172a;
+    color: var(--text-primary);
 }
 .data-latest__meta-hr.is-alert {
-    color: #ff3b30;
+    color: var(--color-danger);
 }
 
 .data-latest__recorder {
-    margin-top: 18rpx;
-    color: #cbd5e1;
+    color: var(--text-tertiary);
     font-size: 22rpx;
     line-height: 1.4;
 }
@@ -283,8 +269,8 @@ page {
     width: 100%;
     padding: 80rpx 48rpx;
     background: rgba(255, 255, 255, 0.8);
-    border-radius: 32rpx;
-    box-shadow: 0 20px 25px -5px rgba(49, 130, 247, 0.04);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -295,8 +281,8 @@ page {
 .data-latest__empty-orbit {
     width: 200rpx;
     height: 200rpx;
-    border: 4rpx dashed #dbeafe;
-    border-radius: 50%;
+    border: 4rpx dashed var(--bg-primary-light);
+    border-radius: var(--radius-full);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -306,8 +292,8 @@ page {
 .data-latest__empty-orbit-fill {
     width: 164rpx;
     height: 164rpx;
-    border-radius: 50%;
-    background: #eff6ff;
+    border-radius: var(--radius-full);
+    background: var(--bg-primary-light);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -320,29 +306,25 @@ page {
 }
 
 .data-latest__empty-title {
-    margin-top: 40rpx;
     font-size: 36rpx;
     font-weight: 800;
-    color: #0f172a;
+    color: var(--text-primary);
     line-height: 1.35;
 }
 
 .data-latest__empty-text {
-    margin-top: 20rpx;
     font-size: 26rpx;
     line-height: 1.7;
-    color: #94a3b8;
+    color: var(--text-secondary);
     max-width: 520rpx;
 }
 
 .data-latest__empty-button {
     width: 80%;
     min-height: 88rpx;
-    margin-top: 40rpx;
-    padding: 24rpx 32rpx;
-    border-radius: 24rpx;
-    background: #3478f6;
-    color: #ffffff;
+    border-radius: var(--radius-md);
+    background: var(--color-primary);
+    color: var(--text-on-primary);
     font-size: 32rpx;
     font-weight: 700;
     display: flex;
@@ -358,9 +340,8 @@ page {
 }
 
 .data-latest__empty-import {
-    margin-top: 24rpx;
     font-size: 26rpx;
-    color: #3478f6;
+    color: var(--text-link);
     line-height: 1.5;
 }
 
@@ -388,11 +369,9 @@ page {
    数据分析卡片（以下为重新设计的结构）
    ========================================================== */
 .data-analysis {
-    padding: 48rpx 48rpx 40rpx;
-    border-radius: 32rpx;
-    background: #ffffff;
-    box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.04);
-    margin-bottom: 24rpx;
+    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    box-shadow: var(--shadow-card);
 }
 
 /* --- 通用行 --- */
@@ -411,37 +390,33 @@ page {
 .da-title {
     font-size: 36rpx;
     font-weight: 800;
-    color: #0f172a;
+    color: var(--text-primary);
 }
 
 .da-allrecords {
     font-size: 26rpx;
     font-weight: 600;
-    color: #3182f7;
+    color: var(--text-link);
     line-height: 1.5;
 }
 
 /* 第二行：Tabs */
-.da-row--tabs {
-    margin-bottom: 48rpx;
-}
 
 .da-tabs {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    background: #f1f5f9;
-    border-radius: 16rpx;
+    background: var(--bg-input);
+    border-radius: var(--radius-sm);
     padding: 4rpx;
     /* gap:24rpx; */
 }
 
 .da-tab {
     min-width: 100rpx;
-    padding: 8rpx 16rpx;
-    border-radius: 16rpx;
+    border-radius: var(--radius-sm);
     text-align: center;
-    color: #64748b;
+    color: var(--text-secondary);
     font-size: 26rpx;
     font-weight: 600;
     transition: all 0.2s;
@@ -449,9 +424,9 @@ page {
 }
 
 .da-tab--active {
-    background: #ffffff;
-    color: #1d4ed8;
-    box-shadow: 0 1rpx 6rpx rgba(0, 0, 0, 0.08);
+    background: var(--bg-card);
+    color: var(--text-link);
+    box-shadow: var(--shadow-card);
 }
 
 .da-tab--disabled {
@@ -459,9 +434,6 @@ page {
 }
 
 /* 第三行：区块标题 + 下载 */
-.da-row--section-header {
-    margin-bottom: 20rpx;
-}
 
 .da-section-title-group {
     display: flex;
@@ -472,7 +444,7 @@ page {
 .da-section-title {
     font-size: 30rpx;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--text-primary);
     line-height: 1.5;
 }
 
@@ -482,9 +454,9 @@ page {
     justify-content: center;
     width: 32rpx;
     height: 32rpx;
-    border-radius: 50%;
-    background: #e2e8f0;
-    color: #94a3b8;
+    border-radius: var(--radius-full);
+    background: var(--border-light);
+    color: var(--text-secondary);
     font-size: 22rpx;
     font-weight: 700;
 }
@@ -497,16 +469,16 @@ page {
 
 .da-download-arrow {
     font-size: 22rpx;
-    color: #3182f7;
+    color: var(--text-link);
     font-weight: 700;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 32rpx;
     height: 32rpx;
-    border-radius: 50%;
+    border-radius: var(--radius-full);
     padding: 8rpx;
-    background: #f7f7f7;
+    background: var(--bg-page);
     font-family:
         ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
         "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
@@ -514,7 +486,7 @@ page {
 
 .da-download-text {
     font-size: 22rpx;
-    color: #3182f7;
+    color: var(--text-link);
     font-weight: 600;
 }
 
@@ -524,37 +496,35 @@ page {
     align-items: stretch;
     flex-wrap: wrap;
     gap: 16rpx;
-    margin-bottom: 24rpx;
 }
 
 .da-summary__item {
     flex: 1 1 0;
     min-width: 0;
     padding: 24rpx 18rpx;
-    border-radius: 32rpx;
-    background: #f8fafc;
+    border-radius: var(--radius-lg);
+    background: var(--bg-page);
     text-align: center;
 }
 
 .da-summary__value {
     font-size: 36rpx;
     font-weight: 800;
-    color: #1e293b;
+    color: var(--text-primary);
     line-height: 1.2;
 }
 
 .da-summary__value--normal {
-    color: #1e293b;
+    color: var(--text-primary);
 }
 
 .da-summary__value--danger {
-    color: #ff3b30;
+    color: var(--color-danger);
 }
 
 .da-summary__label {
-    margin-top: 8rpx;
     font-size: 22rpx;
-    color: #94a3b8;
+    color: var(--text-secondary);
     font-weight: 400;
     line-height: 1.5;
     white-space: nowrap;
@@ -577,8 +547,7 @@ page {
     align-items: center;
     justify-content: center;
     gap: 28rpx;
-    margin-bottom: 8rpx;
-    color: #64748b;
+    color: var(--text-secondary);
     font-size: 22rpx;
     line-height: 1.5;
 }
@@ -597,47 +566,44 @@ page {
 }
 
 .da-legend__line--systolic {
-    border-top-color: #1e40af;
+    border-top-color: var(--color-primary);
 }
 
 .da-legend__line--diastolic {
-    border-top-color: #93c5fd;
+    border-top-color: var(--color-primary);
 }
 
 .da-legend__line--hr {
-    border-top-color: #ff9500;
+    border-top-color: var(--color-warning);
 }
 
 .da-legend__dot {
     width: 12rpx;
     height: 12rpx;
-    border-radius: 50%;
-    background: #ff9500;
+    border-radius: var(--radius-full);
+    background: var(--color-warning);
 }
 
 .da-legend__dot_normal {
     width: 12rpx;
     height: 12rpx;
-    border-radius: 50%;
-    background: #34c759;
+    border-radius: var(--radius-full);
+    background: var(--color-success);
 }
 
 /* --- 区块分隔线 --- */
 .da-divider {
     height: 1rpx;
-    background: #e5e7eb;
-    margin: 32rpx 0;
+    background: var(--border-light);
 }
 
 /* --- 空态 --- */
 .da-empty {
-    padding: 48rpx 24rpx;
-    border-radius: 16rpx;
-    background: #f8fafc;
+    border-radius: var(--radius-sm);
+    background: var(--bg-page);
     text-align: center;
-    color: #94a3b8;
+    color: var(--text-secondary);
     font-size: 26rpx;
-    margin-top: 16rpx;
     line-height: 1.6;
 }
 
@@ -648,18 +614,18 @@ page {
     position: fixed;
     left: 50%;
     transform: translateX(-50%);
-    bottom: calc(env(safe-area-inset-bottom) + 8px);
+    bottom: calc(env(safe-area-inset-bottom) + 8rpx);
     width: 112rpx;
     height: 112rpx;
-    border-radius: 50%;
+    border-radius: var(--radius-full);
     border: none;
-    background: #3182f7;
-    color: #ffffff;
+    background: var(--color-primary);
+    color: var(--text-on-primary);
     font-size: 56rpx;
     font-weight: 300;
     line-height: 108rpx;
     text-align: center;
-    box-shadow: 0 6rpx 20rpx rgba(49, 130, 247, 0.28);
+    box-shadow: var(--shadow-button);
     z-index: 999;
     padding: 0;
 }
@@ -669,8 +635,8 @@ page {
 }
 
 .data-add-button--pressed {
-    background: #2563eb;
-    box-shadow: 0 4rpx 16rpx rgba(49, 130, 247, 0.4);
+    background: var(--color-primary);
+    box-shadow: var(--shadow-button);
     opacity: 0.9;
 }
 
@@ -691,7 +657,7 @@ page {
 .data-permission-modal__mask {
     position: absolute;
     inset: 0;
-    background: rgba(17, 24, 39, 0.4);
+    background: var(--bg-overlay);
 }
 
 .data-permission-modal__panel {
@@ -700,37 +666,33 @@ page {
     right: 48rpx;
     top: 50%;
     transform: translateY(-50%);
-    padding: 48rpx 40rpx;
-    border-radius: 32rpx;
-    background: #ffffff;
+    border-radius: var(--radius-lg);
+    background: var(--bg-card);
 }
 
 .data-permission-modal__title {
     font-size: 36rpx;
     font-weight: 700;
     text-align: center;
-    color: #111827;
+    color: var(--text-primary);
 }
 
 .data-permission-modal__subtitle {
-    margin-top: 12rpx;
     text-align: center;
-    color: #64748b;
+    color: var(--text-secondary);
     font-size: 30rpx;
     line-height: 1.6;
 }
 
 .data-permission-modal__step {
-    margin-top: 16rpx;
     font-size: 26rpx;
-    color: #64748b;
+    color: var(--text-secondary);
     line-height: 1.6;
 }
 
 .data-permission-modal__actions {
     display: flex;
     gap: 20rpx;
-    margin-top: 36rpx;
 }
 
 .data-permission-modal__button {

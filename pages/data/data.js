@@ -52,6 +52,11 @@ const EXPORT_CHART_SUMMARY_FONT_SIZE = 28;
 const REFRESH_TTL_MS = 5 * 1000;
 const STALE_REFRESH_TTL_MS = 30 * 1000;
 const PULL_DOWN_REFRESH_THROTTLE_MS = 2 * 1000;
+const DATA_PAGE_EXPORT_COLORS = Object.freeze({
+    bgCard: "#FFFFFF",
+    textPrimary: "#1C1C1E",
+    textSecondary: "#8E8E93",
+});
 
 function pad(value) {
     return String(value).padStart(2, "0");
@@ -1730,18 +1735,18 @@ Page({
             const ctx = canvas.getContext("2d");
             ctx.scale(exportScale, exportScale);
             ctx.clearRect(0, 0, EXPORT_CHART_CANVAS_WIDTH, exportHeight);
-            ctx.fillStyle = "#ffffff";
+            ctx.fillStyle = DATA_PAGE_EXPORT_COLORS.bgCard;
             ctx.fillRect(0, 0, EXPORT_CHART_CANVAS_WIDTH, exportHeight);
 
             ctx.textAlign = "center";
-            ctx.fillStyle = "#111827";
+            ctx.fillStyle = DATA_PAGE_EXPORT_COLORS.textPrimary;
             ctx.font = `bold ${EXPORT_CHART_TITLE_FONT_SIZE}px sans-serif`;
             ctx.fillText(
                 `${this.data.profileName || "当前档案"}的${isHeartRateChart ? "心率数据" : "血压数据"}`,
                 EXPORT_CHART_CANVAS_WIDTH / 2,
                 EXPORT_CHART_TITLE_Y,
             );
-            ctx.fillStyle = "#6B7280";
+            ctx.fillStyle = DATA_PAGE_EXPORT_COLORS.textSecondary;
             ctx.font = `${EXPORT_CHART_SUBTITLE_FONT_SIZE}px sans-serif`;
             ctx.fillText(
                 `近 ${this.data.selectedDays} 天数据（${formatExportDateRange(this.data.selectedDays)}）`,
@@ -1778,7 +1783,7 @@ Page({
                 this.data.rangeSummary,
                 this.data.heartRateSummary,
             );
-            ctx.fillStyle = "#94A3B8";
+            ctx.fillStyle = DATA_PAGE_EXPORT_COLORS.textSecondary;
             ctx.font = `${EXPORT_CHART_SUMMARY_FONT_SIZE}px sans-serif`;
             ctx.fillText(
                 summaryText,

@@ -1,6 +1,6 @@
-<view class="page page-root data-page">
+<view class="page page-root data-page" style="padding: 0 {{fs.spaceLG}}; padding-bottom: calc(188rpx + env(safe-area-inset-bottom));">
   <view wx:if="{{pageReady}}">
-    <view wx:if="{{hasProfile}}" class="data-profile-entry" bindtap="handleOpenProfileSwitcher">
+    <view wx:if="{{hasProfile}}" class="data-profile-entry" style="gap: {{fs.spaceSM}}; padding: {{fs.spaceLG}} 0 {{fs.spaceMD}};" bindtap="handleOpenProfileSwitcher">
       <view class="data-profile-entry__dot"></view>
       <text class="data-profile-entry__text" style="font-size:{{fs.title}}">{{profileTitle}}</text>
       <text class="data-profile-entry__arrow" style="font-size:{{fs.caption}}">▼</text>
@@ -11,7 +11,7 @@
     </view>
 
     <view wx:else>
-      <view wx:if="{{errorText}}" class="card data-state">
+      <view wx:if="{{errorText}}" class="card data-state" style="margin-bottom: {{fs.spaceLG}};">
         <view class="data-state__title" style="font-size:{{fs.title}}">暂时无法加载数据</view>
         <view class="data-state__text" style="font-size:{{fs.secondary}}">{{errorText}}</view>
       </view>
@@ -25,14 +25,14 @@
               <text style="font-size:{{fs.secondary}}">{{latestRecordDisplay.statusText}}</text>
             </view>
 
-            <view class="data-latest__numbers">
+            <view class="data-latest__numbers" style="column-gap: {{fs.spaceXS}}; row-gap: {{fs.spaceSM}}; margin-top: {{fs.spaceLG}};">
               <text class="data-latest__systolic {{latestRecordDisplay.systolicClassName}}" style="font-size:{{fs.bpSystolic}}">{{latestRecordDisplay.systolicText}}</text>
               <text class="data-latest__separator" style="font-size:{{fs.title}}">/</text>
               <text class="data-latest__diastolic {{latestRecordDisplay.diastolicClassName}}" style="font-size:{{fs.bpDiastolic}}">{{latestRecordDisplay.diastolicText}}</text>
-              <text class="data-latest__unit" style="font-size:{{fs.caption}}">mmHg</text>
+              <text class="data-latest__unit" style="font-size:{{fs.caption}}; margin-bottom: {{fs.spaceSM}};">mmHg</text>
             </view>
 
-            <view class="data-latest__divider"></view>
+            <view class="data-latest__divider" style="margin: {{fs.spaceLG}} 0;"></view>
 
             <view class="data-latest__meta">
               <view class="data-latest__meta-group">
@@ -45,7 +45,7 @@
               </view>
             </view>
 
-            <view wx:if="{{latestRecordDisplay.recorderText}}" class="data-latest__recorder" style="font-size:{{fs.caption}}">
+            <view wx:if="{{latestRecordDisplay.recorderText}}" class="data-latest__recorder" style="font-size:{{fs.caption}}; margin-top: {{fs.spaceMD}};">
               {{latestRecordDisplay.recorderText}}
             </view>
           </view>
@@ -57,16 +57,16 @@
                   <image class="data-latest__empty-heart" src="/assets/data-empty-heart.svg" mode="aspectFit" />
                 </view>
               </view>
-              <view class="data-latest__empty-title" style="font-size:{{fs.title}}">开启你的健康记录</view>
-              <view class="data-latest__empty-text" style="font-size:{{fs.secondary}}">每天定时测量并记录，我们将为你生成专业的健康趋势分析。</view>
-              <button class="data-latest__empty-button" style="font-size:{{fs.button}}" bindtap="handleOpenRecordPanel">记录血压</button>
-              <view class="data-latest__empty-import" style="font-size:{{fs.secondary}}" bindtap="handleImportRecords">已有数据？导入历史记录</view>
+              <view class="data-latest__empty-title" style="font-size:{{fs.title}}; margin-top: {{fs.spaceXL}};">开启你的健康记录</view>
+              <view class="data-latest__empty-text" style="font-size:{{fs.secondary}}; margin-top: {{fs.spaceMD}};">每天定时测量并记录，我们将为你生成专业的健康趋势分析。</view>
+              <button class="data-latest__empty-button" style="font-size:{{fs.button}}; margin-top: {{fs.spaceXL}}; padding: {{fs.spaceLG}} {{fs.spaceXL}};" bindtap="handleOpenRecordPanel">记录血压</button>
+              <view class="data-latest__empty-import" style="font-size:{{fs.secondary}}; margin-top: {{fs.spaceLG}};" bindtap="handleImportRecords">已有数据？导入历史记录</view>
             </view>
           </view>
         </view>
 
         <!-- 数据分析卡片 -->
-        <view wx:if="{{hasAnyRecords}}" class="data-analysis">
+        <view wx:if="{{hasAnyRecords}}" class="data-analysis" style="padding: {{fs.space2XL}} {{fs.space2XL}} {{fs.spaceXL}}; margin-bottom: {{fs.spaceLG}};">
 
           <!-- 第一行：数据分析 + 全部记录 -->
           <!-- <view class="da-row da-row--header">
@@ -75,7 +75,7 @@
           </view> -->
 
           <!-- 第二行：7/30/90 tabs -->
-          <view class="da-row da-row--tabs">
+          <view class="da-row da-row--tabs" style="margin-bottom: {{fs.space2XL}};">
             <view class="da-tabs">
               <view
                 wx:for="{{periodOptions}}"
@@ -83,7 +83,7 @@
                 class="da-tab {{selectedDays === item.days ? 'da-tab--active' : ''}} {{!item.enabled ? 'da-tab--disabled' : ''}}"
                 data-days="{{item.days}}"
                 bindtap="handleSelectPeriod"
-              style="font-size:{{fs.secondary}}"
+              style="font-size:{{fs.secondary}}; padding: {{fs.spaceXS}} {{fs.spaceMD}};"
               >{{item.label}}</view>
             </view>
             <view class="da-allrecords" style="font-size:{{fs.secondary}}" bindtap="handleViewAllRecords">全部记录 ></view>
@@ -93,7 +93,7 @@
 
             <!-- ===== 血压区块 ===== -->
             <!-- 第三行：血压数据 ? + ↓ 下载图表 -->
-            <view class="da-row da-row--section-header">
+            <view class="da-row da-row--section-header" style="margin-bottom: {{fs.spaceMD}};">
               <view class="da-section-title-group">
                 <text class="da-section-title" style="font-size:{{fs.body}}">血压趋势 (mmHg)</text>
                 <!-- <text class="da-section-help">?</text> -->
@@ -105,25 +105,25 @@
             </view>
 
             <!-- 第四行：统计摘要 -->
-            <view class="da-summary">
+            <view class="da-summary" style="margin-bottom: {{fs.spaceLG}};">
               <view class="da-summary__item">
                 <view class="da-summary__value da-summary__value--normal" style="font-size:{{fs.title}}">{{rangeSummary.normalCount}}</view>
-                <view class="da-summary__label" style="font-size:{{fs.caption}}">已达标(次)</view>
+                <view class="da-summary__label" style="font-size:{{fs.caption}}; margin-top: {{fs.spaceXS}};">已达标(次)</view>
               </view>
               <view class="da-summary__item">
                 <view class="da-summary__value da-summary__value--danger" style="font-size:{{fs.title}}">{{rangeSummary.abnormalCount}}</view>
-                <view class="da-summary__label" style="font-size:{{fs.caption}}">不达标(次)</view>
+                <view class="da-summary__label" style="font-size:{{fs.caption}}; margin-top: {{fs.spaceXS}};">不达标(次)</view>
               </view>
               <view class="da-summary__item">
                 <view class="da-summary__value" style="font-size:{{fs.title}}">{{rangeSummary.averageText}}</view>
-                <view class="da-summary__label" style="font-size:{{fs.caption}}">均值(mmHg)</view>
+                <view class="da-summary__label" style="font-size:{{fs.caption}}; margin-top: {{fs.spaceXS}};">均值(mmHg)</view>
               </view>
             </view>
 
             <!-- 第五行：血压折线图 -->
             <canvas id="dataBpChart" type="2d" class="da-canvas"></canvas>
 
-            <view class="da-legend">
+            <view class="da-legend" style="margin-bottom: {{fs.spaceXS}};">
               <view class="da-legend__item">
                 <!-- <view class="da-legend__line da-legend__line--systolic"></view> -->
                 <view class="da-legend__dot"></view>
@@ -140,9 +140,9 @@
             </view>
 
             <!-- ===== 心率区块 ===== -->
-            <view class="da-divider"></view>
+            <view class="da-divider" style="margin: {{fs.spaceXL}} 0;"></view>
 
-            <view class="da-row da-row--section-header">
+            <view class="da-row da-row--section-header" style="margin-bottom: {{fs.spaceMD}};">
               <view class="da-section-title-group">
                 <text class="da-section-title" style="font-size:{{fs.body}}">心率趋势 (bpm)</text>
                 <!-- <text class="da-section-help">?</text> -->
@@ -153,24 +153,24 @@
               </view>
             </view>
 
-            <view class="da-summary">
+            <view class="da-summary" style="margin-bottom: {{fs.spaceLG}};">
               <view class="da-summary__item">
                 <view class="da-summary__value da-summary__value--normal" style="font-size:{{fs.title}}">{{heartRateSummary.normalCount}}</view>
-                <view class="da-summary__label" style="font-size:{{fs.caption}}">已达标(次)</view>
+                <view class="da-summary__label" style="font-size:{{fs.caption}}; margin-top: {{fs.spaceXS}};">已达标(次)</view>
               </view>
               <view class="da-summary__item">
                 <view class="da-summary__value da-summary__value--danger" style="font-size:{{fs.title}}">{{heartRateSummary.abnormalCount}}</view>
-                <view class="da-summary__label" style="font-size:{{fs.caption}}">不达标(次)</view>
+                <view class="da-summary__label" style="font-size:{{fs.caption}}; margin-top: {{fs.spaceXS}};">不达标(次)</view>
               </view>
               <view class="da-summary__item">
                 <view class="da-summary__value" style="font-size:{{fs.title}}">{{heartRateSummary.averageText}}</view>
-                <view class="da-summary__label" style="font-size:{{fs.caption}}">均值(bpm)</view>
+                <view class="da-summary__label" style="font-size:{{fs.caption}}; margin-top: {{fs.spaceXS}};">均值(bpm)</view>
               </view>
             </view>
 
             <canvas wx:if="{{hasHeartRateData}}" id="dataHeartRateChart" type="2d" class="da-canvas da-canvas--short"></canvas>
 
-            <view wx:if="{{hasHeartRateData}}" class="da-legend">
+            <view wx:if="{{hasHeartRateData}}" class="da-legend" style="margin-bottom: {{fs.spaceXS}};">
               <view class="da-legend__item">
                 <!-- <view class="da-legend__line da-legend__line--hr"></view> -->
                 <view class="da-legend__dot"></view>
@@ -182,11 +182,11 @@
               </view>
             </view>
 
-            <view wx:if="{{!hasHeartRateData}}" class="da-empty" style="font-size:{{fs.secondary}}">暂无心率数据</view>
+            <view wx:if="{{!hasHeartRateData}}" class="da-empty" style="font-size:{{fs.secondary}}; padding: {{fs.space2XL}} {{fs.spaceLG}}; margin-top: {{fs.spaceMD}};">暂无心率数据</view>
 
           </view>
 
-          <view wx:else class="da-empty" style="font-size:{{fs.secondary}}">
+          <view wx:else class="da-empty" style="font-size:{{fs.secondary}}; padding: {{fs.space2XL}} {{fs.spaceLG}}; margin-top: {{fs.spaceMD}};">
             当前时间范围内暂无趋势数据
           </view>
         </view>
@@ -224,12 +224,12 @@
 
   <view wx:if="{{showPermissionModal}}" class="data-permission-modal">
     <view class="data-permission-modal__mask"></view>
-    <view class="data-permission-modal__panel">
+    <view class="data-permission-modal__panel" style="padding: {{fs.space2XL}} {{fs.spaceXL}};">
       <view class="data-permission-modal__title" style="font-size:{{fs.title}}">无法保存图片</view>
-      <view class="data-permission-modal__subtitle" style="font-size:{{fs.body}}">需要开启"相册写入"权限</view>
-      <view class="data-permission-modal__step" style="font-size:{{fs.secondary}}">步骤 1：点击下方"去设置"按钮</view>
-      <view class="data-permission-modal__step" style="font-size:{{fs.secondary}}">步骤 2：将"添加到相册"设为允许</view>
-      <view class="data-permission-modal__actions">
+      <view class="data-permission-modal__subtitle" style="font-size:{{fs.body}}; margin-top: {{fs.spaceSM}};">需要开启"相册写入"权限</view>
+      <view class="data-permission-modal__step" style="font-size:{{fs.secondary}}; margin-top: {{fs.spaceMD}};">步骤 1：点击下方"去设置"按钮</view>
+      <view class="data-permission-modal__step" style="font-size:{{fs.secondary}}; margin-top: {{fs.spaceMD}};">步骤 2：将"添加到相册"设为允许</view>
+      <view class="data-permission-modal__actions" style="margin-top: {{fs.spaceXL}};">
         <button class="btn-primary data-permission-modal__button" style="font-size:{{fs.button}}" bindtap="handleOpenPermissionSetting">去设置</button>
         <button class="btn-secondary data-permission-modal__button" style="font-size:{{fs.button}}" bindtap="handleClosePermissionModal">暂不下载</button>
       </view>
