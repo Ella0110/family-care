@@ -12,7 +12,7 @@
 | Token | 色值 | 用途 | 替代掉的旧值 |
 |---|---|---|---|
 | `textPrimary` | `#1C1C1E` | 主文字 | `#0f172a`, `#111827`, `#1d1d1f`, `#1e293b` |
-| `textSecondary` | `#8E8E93` | 次要文字 | `#64748b`, `#6b7280`, `#475569`, `#94a3b8` |
+| `textSecondary` | `#8E8E93` | 次要文字 | `#64748b`, `#6b7280`, `#475569`, `#94a3b8`, `#334155`, `#4b5563`, `#5F6B7A` |
 | `textTertiary` | `#C7C7CC` | 占位/禁用文字 | `#9ca3af`, `#a0a7b4`, `#cbd5e1` |
 | `textOnPrimary` | `#FFFFFF` | 蓝底/深色底上的白字 | — |
 | `textLink` | `#007AFF` | 可点击文字 | `#2563eb`, `#1d4ed8`, `#1e40af`, `#1e3a8a` |
@@ -30,10 +30,10 @@
 
 | Token | 色值 | 用途 | 替代掉的旧值 |
 |---|---|---|---|
-| `colorPrimary` | `#007AFF` | 主品牌蓝（Apple system blue） | `#3182f7`, `#3478f6`, `#2563eb` |
+| `colorPrimary` | `#007AFF` | 主品牌蓝（Apple system blue） | `#3182f7`, `#3478f6`, `#2563eb`, `#0356FC` |
 | `colorSuccess` | `#34C759` | 正常血压/成功 | `#047857`, `#10b981` |
 | `colorWarning` | `#FF9500` | 临界偏高 | `#F5A623` |
-| `colorDanger` | `#FF3B30` | 偏高/危险操作 | `#b42318` |
+| `colorDanger` | `#FF3B30` | 偏高/危险操作 | `#b42318`, `#EF4444`, `#E53935`, `#C81E1E` |
 | `colorWeChat` | `#07C160` | 微信专用绿（仅授权按钮） | — |
 
 ### 1.4 血压专用色
@@ -61,7 +61,7 @@
 
 | Token | 色值 | 用途 | 替代掉的旧值 |
 |---|---|---|---|
-| `bgPrimaryLight` | `#EFF6FF` | 蓝色浅底 | `#dbeafe`, `#ebf5ff`, `#eef4ff`, `#f6f7fc` |
+| `bgPrimaryLight` | `#EFF6FF` | 蓝色浅底 | `#dbeafe`, `#ebf5ff`, `#eef4ff`, `#f6f7fc`, `#bfdbfe` |
 | `bgDangerLight` | `#FEF2F2` | 红色浅底 | `#fff0f0` |
 | `bgWarningLight` | `#FFF8F0` | 橙色浅底 | `#fff7ed`, `#fff4eb`, `#fff9eb` |
 | `bgSuccessLight` | `#F0FFF4` | 绿色浅底 | — |
@@ -89,7 +89,6 @@
 | 元素 | 理由 |
 |---|---|
 | 图表坐标轴文字 | Canvas 渲染，缩放会重叠 |
-| tabBar 文字 | 已用 caption token，空间极有限 |
 | invite-accept 页全部文字 | 产品决策豁免 |
 | launch 页 | 中转页，无业务文本 |
 
@@ -114,12 +113,13 @@
 
 | Token | 值 | 用途 |
 |---|---|---|
-| `radiusSM` | 16rpx | 输入框、pill、小组件 |
+| `radiusSM` | 16rpx | 输入框、小组件 |
 | `radiusMD` | 24rpx | 按钮 |
 | `radiusLG` | 32rpx | 卡片、弹层 |
+| `radiusPill` | 999rpx | 胶囊/药丸控件、stepper、sheet handle |
 | `radiusFull` | 50% | 头像、圆形图标 |
 
-淘汰 `20rpx`、`28rpx`、`999rpx` 等零散值，统一到最近档位。
+淘汰 `20rpx`、`28rpx` 等零散值，统一到最近档位（`20rpx` → `radiusSM` 或 `radiusMD`，`28rpx` → `radiusMD`）。
 
 ---
 
@@ -133,6 +133,8 @@
 | `shadowButton` | `0 8rpx 24rpx rgba(0,122,255,0.2)` | 主按钮 |
 
 **所有阴影一律使用 rpx，禁止 px/rpx 混用。**
+
+**阴影映射原则**：每波实施 prompt 中附具体的"旧值 → 新 token"映射表。特殊场景（如重浮层需要更强阴影）可在 wxss 中局部覆盖，但必须注释说明理由。
 
 ---
 
@@ -205,6 +207,7 @@ page {
   --radius-sm: 16rpx;
   --radius-md: 24rpx;
   --radius-lg: 32rpx;
+  --radius-pill: 999rpx;
   --radius-full: 50%;
 
   /* 阴影 */
@@ -238,3 +241,4 @@ page {
 | 日期 | 内容 |
 |---|---|
 | 2026-06-19 | 初版，覆盖颜色/字号/间距/圆角/阴影/布局规则 |
+| 2026-06-19 | Codex review 修订：补全遗漏色值、新增 radiusPill token、tabBar 改为跟随 caption 缩放、阴影增加映射原则说明 |
