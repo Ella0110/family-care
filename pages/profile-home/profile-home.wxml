@@ -1,6 +1,6 @@
 <view class="page page-root profile-home-page">
   <view wx:if="{{pageReady}}">
-    <view wx:if="{{profiles.length > 0}}" class="profile-home__topbar">
+    <view wx:if="{{profiles.length > 0}}" class="profile-home__topbar" style="padding-top: {{fs.spaceLG}}; margin-bottom: {{fs.spaceLG}};">
       <view class="profile-home__title" bindtap="handleOpenProfileSwitcher" style="font-size:{{fs.title}}">
         用户档案
         <text wx:if="{{hasProfile}}" class="profile-home__arrow" style="font-size:{{fs.caption}}">▼</text>
@@ -14,24 +14,26 @@
 
     <view wx:elif="{{errorText}}" class="card profile-home__state">
       <view class="profile-home__state-title" style="font-size:{{fs.title}}">暂时无法加载</view>
-      <view class="profile-home__state-text" style="font-size:{{fs.secondary}}">{{errorText}}</view>
+      <view class="profile-home__state-text" style="font-size:{{fs.secondary}}; margin-top: {{fs.spaceSM}};">{{errorText}}</view>
     </view>
 
     <view wx:else class="profile-home__content">
       <view class="card profile-home__hero">
-        <view class="profile-home__hero-top">
+        <view class="profile-home__hero-top" style="gap: {{fs.spaceLG}};">
           
           <view class="profile-home__hero-body">
             <view class="profile-home__hero-name-row">
-              <view class="profile-home__hero-name" style="font-size:{{fs.title}}">{{profileName}}</view>
-              <view wx:if="{{profileAgeText}}" class="profile-home__hero-age" style="font-size:{{fs.caption}}">{{profileAgeText}}</view>
+              <view class="profile-home__hero-name-group">
+                <view class="profile-home__hero-name" style="font-size:{{fs.title}}">{{profileName}}</view>
+                <view wx:if="{{profileAgeText}}" class="profile-home__hero-age" style="font-size:{{fs.caption}}">{{profileAgeText}}</view>
+              </view>
             </view>
-            <view wx:if="{{profileBirthYearText}}" class="profile-home__hero-birth" style="font-size:{{fs.secondary}}">{{profileBirthYearText}}</view>
+            <view wx:if="{{profileBirthYearText}}" class="profile-home__hero-birth" style="font-size:{{fs.secondary}}; margin-top: {{fs.spaceXS}};">{{profileBirthYearText}}</view>
           </view>
           <view wx:if="{{canEditCurrentProfile}}" class="profile-home__edit" style="font-size:{{fs.secondary}}" bindtap="handleEditProfile">编辑 ></view>
         </view>
 
-        <view class="profile-home__overview">
+        <view class="profile-home__overview" style="margin-top: {{fs.spaceLG}}; padding-top: {{fs.spaceLG}};">
           <!-- <view class="profile-home__overview-title" style="font-size:{{fs.label}}">健康概览</view> -->
 
           <view class="profile-home__overview-row">
@@ -57,10 +59,10 @@
           </view>
         </view>
       </view>
-      <view class="profile-home__section-title" style="font-size:{{fs.label}}">成员管理（{{memberCount}}/10）</view>
-      <view class="card profile-home__members">
+      <view class="profile-home__section-title" style="font-size:{{fs.label}}; margin-top: {{fs.spaceXL}};">成员管理（{{memberCount}}/10）</view>
+      <view class="card profile-home__members" style="margin-top: {{fs.spaceMD}}; padding: {{fs.spaceLG}} {{fs.spaceXL}};">
         <scroll-view scroll-x class="profile-home__members-scroll">
-          <view class="profile-home__members-list">
+          <view class="profile-home__members-list" style="padding-bottom: {{fs.spaceXS}};">
             <view
               wx:for="{{memberItems}}"
               wx:key="relationshipId"
@@ -74,7 +76,7 @@
               <view wx:elif="{{item.useAvatarPlaceholderIcon}}" class="profile-home__member-avatar profile-home__member-avatar--placeholder">
                 <image class="profile-home__member-avatar-icon" src="{{item.avatarPlaceholderSrc}}" mode="aspectFit" />
               </view>
-              <view class="profile-home__member-name-row">
+              <view class="profile-home__member-name-row" style="margin-top: {{fs.spaceSM}};">
                 <view wx:if="{{item.displayName}}" class="profile-home__member-name" style="font-size:{{fs.secondary}}">{{item.displayName}}</view>
               </view>
               <view class="profile-home__member-role" style="font-size:{{fs.caption}}">{{item.roleLabel}}</view>
@@ -92,9 +94,9 @@
         </scroll-view>
       </view>
       <view class="profile-home__section-head">
-          <view class="profile-home__section-title" style="font-size:{{fs.label}}">功能</view>
+          <view class="profile-home__section-title" style="font-size:{{fs.label}}; margin-top: {{fs.spaceXL}};">功能</view>
     </view>
-      <view class="profile-home__shortcut-grid">
+      <view class="profile-home__shortcut-grid" style="margin-top: {{fs.spaceMD}}; gap: {{fs.spaceMD}};">
         <view
           class="card profile-home__shortcut {{!hasLatestRecord ? 'profile-home__shortcut--disabled' : ''}}"
           bindtap="handleOpenReport"
@@ -117,8 +119,8 @@
         </view>
       </view>
 
-      <view class="profile-home__section-title" style="font-size:{{fs.label}}">快捷设置</view>
-      <view class="profile-home__settings-stack">
+      <view class="profile-home__section-title" style="font-size:{{fs.label}}; margin-top: {{fs.spaceXL}};">快捷设置</view>
+      <view class="profile-home__settings-stack" style="margin-top: {{fs.spaceMD}}; gap: {{fs.spaceMD}};">
 
         <view class="card profile-home__settings-card">
           <view class="profile-home__setting-row">
@@ -128,7 +130,7 @@
             </view>
             <switch
               checked="{{activeRelationshipSubscribeAlerts}}"
-              color="#3182F7"
+              color="#007AFF"
               bindchange="handleToggleSubscribeAlerts"
             />
           </view>
@@ -154,9 +156,9 @@
       </view>
       <block wx:if="{{canManageCurrentProfile}}">
         <view class="profile-home__section-head">
-          <view class="profile-home__section-title" style="font-size:{{fs.label}}">其他</view>
+          <view class="profile-home__section-title" style="font-size:{{fs.label}}; margin-top: {{fs.spaceXL}};">其他</view>
         </view>
-        <view class="card profile-home__danger" bindtap="handleDeleteProfile">
+        <view class="card profile-home__danger" bindtap="handleDeleteProfile" style="margin-top: {{fs.spaceMD}};">
           <view class="profile-home__danger-icon" style="font-size:{{fs.title}}">⚠</view>
           <view class="profile-home__danger-main">
             <view class="profile-home__danger-title" style="font-size:{{fs.body}}">删除档案</view>
@@ -175,12 +177,12 @@
 
   <view wx:if="{{showInviteDialog}}" class="profile-home__invite-dialog">
     <view class="profile-home__invite-mask" bindtap="handleCloseInviteDialog"></view>
-    <view class="profile-home__invite-sheet" catchtap="noop">
+    <view class="profile-home__invite-sheet" catchtap="noop" style="padding: {{fs.space2XL}};">
       <view class="profile-home__invite-title" style="font-size:{{fs.body}}">
         邀请家人关注「{{profileName}}」的健康
       </view>
       <block wx:if="{{showNicknameInput}}">
-        <view class="profile-home__invite-text" style="font-size:{{fs.secondary}}">
+        <view class="profile-home__invite-text" style="font-size:{{fs.secondary}}; margin-top: {{fs.spaceMD}};">
           请先设置你的昵称，让家人知道是谁邀请的
         </view>
         <input
@@ -190,20 +192,20 @@
           placeholder="你的昵称"
           value="{{inviteNicknameDraft}}"
           bindinput="handleInviteNicknameInput"
-          style="font-size:{{fs.body}}"
+          style="font-size:{{fs.body}}; margin-top: {{fs.spaceXL}}; padding: {{fs.spaceMD}} {{fs.spaceLG}};"
         />
         <button
           class="profile-home__invite-share"
           bindtap="handleConfirmInviteNickname"
           loading="{{isSavingInviteNickname}}"
           disabled="{{isSavingInviteNickname}}"
-          style="font-size:{{fs.button}}"
+          style="font-size:{{fs.button}}; margin-top: {{fs.space2XL}};"
         >
           确认并分享
         </button>
       </block>
       <block wx:else>
-        <view class="profile-home__invite-text" style="font-size:{{fs.secondary}}">
+        <view class="profile-home__invite-text" style="font-size:{{fs.secondary}}; margin-top: {{fs.spaceMD}};">
           对方将可以查看 {{profileName}} 的血压和用药情况，但不能修改数据。
         </view>
         <button
@@ -211,7 +213,7 @@
           open-type="share"
           bindtap="handleInviteShareTap"
           data-share-type="invite"
-          style="font-size:{{fs.button}}"
+          style="font-size:{{fs.button}}; margin-top: {{fs.space2XL}};"
         >
           分享给家人
         </button>
@@ -219,7 +221,7 @@
       <button
         class="profile-home__invite-cancel"
         bindtap="handleCloseInviteDialog"
-        style="font-size:{{fs.secondary}}"
+        style="font-size:{{fs.secondary}}; margin-top: {{fs.spaceLG}};"
       >
         取消
       </button>
@@ -228,18 +230,18 @@
 
   <view wx:if="{{showSelfActionDialog}}" class="profile-home__self-action-dialog">
     <view class="profile-home__self-action-mask" bindtap="handleCloseSelfActionDialog"></view>
-    <view class="profile-home__self-action-sheet" catchtap="noop">
+    <view class="profile-home__self-action-sheet" catchtap="noop" style="padding: {{fs.spaceXL}} {{fs.spaceLG}} calc({{fs.spaceMD}} + env(safe-area-inset-bottom));">
       <view wx:if="{{selfActionDialogMember.avatarUrl}}" class="profile-home__self-action-avatar profile-home__self-action-avatar--image" style="font-size:{{fs.title}}">
         <image class="profile-home__self-action-avatar-image" src="{{selfActionDialogMember.avatarUrl}}" mode="aspectFill" />
       </view>
       <view wx:elif="{{selfActionDialogMember.useAvatarPlaceholderIcon}}" class="profile-home__self-action-avatar profile-home__self-action-avatar--placeholder">
         <image class="profile-home__self-action-avatar-icon" src="{{selfActionDialogMember.avatarPlaceholderSrc}}" mode="aspectFit" />
       </view>
-      <view class="profile-home__self-action-name" style="font-size:{{fs.body}}">{{selfActionDialogMember.displayName}}</view>
-      <view class="profile-home__self-action-role" style="font-size:{{fs.caption}}">
+      <view class="profile-home__self-action-name" style="font-size:{{fs.body}}; margin-top: {{fs.spaceMD}};">{{selfActionDialogMember.displayName}}</view>
+      <view class="profile-home__self-action-role" style="font-size:{{fs.caption}}; margin-top: {{fs.spaceXS}};">
         当前角色：{{selfActionDialogMember.roleLabel}}
       </view>
-      <view class="profile-home__self-action-divider"></view>
+      <view class="profile-home__self-action-divider" style="margin: {{fs.spaceLG}} 0 {{fs.spaceXL}};"></view>
 
       <button
         class="profile-home__self-action-button profile-home__self-action-button--primary"
@@ -251,7 +253,7 @@
       <button
         class="profile-home__self-action-cancel"
         bindtap="handleCloseSelfActionDialog"
-        style="font-size:{{fs.secondary}}"
+        style="font-size:{{fs.secondary}}; margin-top: {{fs.spaceMD}};"
       >
         取消
       </button>

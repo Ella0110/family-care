@@ -70,6 +70,10 @@ const MEMBER_ROLE_ORDER = {
 const MEMBER_AVATAR_PLACEHOLDER_SVG =
     "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MCA0MCI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNDN0M3Q0MiLz48Y2lyY2xlIGN4PSIyMCIgY3k9IjE1IiByPSI2IiBmaWxsPSJ3aGl0ZSIvPjxwYXRoIGQ9Ik04IDM0IFE4IDI0IDIwIDI0IFEzMiAyNCAzMiAzNCIgZmlsbD0id2hpdGUiLz48L3N2Zz4=";
 
+const UI_COLORS = {
+    danger: "#FF3B30",
+};
+
 function pad(value) {
     return String(value).padStart(2, "0");
 }
@@ -1924,7 +1928,7 @@ Page({
                 content: `档案删除后 30 天内可联系恢复，超期数据将永久删除。\n\n确认删除"${profile.name}"？`,
                 confirmText: "删除",
                 cancelText: "取消",
-                confirmColor: "#b42318",
+                confirmColor: UI_COLORS.danger,
                 success: resolve,
                 fail() {
                     resolve({ confirm: false, cancel: true });
