@@ -1,9 +1,9 @@
 <view class="page page-root records-page">
-  <view wx:if="{{isViewerMode}}" class="records-viewer-tip" style="font-size:{{fs.label}}">
+  <view wx:if="{{isViewerMode}}" class="records-viewer-tip" style="font-size:{{fs.label}}; margin-bottom: {{fs.spaceMD}};">
     当前以查看者身份访问，仅可查看和导出记录
   </view>
 
-  <view class="records-toolbar">
+  <view class="records-toolbar" style="gap: {{fs.spaceMD}}; margin-bottom: {{fs.spaceLG}};">
     <picker
       mode="multiSelector"
       range="{{monthPickerRanges}}"
@@ -38,26 +38,26 @@
 
   <view wx:if="{{isLoading}}" class="records-state-card">
       <view class="records-state-card__title" style="font-size:{{fs.title}}">正在加载记录</view>
-    <view class="records-state-card__text" style="font-size:{{fs.secondary}}">请稍候...</view>
+    <view class="records-state-card__text" style="font-size:{{fs.secondary}}; margin-top: {{fs.spaceSM}};">请稍候...</view>
   </view>
 
   <view wx:elif="{{errorText}}" class="records-state-card">
     <view class="records-state-card__title" style="font-size:{{fs.title}}">暂时无法加载</view>
-    <view class="records-state-card__text" style="font-size:{{fs.secondary}}">{{errorText}}</view>
-    <button class="records-state-card__button" bindtap="loadAllRecords" style="font-size:{{fs.button}}">重试</button>
+    <view class="records-state-card__text" style="font-size:{{fs.secondary}}; margin-top: {{fs.spaceSM}};">{{errorText}}</view>
+    <button class="records-state-card__button" bindtap="loadAllRecords" style="font-size:{{fs.button}}; margin-top: {{fs.spaceLG}}; padding: {{fs.spaceMD}} {{fs.spaceLG}};">重试</button>
   </view>
 
   <view wx:elif="{{!hasRecords}}" class="records-state-card">
     <view class="records-state-card__title" style="font-size:{{fs.title}}">{{monthLabel}} 暂无记录</view>
-    <view class="records-state-card__text" style="font-size:{{fs.secondary}}">可以切换月份查看历史记录，或导入历史数据。</view>
-    <view class="records-state-card__actions">
-      <button wx:if="{{canWriteCurrentProfile}}" class="records-state-card__button records-state-card__button--ghost" bindtap="handleImportRecords" style="font-size:{{fs.button}}">导入记录</button>
+    <view class="records-state-card__text" style="font-size:{{fs.secondary}}; margin-top: {{fs.spaceSM}};">可以切换月份查看历史记录，或导入历史数据。</view>
+    <view class="records-state-card__actions" style="margin-top: {{fs.spaceLG}};">
+      <button wx:if="{{canWriteCurrentProfile}}" class="records-state-card__button records-state-card__button--ghost" bindtap="handleImportRecords" style="font-size:{{fs.button}}; margin-top: 0; padding: {{fs.spaceMD}} {{fs.spaceLG}};">导入记录</button>
     </view>
   </view>
 
   <view wx:else class="records-groups">
     <view wx:for="{{groups}}" wx:key="date" class="records-group" id="{{item.anchorId}}">
-      <view class="records-group__title" style="font-size:{{fs.body}}">{{item.label}}</view>
+      <view class="records-group__title" style="font-size:{{fs.body}}; margin-bottom: {{fs.spaceMD}};">{{item.label}}</view>
 
       <view class="records-group__card">
         <view
@@ -77,7 +77,7 @@
 
           <view
             class="records-row"
-            style="{{record.swipeOffsetText}}"
+            style="{{record.swipeOffsetText}}; padding: {{fs.spaceLG}} {{fs.spaceLG}};"
             data-record-id="{{record._id}}"
             bindtap="handleRecordTap"
             bindtouchstart="handleRowTouchStart"
@@ -91,7 +91,7 @@
               <view wx:if="{{record.heartRateText}}" class="records-row__heart" style="font-size:{{fs.secondary}}">{{record.heartRateText}}</view>
               <view wx:if="{{record.recorderText}}" class="records-row__recorder" style="font-size:{{fs.caption}}">{{record.recorderText}}</view>
             </view>
-            <view class="records-row__status {{record.statusClassName}}" style="font-size:{{fs.caption}}">{{record.statusText}}</view>
+            <view class="records-row__status {{record.statusClassName}}" style="font-size:{{fs.caption}}; padding: {{fs.spaceXS}} {{fs.spaceMD}};">{{record.statusText}}</view>
             <view wx:if="{{!isViewerMode}}" class="records-row__arrow" style="font-size:{{fs.title}}">›</view>
           </view>
         </view>
@@ -123,12 +123,12 @@
 
   <view wx:if="{{showExportSheet}}" class="records-export-sheet">
     <view class="records-export-sheet__mask" bindtap="handleCloseExportSheet"></view>
-    <view class="records-export-sheet__panel">
+    <view class="records-export-sheet__panel" style="padding: {{fs.spaceLG}} {{fs.spaceXL}} calc(env(safe-area-inset-bottom) + {{fs.spaceXL}});">
       <view class="records-export-sheet__handle"></view>
-      <view class="records-export-sheet__title" style="font-size:{{fs.title}}">导出数据</view>
-      <view class="records-export-sheet__subtitle" style="font-size:{{fs.label}}">选择需要导出的时间范围</view>
+      <view class="records-export-sheet__title" style="font-size:{{fs.title}}; margin-top: {{fs.spaceXL}};">导出数据</view>
+      <view class="records-export-sheet__subtitle" style="font-size:{{fs.label}}; margin-top: {{fs.spaceSM}};">选择需要导出的时间范围</view>
 
-      <view class="records-export-sheet__ranges">
+      <view class="records-export-sheet__ranges" style="gap: {{fs.spaceMD}}; margin-top: {{fs.spaceXL}};">
         <view
           wx:for="{{[7, 30, 90]}}"
           wx:key="*this"
@@ -141,13 +141,13 @@
         </view>
       </view>
 
-      <view class="records-export-sheet__actions">
+      <view class="records-export-sheet__actions" style="gap: {{fs.spaceMD}}; margin-top: {{fs.spaceXL}};">
         <button
           class="records-export-sheet__action records-export-sheet__action--primary"
           bindtap="handleExportImage"
           loading="{{isExportingImage}}"
           disabled="{{isExportingImage || isExportingCsv}}"
-         style="font-size:{{fs.button}}">
+         style="font-size:{{fs.button}}; padding: {{fs.spaceLG}} {{fs.spaceLG}};">
           导出图片
         </button>
         <button
@@ -155,12 +155,12 @@
           bindtap="handleExportData"
           loading="{{isExportingCsv}}"
           disabled="{{isExportingImage || isExportingCsv}}"
-         style="font-size:{{fs.button}}">
+         style="font-size:{{fs.button}}; padding: {{fs.spaceLG}} {{fs.spaceLG}};">
           导出数据
         </button>
       </view>
 
-      <view class="records-export-sheet__cancel" bindtap="handleCloseExportSheet" style="font-size:{{fs.body}}">取消</view>
+      <view class="records-export-sheet__cancel" bindtap="handleCloseExportSheet" style="font-size:{{fs.body}}; margin-top: {{fs.spaceLG}};">取消</view>
     </view>
   </view>
 
@@ -178,7 +178,7 @@
         />
       </view>
     </scroll-view>
-    <view class="records-export-preview__actions">
+    <view class="records-export-preview__actions" style="gap: {{fs.spaceMD}}; padding: {{fs.spaceMD}} {{fs.spaceXL}} calc(env(safe-area-inset-bottom) + {{fs.spaceLG}});">
       <button
         class="records-export-preview__button records-export-preview__button--secondary"
         bindtap="onCancelPreview"

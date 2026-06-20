@@ -17,11 +17,11 @@
     bottom: 0;
     min-height: 76vh;
     max-height: 82vh;
-    padding: 24rpx 40rpx calc(env(safe-area-inset-bottom) + 20rpx);
-    border-radius: 32rpx 32rpx 0 0;
-    background: #ffffff;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    background: var(--bg-card);
     box-sizing: border-box;
-    box-shadow: 0 -10rpx 40rpx rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-sheet);
+    overflow-y: auto;
     animation: record-panel-sheet-enter 0.4s ease-out;
 }
 
@@ -29,22 +29,23 @@
     width: 80rpx;
     height: 8rpx;
     margin: 0 auto 24rpx;
-    border-radius: 999rpx;
-    background: #e2e8f0;
+    border-radius: var(--radius-pill);
+    background: var(--border-light);
 }
 
 .record-panel__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 40rpx;
+    gap: 16rpx;
 }
 
 .record-panel__title {
     font-size: 36rpx;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--text-primary);
     line-height: 1.35;
+    min-width: 0;
 }
 
 .record-panel__close {
@@ -53,17 +54,17 @@
     justify-content: center;
     width: 64rpx;
     height: 64rpx;
-    border-radius: 50%;
-    background: #f1f5f9;
-    color: #94a3b8;
+    border-radius: var(--radius-full);
+    background: var(--bg-input);
+    color: var(--text-secondary);
     font-size: 36rpx;
     line-height: 1;
+    flex-shrink: 0;
 }
 
 .record-panel__metrics {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 20rpx;
 }
 
 .record-panel__metric {
@@ -81,15 +82,15 @@
     font-size: 22rpx;
     font-weight: 700;
     letter-spacing: 0.1em;
-    color: #94a3b8;
+    color: var(--text-secondary);
 }
 
 .record-panel__metric-label.is-active {
-    color: #3182f7;
+    color: var(--color-primary);
 }
 
 .record-panel__metric-label.is-error {
-    color: #ff3b30;
+    color: var(--color-danger);
 }
 
 .record-panel__metric-value {
@@ -98,15 +99,16 @@
     font-size: 80rpx;
     line-height: 1.1;
     font-weight: 900;
-    color: #1e293b;
+    color: var(--text-primary);
+    white-space: nowrap;
 }
 
 .record-panel__metric-value.is-placeholder {
-    color: #cbd5e1;
+    color: var(--text-tertiary);
 }
 
 .record-panel__metric-value.is-error {
-    color: #ff3b30;
+    color: var(--color-danger);
 }
 
 .record-panel__metric-line {
@@ -114,60 +116,61 @@
     height: 6rpx;
     margin-top: 12rpx;
     border-radius: 3rpx;
-    background: #3182f7;
+    background: var(--color-primary);
 }
 
 .record-panel__time-row {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    margin-top: 32rpx;
-    padding: 24rpx 28rpx;
-    border-radius: 20rpx;
-    background: #f8fafc;
+    gap: 16rpx;
+    border-radius: var(--radius-md);
+    background: var(--bg-input);
 }
 
 .record-panel__time-row.is-error {
-    background: #fef2f2;
+    background: var(--bg-danger-light);
 }
 
 .record-panel__time-label {
     font-size: 30rpx;
     font-weight: 600;
-    color: #64748b;
+    color: var(--text-secondary);
     line-height: 1.5;
+    flex-shrink: 0;
 }
 
 .record-panel__time-actions {
     display: flex;
     align-items: center;
-    gap: 16rpx;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    min-width: 0;
 }
 
 .record-panel__time-value {
     font-size: 30rpx;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--text-primary);
     line-height: 1.5;
+    white-space: nowrap;
 }
 
 .record-panel__time-value.is-error {
-    color: #ff3b30;
+    color: var(--color-danger);
 }
 
 .record-panel__time-arrow {
-    color: #cbd5e1;
+    color: var(--text-tertiary);
     font-size: 30rpx;
+    flex-shrink: 0;
 }
 
 .record-panel__error-banner {
     display: flex;
     align-items: center;
-    gap: 12rpx;
-    margin-top: 24rpx;
-    padding: 20rpx 24rpx;
-    border-radius: 16rpx;
-    background: #fef2f2;
+    border-radius: var(--radius-sm);
+    background: var(--bg-danger-light);
 }
 
 .record-panel__error-icon {
@@ -176,9 +179,9 @@
     justify-content: center;
     width: 36rpx;
     height: 36rpx;
-    border-radius: 50%;
+    border-radius: var(--radius-full);
     background: rgba(255, 59, 48, 0.12);
-    color: #ff3b30;
+    color: var(--color-danger);
     font-size: 24rpx;
     font-weight: 700;
 }
@@ -187,14 +190,12 @@
     flex: 1;
     font-size: 24rpx;
     line-height: 1.5;
-    color: #ff3b30;
+    color: var(--color-danger);
 }
 
 .record-panel__keypad {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16rpx;
-    margin-top: 28rpx;
 }
 
 .record-panel__key {
@@ -203,10 +204,10 @@
     justify-content: center;
     min-height: 100rpx;
     padding: 20rpx;
-    border-radius: 24rpx;
-    background: #ffffff;
-    box-shadow: 0 2rpx 0 rgba(0, 0, 0, 0.05);
-    color: #1e293b;
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    box-shadow: var(--shadow-card);
+    color: var(--text-primary);
     font-size: 36rpx;
     font-weight: 700;
     transition: transform 0.1s ease;
@@ -218,9 +219,9 @@
 }
 
 .record-panel__key--action {
-    background: #f1f5f9;
+    background: var(--bg-input);
     box-shadow: none;
-    color: #94a3b8;
+    color: var(--text-secondary);
     font-size: 30rpx;
     font-weight: 600;
 }
@@ -235,22 +236,18 @@
     font-weight: 900;
 }
 
-.record-panel__actions {
-    margin-top: 24rpx;
-}
-
 .record-panel__save {
     width: 100%;
     min-height: 96rpx;
     padding: 24rpx 32rpx;
     border: none;
-    border-radius: 24rpx;
-    background: #3182f7;
-    color: #ffffff;
+    border-radius: var(--radius-md);
+    background: var(--color-primary);
+    color: var(--text-on-primary);
     font-size: 32rpx;
     font-weight: 700;
     line-height: 1.4;
-    box-shadow: 0 8rpx 24rpx rgba(49, 130, 247, 0.2);
+    box-shadow: var(--shadow-button);
     box-sizing: border-box;
 }
 
@@ -263,11 +260,10 @@
 }
 
 .record-panel__delete {
-    margin-top: 24rpx;
     text-align: center;
     font-size: 30rpx;
     font-weight: 600;
-    color: #ff3b30;
+    color: var(--color-danger);
 }
 
 .record-panel__overlay-layer {
@@ -302,9 +298,9 @@
     gap: 24rpx;
     min-width: 360rpx;
     padding: 52rpx 48rpx;
-    border-radius: 32rpx;
-    background: #ffffff;
-    box-shadow: 0 20rpx 60rpx rgba(15, 23, 42, 0.16);
+    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    box-shadow: var(--shadow-float);
     animation: record-panel-feedback-enter 220ms
         cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
@@ -315,21 +311,21 @@
     justify-content: center;
     width: 96rpx;
     height: 96rpx;
-    border-radius: 32rpx;
-    background: #10b981;
-    color: #ffffff;
+    border-radius: var(--radius-lg);
+    background: var(--color-success);
+    color: var(--text-on-primary);
     font-size: 48rpx;
     font-weight: 700;
 }
 
 .record-panel__feedback-icon.is-danger {
-    background: #ff3b30;
+    background: var(--color-danger);
 }
 
 .record-panel__feedback-title {
     font-size: 36rpx;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--text-primary);
     line-height: 1.35;
 }
 
@@ -338,11 +334,11 @@
     z-index: 1;
     width: calc(100% - 96rpx);
     padding: 48rpx;
-    border-radius: 32rpx;
-    background: #ffffff;
+    border-radius: var(--radius-lg);
+    background: var(--bg-card);
     box-sizing: border-box;
     text-align: center;
-    box-shadow: 0 20rpx 60rpx rgba(15, 23, 42, 0.16);
+    box-shadow: var(--shadow-float);
     animation: record-panel-dialog-enter 220ms ease-out;
 }
 
@@ -353,15 +349,15 @@
     width: 80rpx;
     height: 80rpx;
     margin-bottom: 24rpx;
-    border-radius: 50%;
-    background: #fff0f0;
+    border-radius: var(--radius-full);
+    background: var(--bg-danger-light);
     font-size: 36rpx;
 }
 
 .record-panel__dialog-title {
     font-size: 36rpx;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--text-primary);
     line-height: 1.35;
 }
 
@@ -369,7 +365,7 @@
     margin-top: 16rpx;
     font-size: 24rpx;
     line-height: 1.7;
-    color: #94a3b8;
+    color: var(--text-secondary);
 }
 
 .record-panel__dialog-confirm {
@@ -377,9 +373,9 @@
     min-height: 96rpx;
     padding: 24rpx 32rpx;
     border: none;
-    border-radius: 24rpx;
-    background: #ff3b30;
-    color: #ffffff;
+    border-radius: var(--radius-md);
+    background: var(--color-danger);
+    color: var(--text-on-primary);
     font-size: 32rpx;
     font-weight: 600;
     line-height: 1.4;
@@ -393,7 +389,7 @@
 .record-panel__dialog-cancel {
     margin-top: 24rpx;
     font-size: 30rpx;
-    color: #94a3b8;
+    color: var(--text-secondary);
 }
 
 .error-shake {

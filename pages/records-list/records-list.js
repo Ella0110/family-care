@@ -19,6 +19,9 @@ const FEEDBACK_TOAST_MS = 1500;
 const EXPORT_DAY_OPTIONS = [7, 30, 90];
 const MONTH_PICKER_START_YEAR = 2000;
 const MAX_EXPORT_CANVAS_HEIGHT = 4096;
+const UI_COLORS = {
+  danger: '#FF3B30',
+};
 
 function pad(value) {
   return String(value).padStart(2, '0');
@@ -1115,7 +1118,7 @@ Page({
         title: '确定删除此记录？',
         content: '删除后数据将无法恢复',
         confirmText: '删除',
-        confirmColor: '#FF3B30',
+        confirmColor: UI_COLORS.danger,
         cancelText: '取消',
         success: (res) => {
           if (!res.confirm) {

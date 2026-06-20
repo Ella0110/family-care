@@ -1,7 +1,7 @@
 <view wx:if="{{show}}" class="profile-switcher">
   <view class="profile-switcher__mask" bindtap="handleMaskTap"></view>
-  <view class="profile-switcher__sheet" catchtap="noop">
-    <view class="profile-switcher__header">
+  <view class="profile-switcher__sheet" catchtap="noop" style="padding: {{fs.spaceXL}} {{fs.spaceXL}} calc({{fs.spaceXL}} + env(safe-area-inset-bottom));">
+    <view class="profile-switcher__header" style="margin-bottom: {{fs.spaceLG}};">
       <view class="profile-switcher__title" style="font-size:{{fs.title}}">切换档案</view>
     </view>
 
@@ -12,16 +12,17 @@
         class="profile-switcher__item {{currentProfileId === item._id ? 'profile-switcher__item--active' : ''}}"
         data-profile-id="{{item._id}}"
         bindtap="handleSelectProfile"
+        style="padding: {{fs.spaceLG}} 0;"
       >
         <view class="profile-switcher__item-main">
           <view class="profile-switcher__item-name" style="font-size:{{fs.body}}">{{item.name || '未命名档案'}}</view>
-          <view class="profile-switcher__item-relation" style="font-size:{{fs.secondary}}">{{item.displayRelation}}</view>
+          <view class="profile-switcher__item-relation" style="font-size:{{fs.secondary}}; margin-top: {{fs.spaceXS}};">{{item.displayRelation}}</view>
         </view>
         <view wx:if="{{currentProfileId === item._id}}" class="profile-switcher__item-mark" style="font-size:{{fs.caption}}">当前</view>
       </view>
     </scroll-view>
 
-    <button class="btn-primary profile-switcher__create" style="font-size:{{fs.button}}" bindtap="handleCreateProfile">
+    <button class="btn-primary profile-switcher__create" style="font-size:{{fs.button}}; margin-top: {{fs.spaceLG}};" bindtap="handleCreateProfile">
       + 新建档案
     </button>
 

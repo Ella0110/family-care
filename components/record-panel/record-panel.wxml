@@ -30,15 +30,15 @@
     </view>
   </view>
 
-  <view class="record-panel__sheet" catchtap="noop">
+  <view class="record-panel__sheet" catchtap="noop" style="padding: {{fs.spaceLG}} {{fs.spaceXL}} calc(env(safe-area-inset-bottom) + {{fs.spaceMD}});">
     <view class="record-panel__grabber"></view>
 
-    <view class="record-panel__header">
+    <view class="record-panel__header" style="margin-bottom: {{fs.spaceXL}};">
       <view class="record-panel__title" style="font-size:{{fs.title}}">{{panelTitle}}</view>
       <view class="record-panel__close" style="font-size:{{fs.title}}" bindtap="handleClose">×</view>
     </view>
 
-    <view class="record-panel__metrics">
+    <view class="record-panel__metrics" style="gap: {{fs.spaceMD}};">
       <view
         class="record-panel__metric {{activeField !== 'systolic' ? 'record-panel__metric--inactive' : ''}} {{shakingFields.systolic ? 'error-shake' : ''}}"
         data-field="systolic"
@@ -76,9 +76,9 @@
       </view>
     </view>
 
-    <view class="record-panel__time-row {{fieldErrors.measuredAt ? 'is-error' : ''}}">
+    <view class="record-panel__time-row {{fieldErrors.measuredAt ? 'is-error' : ''}}" style="margin-top: {{fs.spaceXL}}; padding: {{fs.spaceLG}} {{fs.spaceLG}};">
       <view class="record-panel__time-label" style="font-size:{{fs.body}}">测量时间</view>
-      <view class="record-panel__time-actions">
+      <view class="record-panel__time-actions" style="gap: {{fs.spaceMD}};">
         <picker
           mode="date"
           value="{{form.measuredDate}}"
@@ -103,12 +103,12 @@
       </view>
     </view>
 
-    <view wx:if="{{errorText}}" class="record-panel__error-banner">
+    <view wx:if="{{errorText}}" class="record-panel__error-banner" style="gap: {{fs.spaceSM}}; margin-top: {{fs.spaceLG}}; padding: {{fs.spaceMD}} {{fs.spaceLG}};">
       <text class="record-panel__error-icon" style="font-size:{{fs.label}}">!</text>
       <text class="record-panel__error-text" style="font-size:{{fs.label}}">{{errorText}}</text>
     </view>
 
-    <view class="record-panel__keypad">
+    <view class="record-panel__keypad" style="gap: {{fs.spaceMD}}; margin-top: {{fs.spaceLG}};">
       <view
         wx:for="{{keypadKeys}}"
         wx:key="value"
@@ -129,7 +129,7 @@
       </view>
     </view>
 
-    <view class="record-panel__actions">
+    <view class="record-panel__actions" style="margin-top: {{fs.spaceLG}};">
       <button
         class="record-panel__save"
         style="font-size:{{fs.button}}"
@@ -143,7 +143,7 @@
       <view
         wx:if="{{isEditMode}}"
         class="record-panel__delete"
-        style="font-size:{{fs.body}}"
+        style="font-size:{{fs.body}}; margin-top: {{fs.spaceLG}};"
         bindtap="handleDelete"
       >
         删除记录
