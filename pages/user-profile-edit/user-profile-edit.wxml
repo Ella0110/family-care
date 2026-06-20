@@ -1,7 +1,7 @@
 <view class="page page-root">
   <view class="profile-edit-shell">
-    <view class="profile-edit-card">
-      <view class="profile-edit-section profile-edit-section--avatar">
+    <view class="profile-edit-card" style="padding: {{fs.space2XL}};">
+      <view class="profile-edit-section profile-edit-section--avatar" style="margin-bottom: {{fs.space2XL}};">
         <view wx:if="{{form.avatarUrl}}" class="profile-edit-avatar profile-edit-avatar--image" style="font-size:{{fs.title}}">
           <image class="profile-edit-avatar__image" src="{{form.avatarUrl}}" mode="aspectFill" />
         </view>
@@ -16,7 +16,7 @@
           class="profile-edit-avatar-link"
           open-type="chooseAvatar"
           bindchooseavatar="onChooseAvatar"
-          style="font-size:{{fs.body}}"
+          style="margin-top: {{fs.spaceXL}}; font-size:{{fs.body}}"
         >
           <block wx:if="{{form.avatarUrl}}">更换头像</block>
           <block wx:else>添加头像</block>
@@ -35,21 +35,21 @@
           placeholder="请输入昵称"
           value="{{form.nickname}}"
           bindinput="onNicknameInput"
-          style="font-size:{{fs.body}}"
+          style="margin-top: {{fs.spaceMD}}; font-size:{{fs.body}}"
         />
       </view>
 
-      <view wx:if="{{errorText}}" class="profile-edit-error" style="font-size:{{fs.secondary}}">{{errorText}}</view>
+      <view wx:if="{{errorText}}" class="profile-edit-error" style="margin-top: {{fs.spaceLG}}; font-size:{{fs.secondary}}">{{errorText}}</view>
     </view>
   </view>
 
-  <view class="profile-edit-save-bar">
+  <view class="profile-edit-save-bar" style="margin: {{fs.spaceXL}} 56rpx 0;">
     <button
       class="profile-edit-save"
       bindtap="handleSave"
       loading="{{isSaving}}"
       disabled="{{isSaving}}"
-      style="font-size:{{fs.body}}">
+      style="padding: {{fs.spaceLG}} {{fs.spaceXL}}; font-size:{{fs.body}}">
       保存修改
     </button>
   </view>

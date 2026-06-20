@@ -1,22 +1,22 @@
 <view class="page">
   <view class="card threshold-card">
     <view class="threshold-card__title" style="font-size:{{fs.title}}">高压阈值</view>
-    <view class="threshold-stepper">
+    <view class="threshold-stepper" style="margin-top: {{fs.spaceLG}}; gap: {{fs.spaceLG}};">
       <button class="threshold-stepper__button" bindtap="handleAdjustSystolic" data-delta="-5" style="font-size:{{fs.title}}">-</button>
       <view class="threshold-stepper__value" style="font-size:{{fs.hero}}">{{systolicThreshold}}</view>
       <button class="threshold-stepper__button" bindtap="handleAdjustSystolic" data-delta="5" style="font-size:{{fs.title}}">+</button>
     </view>
-    <view class="threshold-card__help">超过此值视为偏高，会触发健康提醒</view>
+    <view class="threshold-card__help" style="margin-top: {{fs.spaceMD}}; font-size:{{fs.body}}">超过此值视为偏高，会触发健康提醒</view>
   </view>
 
   <view class="card threshold-card">
     <view class="threshold-card__title" style="font-size:{{fs.title}}">低压阈值</view>
-    <view class="threshold-stepper">
+    <view class="threshold-stepper" style="margin-top: {{fs.spaceLG}}; gap: {{fs.spaceLG}};">
       <button class="threshold-stepper__button" bindtap="handleAdjustDiastolic" data-delta="-5" style="font-size:{{fs.title}}">-</button>
       <view class="threshold-stepper__value" style="font-size:{{fs.hero}}">{{diastolicThreshold}}</view>
       <button class="threshold-stepper__button" bindtap="handleAdjustDiastolic" data-delta="5" style="font-size:{{fs.title}}">+</button>
     </view>
-    <view class="threshold-card__help">超过此值视为偏高，会触发健康提醒</view>
+    <view class="threshold-card__help" style="margin-top: {{fs.spaceMD}}; font-size:{{fs.body}}">超过此值视为偏高，会触发健康提醒</view>
   </view>
 
   <view class="card threshold-card threshold-card--info">
@@ -24,11 +24,11 @@
     <view class="threshold-card__info-text" style="font-size:{{fs.body}}">血压分级标准由系统按医学指南判断，不可调整。</view>
   </view>
 
-  <view wx:if="{{errorText}}" class="threshold-error" style="font-size:{{fs.body}}">{{errorText}}</view>
+  <view wx:if="{{errorText}}" class="threshold-error" style="margin-top: {{fs.spaceLG}}; font-size:{{fs.body}}">{{errorText}}</view>
 
-  <view class="threshold-actions">
-    <view class="threshold-actions__hint" style="font-size:{{fs.body}}">定时提醒功能即将上线，敬请期待</view>
-    <button class="btn-primary threshold-actions__button" bindtap="handleSave" loading="{{isSaving}}" disabled="true">保存</button>
-    <button class="btn-secondary threshold-actions__button" bindtap="handleRestoreDefault" disabled="{{isSaving}}">恢复默认</button>
+  <view class="threshold-actions" style="margin-top: {{fs.spaceXL}};">
+    <view class="threshold-actions__hint" style="margin-bottom: {{fs.spaceLG}}; font-size:{{fs.body}}">定时提醒功能即将上线，敬请期待</view>
+    <button class="btn-primary threshold-actions__button" bindtap="handleSave" loading="{{isSaving}}" disabled="true" style="padding: {{fs.spaceLG}} {{fs.spaceXL}}; font-size:{{fs.button}}">保存</button>
+    <button class="btn-secondary threshold-actions__button" bindtap="handleRestoreDefault" disabled="{{isSaving}}" style="padding: {{fs.spaceLG}} {{fs.spaceXL}}; font-size:{{fs.button}}">恢复默认</button>
   </view>
 </view>

@@ -62,6 +62,10 @@ const MEMBER_ROLE_ORDER = {
   viewer: 2,
 };
 
+const UI_COLORS = {
+  danger: '#FF3B30',
+};
+
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
@@ -202,7 +206,7 @@ function confirmDisableMemberAlert(nickname) {
       content: `关闭后，${safeName} 将不再收到血压异常提醒。`,
       confirmText: '确认关闭',
       cancelText: '取消',
-      confirmColor: '#b42318',
+      confirmColor: UI_COLORS.danger,
       success(result) {
         resolve(Boolean(result && result.confirm));
       },

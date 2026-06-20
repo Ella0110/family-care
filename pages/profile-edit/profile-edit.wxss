@@ -1,5 +1,5 @@
 .page {
-  background: #f2f2f7;
+  background: var(--bg-page);
 }
 
 .profile-edit-page {
@@ -11,7 +11,7 @@
 }
 
 .profile-edit__title {
-  color: #0f172a;
+  color: var(--text-primary);
   font-size: 36rpx;
   font-weight: 800;
   line-height: 1.35;
@@ -19,25 +19,27 @@
 
 .profile-edit__subtitle {
   margin-top: 16rpx;
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-size: 26rpx;
   line-height: 1.65;
 }
 
 .profile-edit__form {
   padding: 40rpx 32rpx;
-  border-radius: 32rpx;
-  background: #ffffff;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-card);
 }
 
 .profile-edit__form--create {
   padding: 48rpx;
-  border-radius: 32rpx;
+  border-radius: var(--radius-lg);
+  /* 保留玻璃态背景，不收敛为标准卡片 */
   background: rgba(255, 255, 255, 0.7);
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
-  box-shadow: 0 8px 32px rgba(49, 130, 247, 0.08);
+  /* 保留玻璃态 glow，不走 shadow token */
+  box-shadow: 0 16rpx 64rpx rgba(49, 130, 247, 0.08);
 }
 
 .form-item + .form-item {
@@ -50,14 +52,14 @@
 
 .form-label {
   margin-bottom: 16rpx;
-  color: #334155;
+  color: var(--text-secondary);
   font-size: 30rpx;
   font-weight: 700;
   line-height: 1.5;
 }
 
 .form-required {
-  color: #ff3b30;
+  color: var(--color-danger);
 }
 
 .form-input,
@@ -67,10 +69,10 @@
   width: 100%;
   min-height: 96rpx;
   padding: 20rpx 28rpx;
-  border: 1px solid #e2e8f0;
-  border-radius: 16rpx;
-  background: #f8fafc;
-  color: #0f172a;
+  border: 2rpx solid var(--border-light);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  color: var(--text-primary);
   font-size: 30rpx;
   line-height: 1.45;
 }
@@ -94,7 +96,7 @@
 
 .form-picker--empty,
 .form-placeholder {
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .form-textarea {
@@ -104,7 +106,7 @@
 
 .form-help {
   margin-top: 10rpx;
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-size: 22rpx;
   line-height: 1.5;
 }
@@ -122,42 +124,42 @@
   justify-content: center;
   min-height: 88rpx;
   padding: 16rpx 32rpx;
-  border-radius: 16rpx;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-  color: #475569;
+  border-radius: var(--radius-sm);
+  border: 2rpx solid var(--border-light);
+  background: var(--bg-input);
+  color: var(--text-secondary);
   font-size: 30rpx;
   font-weight: 700;
   box-sizing: border-box;
 }
 
 .gender-option--active {
-  border-color: #3478f6;
-  background: #3478f6;
-  color: #ffffff;
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--text-on-primary);
 }
 
 .profile-edit__progress {
   padding: 24rpx;
-  border-radius: 24rpx;
-  background: #f8fafc;
+  border-radius: var(--radius-md);
+  background: var(--bg-input);
 }
 
 .profile-edit__progress-title {
-  color: #0f172a;
+  color: var(--text-primary);
   font-size: 30rpx;
   font-weight: 800;
 }
 
 .profile-edit__progress-item {
   margin-top: 12rpx;
-  color: #64748b;
+  color: var(--text-secondary);
   font-size: 26rpx;
   line-height: 1.6;
 }
 
 .profile-edit__progress-item.is-completed {
-  color: #3478f6;
+  color: var(--text-link);
 }
 
 .profile-edit__actions {
@@ -172,7 +174,7 @@
   width: 100%;
   min-height: 96rpx;
   padding: 24rpx 32rpx;
-  border-radius: 24rpx;
+  border-radius: var(--radius-md);
   font-size: 32rpx;
   font-weight: 700;
   line-height: 1.4;
@@ -180,7 +182,7 @@
 }
 
 .profile-edit__button--create {
-  box-shadow: 0 8px 24px rgba(49, 130, 247, 0.3);
+  box-shadow: var(--shadow-button);
 }
 
 .profile-edit__button + .profile-edit__button {
@@ -190,7 +192,7 @@
 .profile-edit__button--ghost {
   min-height: 72rpx;
   background: transparent;
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-size: 26rpx;
   font-weight: 600;
   box-shadow: none;

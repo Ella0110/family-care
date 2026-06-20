@@ -1,34 +1,34 @@
 <view class="page page-root">
   <view class="settings-group settings-group--first">
-    <view class="settings-group__title" style="font-size:{{fs.label}}">我的资料</view>
-    <view class="settings-card">
-      <view class="settings-profile">
+    <view class="settings-group__title" style="margin: 0 0 {{fs.spaceMD}}; font-size:{{fs.label}}">我的资料</view>
+    <view class="settings-card" style="padding: {{fs.spaceXL}};">
+      <view class="settings-profile" style="gap: {{fs.spaceLG}};">
         <view wx:if="{{profileSummary.avatarUrl}}" class="settings-profile__avatar settings-profile__avatar--image" style="font-size:{{fs.body}}">
           <image class="settings-profile__avatar-image" src="{{profileSummary.avatarUrl}}" mode="aspectFill" />
         </view>
         <view wx:else class="settings-profile__avatar" style="font-size:{{fs.body}}">{{profileSummary.avatarFallback}}</view>
 
         <view class="settings-profile__body">
-          <view class="settings-profile__row">
+          <view class="settings-profile__row" style="gap: {{fs.spaceMD}};">
             <view class="settings-profile__headline" style="font-size:{{fs.body}}">{{profileSummary.nickname}}</view>
             <view class="settings-profile__link" bindtap="handleOpenUserProfileEdit" style="font-size:{{fs.body}}">修改</view>
           </view>
-          <view class="settings-profile__hint" style="font-size:{{fs.caption}}">邀请家人时会显示这个昵称</view>
+          <view class="settings-profile__hint" style="margin-top: {{fs.spaceXS}}; font-size:{{fs.caption}}">邀请家人时会显示这个昵称</view>
         </view>
       </view>
     </view>
   </view>
 
   <view class="settings-group">
-    <view class="settings-group__title" style="font-size:{{fs.label}}">提醒与通知</view>
-    <view class="settings-card">
-      <view class="settings-notify-row">
+    <view class="settings-group__title" style="margin: 0 0 {{fs.spaceMD}}; font-size:{{fs.label}}">提醒与通知</view>
+    <view class="settings-card" style="padding: {{fs.spaceXL}};">
+      <view class="settings-notify-row" style="gap: {{fs.spaceLG}};">
         <view class="settings-notify-row__body">
           <view class="settings-notify-row__title" style="font-size:{{fs.body}}">异常血压通知</view>
           <view class="settings-notify-row__desc" style="font-size:{{fs.caption}}">超过阈值时通知已选择成员</view>
         </view>
         <switch
-          color="#3182F7"
+          color="#007AFF"
           checked="{{currentSubscribeAlerts}}"
           disabled="{{!currentRelationshipId}}"
           bindchange="handleToggleCurrentAlert"
@@ -57,9 +57,9 @@
       <block wx:if="{{hasProfile && isOwnerProfile}}">
         <view class="settings-stepper-block settings-stepper-block--split">
           <view class="settings-stepper-block__title" style="font-size:{{fs.body}}">高压超过多少提醒</view>
-          <view class="settings-stepper-block__row">
+          <view class="settings-stepper-block__row" style="margin-top: {{fs.spaceMD}}; gap: {{fs.spaceMD}};">
             <view class="settings-stepper-block__label" style="font-size:{{fs.caption}}">高压（mmHg）</view>
-            <view class="settings-stepper">
+            <view class="settings-stepper" style="gap: {{fs.spaceMD}};">
               <view
                 class="settings-stepper__button {{thresholdSystolic <= thresholdSystolicMin ? 'settings-stepper__button--disabled' : ''}}"
                 data-field="systolic"
@@ -81,9 +81,9 @@
 
         <view class="settings-stepper-block settings-stepper-block--split">
           <view class="settings-stepper-block__title" style="font-size:{{fs.body}}">低压超过多少提醒</view>
-          <view class="settings-stepper-block__row">
+          <view class="settings-stepper-block__row" style="margin-top: {{fs.spaceMD}}; gap: {{fs.spaceMD}};">
             <view class="settings-stepper-block__label" style="font-size:{{fs.caption}}">低压（mmHg）</view>
-            <view class="settings-stepper">
+            <view class="settings-stepper" style="gap: {{fs.spaceMD}};">
               <view
                 class="settings-stepper__button {{thresholdDiastolic <= thresholdDiastolicMin ? 'settings-stepper__button--disabled' : ''}}"
                 data-field="diastolic"
@@ -103,7 +103,7 @@
       </block>
 
       <block wx:elif="{{hasProfile}}">
-        <view class="settings-threshold-readonly">
+        <view class="settings-threshold-readonly" style="gap: {{fs.spaceXS}};">
           <view class="settings-threshold-readonly__value" style="font-size:{{fs.body}}">
             当前提醒阈值：高压 {{thresholdSystolic}} / 低压 {{thresholdDiastolic}} mmHg
           </view>
@@ -116,12 +116,12 @@
   </view>
 
   <view wx:if="{{showReferenceLineSettings}}" class="settings-group">
-    <view class="settings-group__title" style="font-size:{{fs.label}}">血压参考线（mmHg）</view>
-    <view class="settings-card">
+    <view class="settings-group__title" style="margin: 0 0 {{fs.spaceMD}}; font-size:{{fs.label}}">血压参考线（mmHg）</view>
+    <view class="settings-card" style="padding: {{fs.spaceXL}};">
       <view wx:if="{{hasProfile}}" class="settings-reference-grid">
         <view class="settings-reference-grid__column">
           <view class="settings-reference-grid__label" style="font-size:{{fs.label}}">高压</view>
-          <view class="settings-stepper settings-stepper--stacked">
+          <view class="settings-stepper settings-stepper--stacked" style="gap: {{fs.spaceMD}};">
             <view
               class="settings-stepper__button {{referenceSystolicElevated <= referenceSystolicMin ? 'settings-stepper__button--disabled' : ''}}"
               data-field="systolicElevated"
@@ -140,7 +140,7 @@
 
         <view class="settings-reference-grid__column">
           <view class="settings-reference-grid__label" style="font-size:{{fs.label}}">低压</view>
-          <view class="settings-stepper settings-stepper--stacked">
+          <view class="settings-stepper settings-stepper--stacked" style="gap: {{fs.spaceMD}};">
             <view
               class="settings-stepper__button {{referenceDiastolicElevated <= referenceDiastolicMin ? 'settings-stepper__button--disabled' : ''}}"
               data-field="diastolicElevated"
@@ -163,12 +163,12 @@
   </view>
 
   <view wx:if="{{showReferenceLineSettings}}" class="settings-group">
-    <view class="settings-group__title" style="font-size:{{fs.label}}">心率参考线（次/分）</view>
-    <view class="settings-card">
+    <view class="settings-group__title" style="margin: 0 0 {{fs.spaceMD}}; font-size:{{fs.label}}">心率参考线（次/分）</view>
+    <view class="settings-card" style="padding: {{fs.spaceXL}};">
       <view wx:if="{{hasProfile}}" class="settings-reference-grid">
         <view class="settings-reference-grid__column">
           <view class="settings-reference-grid__label" style="font-size:{{fs.label}}">下限</view>
-          <view class="settings-stepper settings-stepper--stacked">
+          <view class="settings-stepper settings-stepper--stacked" style="gap: {{fs.spaceMD}};">
             <view
               class="settings-stepper__button {{hrReferenceLow <= hrLowMin ? 'settings-stepper__button--disabled' : ''}}"
               data-field="low"
@@ -187,7 +187,7 @@
 
         <view class="settings-reference-grid__column">
           <view class="settings-reference-grid__label" style="font-size:{{fs.label}}">上限</view>
-          <view class="settings-stepper settings-stepper--stacked">
+          <view class="settings-stepper settings-stepper--stacked" style="gap: {{fs.spaceMD}};">
             <view
               class="settings-stepper__button {{hrReferenceHigh <= hrHighMin ? 'settings-stepper__button--disabled' : ''}}"
               data-field="high"
@@ -210,11 +210,11 @@
   </view>
 
   <view class="settings-group">
-    <view class="settings-group__title" style="font-size:{{fs.label}}">显示偏好</view>
-    <view class="settings-card">
+    <view class="settings-group__title" style="margin: 0 0 {{fs.spaceMD}}; font-size:{{fs.label}}">显示偏好</view>
+    <view class="settings-card" style="padding: {{fs.spaceXL}};">
       <view class="settings-font-row">
         <view class="settings-font-row__title" style="font-size:{{fs.body}}">字体大小</view>
-        <view class="font-scale-control">
+        <view class="font-scale-control" style="padding: {{fs.spaceXS}};">
           <view
             wx:for="{{fontScaleOptions}}"
             wx:key="value"
@@ -230,11 +230,11 @@
   </view>
 
   <view class="settings-group settings-group--last">
-    <view class="settings-group__title" style="font-size:{{fs.label}}">关于</view>
-    <view class="settings-card">
+    <view class="settings-group__title" style="margin: 0 0 {{fs.spaceMD}}; font-size:{{fs.label}}">关于</view>
+    <view class="settings-card" style="padding: {{fs.spaceXL}};">
       <view class="settings-about__name" style="font-size:{{fs.body}}">来自儿女的关心</view>
       <view class="settings-about__version" style="font-size:{{fs.caption}}">Version 1.0.0 (Build 2026.0418)</view>
-      <view class="settings-about__privacy" bindtap="handleOpenPrivacyContract">隐私保护指引 ></view>
+      <view class="settings-about__privacy" bindtap="handleOpenPrivacyContract" style="font-size:{{fs.caption}}">隐私保护指引 ></view>
     </view>
   </view>
 
@@ -245,7 +245,7 @@
   ></view>
   <view wx:if="{{isMemberSheetVisible}}" class="settings-sheet">
     <view class="settings-sheet__handle"></view>
-    <view class="settings-sheet__header">
+    <view class="settings-sheet__header" style="margin-top: {{fs.spaceLG}}; gap: {{fs.spaceMD}};">
       <view class="settings-sheet__title" style="font-size:{{fs.caption}}">通知对象</view>
       <view class="settings-sheet__close" bindtap="handleCloseMemberSheet" style="font-size:{{fs.secondary}}">关闭</view>
     </view>
@@ -261,7 +261,7 @@
         wx:key="relationshipId"
         class="settings-sheet__item"
       >
-        <view class="settings-sheet__member">
+        <view class="settings-sheet__member" style="gap: {{fs.spaceMD}};">
           <view wx:if="{{item.avatarUrl}}" class="settings-sheet__avatar settings-sheet__avatar--image" style="font-size:{{fs.body}}">
             <image class="settings-sheet__avatar-image" src="{{item.avatarUrl}}" mode="aspectFill" />
           </view>
@@ -270,12 +270,12 @@
           <view class="settings-sheet__member-body">
             <view class="settings-sheet__member-name" style="font-size:{{fs.body}}">{{item.isSelf ? '我' : item.nickname}}</view>
             <view class="settings-sheet__member-role" style="font-size:{{fs.caption}}">{{item.role === 'owner' ? '管理员' : item.role === 'collaborator' ? '共同记录' : '仅查看'}}</view>
-            <view wx:if="{{item.subscribeAlerts && item.subscribeAuthStatus === 'pending'}}" class="settings-sheet__member-status-pending">等待对方确认</view>
+            <view wx:if="{{item.subscribeAlerts && item.subscribeAuthStatus === 'pending'}}" class="settings-sheet__member-status-pending" style="font-size:{{fs.caption}}">等待对方确认</view>
           </view>
         </view>
 
         <switch
-          color="#3182F7"
+          color="#007AFF"
           checked="{{item.subscribeAlerts}}"
           disabled="{{item.updating}}"
           data-relationship-id="{{item.relationshipId}}"

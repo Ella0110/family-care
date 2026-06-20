@@ -3,7 +3,7 @@
 }
 
 .threshold-card__title {
-  color: #111827;
+  color: var(--text-primary);
   font-size: 36rpx;
   font-weight: 800;
   line-height: 1.35;
@@ -12,13 +12,13 @@
 .threshold-card__help,
 .threshold-card__info-text {
   margin-top: 16rpx;
-  color: #4b5563;
+  color: var(--text-secondary);
   font-size: 30rpx;
   line-height: 1.6;
 }
 
 .threshold-card__info-title {
-  color: #1e3a8a;
+  color: var(--color-primary);
   font-size: 30rpx;
   font-weight: 700;
   line-height: 1.5;
@@ -37,9 +37,9 @@
   min-height: 88rpx;
   margin: 0;
   padding: 20rpx;
-  border-radius: 999rpx;
-  background: #dbeafe;
-  color: #1d4ed8;
+  border-radius: var(--radius-pill);
+  background: var(--bg-primary-light);
+  color: var(--color-primary);
   font-size: 36rpx;
   font-weight: 700;
   line-height: 1.2;
@@ -52,7 +52,7 @@
 
 .threshold-stepper__value {
   min-width: 120rpx;
-  color: #111827;
+  color: var(--text-primary);
   font-size: 56rpx;
   font-weight: 800;
   text-align: center;
@@ -60,7 +60,7 @@
 
 .threshold-error {
   margin-top: 24rpx;
-  color: #b42318;
+  color: var(--color-danger);
   font-size: 30rpx;
   line-height: 1.5;
 }
@@ -71,7 +71,7 @@
 
 .threshold-actions__hint {
   margin-bottom: 20rpx;
-  color: #8e8e93;
+  color: var(--text-secondary);
   font-size: 28rpx;
   line-height: 1.6;
   text-align: center;

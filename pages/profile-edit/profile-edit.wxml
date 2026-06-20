@@ -1,11 +1,11 @@
 <view class="page profile-edit-page">
-  <view class="profile-edit__header">
+  <view class="profile-edit__header" style="padding: {{fs.spaceMD}} 8rpx {{fs.space2XL}};">
     <view class="profile-edit__title" style="font-size:{{fs.title}}">{{pageTitle}}</view>
     <view class="profile-edit__subtitle" style="font-size:{{fs.secondary}}">{{pageSubtitle}}</view>
   </view>
 
   <block wx:if="{{!isEditMode}}">
-    <view class="card profile-edit__form profile-edit__form--create">
+    <view class="card profile-edit__form profile-edit__form--create" style="padding: {{fs.space2XL}};">
       <view class="form-item">
         <view class="form-label" style="font-size:{{fs.body}}">姓名 <text class="form-required">*</text></view>
         <input
@@ -23,7 +23,7 @@
       <view class="form-item">
         <view class="form-label" style="font-size:{{fs.body}}">与你的关系</view>
         <picker mode="selector" range="{{relationOptions}}" value="{{relationIndex}}" bindchange="onRelationChange">
-          <view class="form-picker {{relationPickerText ? '' : 'form-picker--empty'}}">
+          <view class="form-picker {{relationPickerText ? '' : 'form-picker--empty'}}" style="font-size:{{fs.body}}">
             {{relationPickerText || '请选择关系'}}
           </view>
         </picker>
@@ -41,26 +41,26 @@
       </view>
     </view>
 
-    <view class="profile-edit__actions profile-edit__actions--create">
+    <view class="profile-edit__actions profile-edit__actions--create" style="margin-top: {{fs.spaceXL}};">
       <button
         class="btn-primary profile-edit__button profile-edit__button--create"
         loading="{{isSaving}}"
         disabled="{{isSaving}}"
         bindtap="handleSubmit"
-       style="font-size:{{fs.button}}">
+       style="padding: {{fs.spaceLG}} {{fs.spaceXL}}; font-size:{{fs.button}}">
         {{saveButtonText}}
       </button>
       <button
         class="profile-edit__button profile-edit__button--ghost"
         disabled="{{isSaving}}"
         bindtap="handleCancel"
-       style="font-size:{{fs.button}}">
+       style="padding: {{fs.spaceMD}} {{fs.spaceXL}}; font-size:{{fs.button}}">
         取消
       </button>
     </view>
   </block>
 
-  <view wx:else class="card profile-edit__form">
+  <view wx:else class="card profile-edit__form" style="padding: {{fs.spaceXL}};">
       <view class="form-item">
         <view class="form-label" style="font-size:{{fs.body}}">姓名 <text class="form-required">*</text></view>
         <input
@@ -92,7 +92,7 @@
       <view class="form-item">
         <view class="form-label" style="font-size:{{fs.body}}">出生日期</view>
         <picker mode="date" value="{{form.birthDate}}" bindchange="onBirthDateChange">
-          <view class="form-picker {{form.birthDate ? '' : 'form-picker--empty'}}">
+          <view class="form-picker {{form.birthDate ? '' : 'form-picker--empty'}}" style="font-size:{{fs.body}}">
             {{form.birthDate || '请选择出生日期'}}
           </view>
         </picker>
@@ -145,6 +145,7 @@
           placeholder="可填写长期病史、测量注意事项等"
           placeholder-class="form-placeholder"
           bindinput="onNoteInput"
+          style="font-size:{{fs.body}}"
         />
         <view class="form-help" style="font-size:{{fs.caption}}">最多 200 个字</view>
       </view>
@@ -161,20 +162,20 @@
       </view>
   </view>
 
-  <view wx:if="{{isEditMode}}" class="profile-edit__actions">
+  <view wx:if="{{isEditMode}}" class="profile-edit__actions" style="margin-top: {{fs.spaceXL}};">
     <button
       class="btn-primary profile-edit__button"
       loading="{{isSaving}}"
       disabled="{{isSaving}}"
       bindtap="handleSubmit"
-     style="font-size:{{fs.button}}">
+     style="padding: {{fs.spaceLG}} {{fs.spaceXL}}; font-size:{{fs.button}}">
       {{saveButtonText}}
     </button>
     <button
       class="btn-secondary profile-edit__button"
       disabled="{{isSaving}}"
       bindtap="handleCancel"
-     style="font-size:{{fs.button}}">
+     style="padding: {{fs.spaceLG}} {{fs.spaceXL}}; font-size:{{fs.button}}">
       取消
     </button>
   </view>
