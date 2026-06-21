@@ -6,6 +6,9 @@ const { canWrite } = require('../../utils/permission-helpers');
 
 const DELETE_ACTION_WIDTH_RPX = 148;
 const DELETE_ACTION_THRESHOLD_RPX = 72;
+const UI_COLORS = Object.freeze({
+  danger: '#FF3B30',
+});
 
 function getCurrentFontScale() {
   const app = typeof getApp === 'function' ? getApp() : null;
@@ -407,7 +410,7 @@ Page({
       title: '确定删除这条用药？',
       content: '删除后无法恢复',
       confirmText: '删除',
-      confirmColor: '#ff3b30',
+      confirmColor: UI_COLORS.danger,
       cancelText: '取消',
     });
 

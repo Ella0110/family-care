@@ -10,6 +10,10 @@ const {
   resolveMedicationOptionState,
 } = require('../../utils/medication');
 
+const UI_COLORS = Object.freeze({
+  danger: '#FF3B30',
+});
+
 function showToast(title, icon = 'none', duration = 1500) {
   wx.showToast({
     title,
@@ -410,7 +414,7 @@ Page({
       title: '确定删除这条用药？',
       content: '删除后无法恢复',
       confirmText: '删除',
-      confirmColor: '#ff3b30',
+      confirmColor: UI_COLORS.danger,
       cancelText: '取消',
     });
 

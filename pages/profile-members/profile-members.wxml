@@ -27,6 +27,7 @@
         wx:for="{{transferCandidates}}"
         wx:key="relationship._id"
         class="member-row {{selectedNewOwnerUserId === item.user._id ? 'member-row--selected' : ''}}"
+        style="min-height: 96rpx;"
         data-user-id="{{item.user._id}}"
         bindtap="handleSelectTransferCandidate"
       >
@@ -36,7 +37,7 @@
         </view>
         <view wx:else class="member-row__avatar" style="font-size:{{fs.body}}">{{item.avatarFallback}}</view>
         <view class="member-row__body">
-          <view class="member-row__top">
+          <view class="member-row__top" style="gap: {{fs.spaceSM}};">
             <view class="member-row__name" style="font-size:{{fs.body}}">{{item.user.nickname || '未命名'}}</view>
             <view class="member-row__badge" style="font-size:{{fs.caption}}">{{item.roleLabel}}</view>
           </view>
@@ -66,6 +67,7 @@
         wx:for="{{members}}"
         wx:key="relationship._id"
         class="member-row"
+        style="min-height: 96rpx;"
       >
         <view wx:if="{{item.user.avatarUrl}}" class="member-row__avatar member-row__avatar--image">
           <image class="member-row__avatar-image" src="{{item.user.avatarUrl}}" mode="aspectFill" />
@@ -73,7 +75,7 @@
         <view wx:else class="member-row__avatar" style="font-size:{{fs.body}}">{{item.avatarFallback}}</view>
 
         <view class="member-row__body">
-          <view class="member-row__top">
+          <view class="member-row__top" style="gap: {{fs.spaceSM}};">
             <view class="member-row__name" style="font-size:{{fs.body}}">
               {{item.user.nickname || '未命名'}}<text wx:if="{{item.isSelf}}">（你）</text>
             </view>

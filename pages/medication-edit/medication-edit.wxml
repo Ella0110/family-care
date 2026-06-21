@@ -1,13 +1,13 @@
 <view class="page medication-list-page">
   <view wx:if="{{errorText}}" class="card medication-list__state">
     <view class="medication-list__state-title" style="font-size:{{fs.title}}">暂时无法加载用药记录</view>
-    <view class="medication-list__state-text">{{errorText}}</view>
-    <button class="btn-secondary medication-list__retry" bindtap="handleRetry">重新加载</button>
+    <view class="medication-list__state-text" style="font-size:{{fs.secondary}}">{{errorText}}</view>
+    <button class="btn-secondary medication-list__retry" bindtap="handleRetry" style="font-size:{{fs.button}}">重新加载</button>
   </view>
 
   <view wx:elif="{{isLoading && !hasLoadedOnce}}" class="card medication-list__state">
     <view class="medication-list__state-title" style="font-size:{{fs.title}}">正在读取用药...</view>
-    <view class="medication-list__state-text">稍等一下，马上就好。</view>
+    <view class="medication-list__state-text" style="font-size:{{fs.secondary}}">稍等一下，马上就好。</view>
   </view>
 
   <block wx:elif="{{hasAnyMedication}}">
@@ -41,7 +41,7 @@
           >
             <view class="medication-card__content">
               <view class="medication-card__title" style="font-size:{{fs.body}}">{{item.drug}}</view>
-              <view class="medication-card__meta">{{item.summaryText}}</view>
+              <view class="medication-card__meta" style="font-size:{{fs.secondary}}">{{item.summaryText}}</view>
               <view class="medication-card__timing" style="font-size:{{fs.secondary}}">{{item.timingText}}</view>
             </view>
             <view wx:if="{{canWriteCurrentProfile}}" class="medication-card__arrow" style="font-size:{{fs.title}}">›</view>
@@ -80,7 +80,7 @@
           >
             <view class="medication-card__content">
               <view class="medication-card__title" style="font-size:{{fs.body}}">{{item.drug}}</view>
-              <view class="medication-card__meta">{{item.summaryText}}</view>
+              <view class="medication-card__meta" style="font-size:{{fs.secondary}}">{{item.summaryText}}</view>
               <view class="medication-card__timing" style="font-size:{{fs.secondary}}">{{item.timingText}}</view>
             </view>
             <view wx:if="{{canWriteCurrentProfile}}" class="medication-card__arrow" style="font-size:{{fs.title}}">›</view>
@@ -97,6 +97,7 @@
       wx:if="{{canWriteCurrentProfile}}"
       class="btn-primary medication-empty__button"
       bindtap="handleCreateMedication"
+      style="font-size:{{fs.button}}"
     >
       添加用药
     </button>

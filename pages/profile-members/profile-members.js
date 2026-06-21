@@ -24,6 +24,10 @@ const ROLE_ORDER = {
   viewer: 2,
 };
 
+const UI_COLORS = Object.freeze({
+  danger: '#FF3B30',
+});
+
 function getCurrentFontScale() {
   const app = typeof getApp === 'function' ? getApp() : null;
   return normalizeFontScale(app && app.globalData ? app.globalData.fontScale : DEFAULT_FONT_SCALE);
@@ -539,7 +543,7 @@ Page({
         title: `确定将管理员转让给「${candidate.user.nickname || '该成员'}」？`,
         content: '此操作不可撤销',
         confirmText: '确定转让',
-        confirmColor: '#b42318',
+        confirmColor: UI_COLORS.danger,
         success: resolve,
         fail() {
           resolve({ confirm: false, cancel: true });
@@ -730,7 +734,7 @@ Page({
         title: `确定移除「${member.user.nickname || '该成员'}」？`,
         content: '移除后对方将无法继续查看本档案',
         confirmText: '确定移除',
-        confirmColor: '#b42318',
+        confirmColor: UI_COLORS.danger,
         success: resolve,
         fail() {
           resolve({ confirm: false, cancel: true });

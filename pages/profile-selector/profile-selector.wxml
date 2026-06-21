@@ -1,45 +1,46 @@
 <view class="profile-selector-page">
   <view class="profile-selector-page__safe-top" style="height: {{statusBarInsetTop}}px;"></view>
 
-  <view class="profile-selector-page__header">
-    <view class="profile-selector-page__title">选择要查看的档案</view>
-    <view class="profile-selector-page__subtitle">首次进入时先选一个，之后可在顶部随时切换。</view>
+  <view class="profile-selector-page__header" style="padding: 0 {{fs.spaceXL}}; margin-bottom: {{fs.spaceXL}};">
+    <view class="profile-selector-page__title" style="font-size:{{fs.title}}">选择要查看的档案</view>
+    <view class="profile-selector-page__subtitle" style="margin-top: {{fs.spaceSM}}; font-size:{{fs.secondary}}">首次进入时先选一个，之后可在顶部随时切换。</view>
   </view>
 
-  <view wx:if="{{isLoading}}" class="profile-selector-page__loading">正在准备档案信息...</view>
+  <view wx:if="{{isLoading}}" class="profile-selector-page__loading" style="margin: 0 {{fs.spaceXL}} {{fs.spaceLG}}; font-size:{{fs.label}}">正在准备档案信息...</view>
 
-  <view class="profile-selector-page__list">
+  <view class="profile-selector-page__list" style="gap: {{fs.spaceLG}};">
     <view
       wx:for="{{cards}}"
       wx:key="_id"
       class="profile-selector-card"
+      style="margin: 0 {{fs.spaceXL}}; padding: {{fs.spaceXL}};"
       data-profile-id="{{item._id}}"
       bindtap="handleSelectProfile"
     >
-      <view class="profile-selector-card__top">
-        <view class="profile-selector-card__identity">
-          <view class="profile-selector-card__avatar" style="background: {{item.avatarColor}};">{{item.avatarText}}</view>
+      <view class="profile-selector-card__top" style="gap: {{fs.spaceLG}};">
+        <view class="profile-selector-card__identity" style="gap: {{fs.spaceMD}};">
+          <view class="profile-selector-card__avatar" style="background: {{item.avatarColor}}; font-size:{{fs.button}};">{{item.avatarText}}</view>
           <view class="profile-selector-card__main">
-            <view class="profile-selector-card__name-row">
-              <view class="profile-selector-card__name">{{item.nameText}}</view>
-              <view wx:if="{{showCurrentBadge && item.isCurrent}}" class="profile-selector-card__current">当前</view>
+            <view class="profile-selector-card__name-row" style="gap: {{fs.spaceSM}};">
+              <view class="profile-selector-card__name" style="font-size:{{fs.button}}">{{item.nameText}}</view>
+              <view wx:if="{{showCurrentBadge && item.isCurrent}}" class="profile-selector-card__current" style="font-size:{{fs.caption}}">当前</view>
             </view>
-            <view class="profile-selector-card__relation">{{item.displayRelation}}</view>
+            <view class="profile-selector-card__relation" style="margin-top: {{fs.spaceXS}}; font-size:{{fs.caption}}">{{item.displayRelation}}</view>
           </view>
         </view>
-        <view class="profile-selector-card__meta">
-          <view class="profile-selector-card__time">{{item.latestMeasuredAtText}}</view>
-          <view class="profile-selector-card__arrow">></view>
+        <view class="profile-selector-card__meta" style="gap: {{fs.spaceXS}};">
+          <view class="profile-selector-card__time" style="font-size:{{fs.caption}}">{{item.latestMeasuredAtText}}</view>
+          <view class="profile-selector-card__arrow" style="font-size:{{fs.caption}}">></view>
         </view>
       </view>
 
-      <view class="profile-selector-card__bottom">
-        <view wx:if="{{item.statusText}}" class="profile-selector-card__bp-row">
-          <view class="profile-selector-card__value">{{item.latestValueText}}</view>
-          <view class="profile-selector-card__unit">mmHg</view>
-          <view class="profile-selector-card__status {{item.statusClassName}}">{{item.statusText}}</view>
+      <view class="profile-selector-card__bottom" style="margin-top: {{fs.spaceLG}};">
+        <view wx:if="{{item.statusText}}" class="profile-selector-card__bp-row" style="gap: {{fs.spaceSM}};">
+          <view class="profile-selector-card__value" style="font-size:{{fs.title}}">{{item.latestValueText}}</view>
+          <view class="profile-selector-card__unit" style="font-size:{{fs.caption}}">mmHg</view>
+          <view class="profile-selector-card__status {{item.statusClassName}}" style="font-size:{{fs.caption}}">{{item.statusText}}</view>
         </view>
-        <view wx:else class="profile-selector-card__empty">暂无记录</view>
+        <view wx:else class="profile-selector-card__empty" style="font-size:{{fs.secondary}}">暂无记录</view>
       </view>
     </view>
   </view>

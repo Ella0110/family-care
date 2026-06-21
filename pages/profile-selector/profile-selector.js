@@ -2,7 +2,9 @@ const { store } = require('../../store/index');
 const recordService = require('../../services/record-service');
 const { getBPStatusDisplay, getReferenceLines } = require('../../utils/bp-status');
 const { buildInvitationNicknameInitial } = require('../../utils/invitation');
+const { DEFAULT_FONT_SCALE, syncFontData } = require('../../utils/font-scale');
 
+/* 档案识别色，不走 design token */
 const AVATAR_COLORS = ['#DBEAFE', '#E0E7FF', '#DCFCE7', '#FCE7F3', '#FEF3C7', '#E0F2FE'];
 const PROFILE_SELECTOR_PADDING_TOP_FALLBACK = 20;
 
@@ -119,6 +121,8 @@ function buildCard(profile, latestRecord, lastSelectedProfileId, relationships) 
 
 Page({
   data: {
+    fontScale: DEFAULT_FONT_SCALE,
+    fs: {},
     statusBarInsetTop: PROFILE_SELECTOR_PADDING_TOP_FALLBACK,
     cards: [],
     isLoading: true,
@@ -127,12 +131,18 @@ Page({
 
   onLoad() {
     this.requestId = 0;
+    this.syncFontScale();
     this.initStatusBarInsetTop();
     this.loadProfiles();
   },
 
   onShow() {
+    this.syncFontScale();
     this.loadProfiles();
+  },
+
+  syncFontScale() {
+    syncFontData.call(this);
   },
 
   initStatusBarInsetTop() {

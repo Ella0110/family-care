@@ -1,5 +1,6 @@
 .members-page {
     padding: 32rpx 24rpx 48rpx;
+    background: var(--bg-page);
 }
 
 .members-header {
@@ -11,20 +12,20 @@
 
 .members-header__back {
     font-size: 30rpx;
-    color: #2457d6;
+    color: var(--text-link);
 }
 
 .members-header__title {
     font-size: 36rpx;
     font-weight: 700;
-    color: #111827;
+    color: var(--text-primary);
     line-height: 1.35;
 }
 
 .members-header__subtitle {
     margin-top: 6rpx;
     font-size: 22rpx;
-    color: #6b7280;
+    color: var(--text-secondary);
     line-height: 1.5;
 }
 
@@ -32,20 +33,23 @@
 .members-transfer__intro,
 .members-list {
     padding: 28rpx;
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
 }
 
 .members-state__title,
 .members-transfer__title {
     font-size: 36rpx;
     font-weight: 600;
-    color: #111827;
+    color: var(--text-primary);
 }
 
 .members-state__text,
 .members-transfer__text {
     margin-top: 12rpx;
     font-size: 26rpx;
-    color: #6b7280;
+    color: var(--text-secondary);
     line-height: 1.6;
 }
 
@@ -61,7 +65,7 @@
     align-items: flex-start;
     gap: 20rpx;
     padding: 24rpx 0;
-    border-bottom: 1rpx solid #eef2f7;
+    border-bottom: 1rpx solid var(--border-light);
 }
 
 .member-row:last-child {
@@ -75,7 +79,7 @@
 
 .member-row--selected {
     background: rgba(36, 87, 214, 0.06);
-    border-radius: 24rpx;
+    border-radius: var(--radius-md);
     margin: 0 -12rpx;
     padding: 24rpx 12rpx;
 }
@@ -83,16 +87,16 @@
 .member-row__choice {
     width: 28rpx;
     font-size: 30rpx;
-    color: #2457d6;
+    color: var(--text-link);
     line-height: 1.5;
 }
 
 .member-row__avatar {
     width: 72rpx;
     height: 72rpx;
-    border-radius: 50%;
-    background: #dbe5f6;
-    color: #2457d6;
+    border-radius: var(--radius-full);
+    background: var(--bg-primary-light);
+    color: var(--text-link);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -117,21 +121,27 @@
     justify-content: space-between;
     align-items: center;
     gap: 16rpx;
+    min-width: 0;
 }
 
 .member-row__name {
     font-size: 30rpx;
     font-weight: 600;
-    color: #111827;
+    color: var(--text-primary);
     line-height: 1.5;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .member-row__badge {
     flex-shrink: 0;
     padding: 8rpx 16rpx;
-    border-radius: 999rpx;
-    background: #eef4ff;
-    color: #2457d6;
+    border-radius: var(--radius-full);
+    background: var(--bg-primary-light);
+    color: var(--text-link);
     font-size: 22rpx;
     white-space: nowrap;
 }
@@ -139,7 +149,7 @@
 .member-row__meta {
     margin-top: 8rpx;
     font-size: 26rpx;
-    color: #6b7280;
+    color: var(--text-secondary);
     line-height: 1.5;
 }
 
@@ -153,13 +163,13 @@
 
 .member-row__alerts-label {
     font-size: 26rpx;
-    color: #4b5563;
+    color: var(--text-secondary);
 }
 
 .member-row__menu {
     padding: 4rpx 8rpx;
     font-size: 36rpx;
-    color: #6b7280;
+    color: var(--text-secondary);
     line-height: 1;
 }
 
@@ -191,12 +201,18 @@
     right: 24rpx;
     bottom: 24rpx;
     padding: 28rpx;
+    background: var(--bg-card);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: var(--shadow-sheet);
+    max-height: 85vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .members-role-dialog__title {
     font-size: 36rpx;
     font-weight: 700;
-    color: #111827;
+    color: var(--text-primary);
     margin-bottom: 20rpx;
 }
 
@@ -205,9 +221,9 @@
     align-items: center;
     gap: 16rpx;
     padding: 18rpx 0;
-    border-bottom: 1rpx solid #eef2f7;
+    border-bottom: 1rpx solid var(--border-light);
     font-size: 30rpx;
-    color: #111827;
+    color: var(--text-primary);
     line-height: 1.5;
 }
 
@@ -217,7 +233,7 @@
 
 .members-role-dialog__option--disabled {
     display: block;
-    color: #9ca3af;
+    color: var(--text-tertiary);
 }
 
 .members-role-dialog__hint {
@@ -228,7 +244,7 @@
 
 .members-role-dialog__radio {
     width: 28rpx;
-    color: #2457d6;
+    color: var(--text-link);
 }
 
 .members-role-dialog__actions {
@@ -271,12 +287,17 @@
     width: 85%;
     max-width: 640rpx;
     padding: 48rpx;
-    border-radius: 32rpx;
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-float);
     box-sizing: border-box;
+    max-height: 85vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .members-invite-dialog__title {
-    color: #0f172a;
+    color: var(--text-primary);
     font-size: 34rpx;
     font-weight: 700;
     line-height: 1.5;
@@ -285,7 +306,7 @@
 
 .members-invite-dialog__text {
     margin-top: 16rpx;
-    color: #94a3b8;
+    color: var(--text-secondary);
     font-size: 26rpx;
     line-height: 1.7;
     text-align: center;
@@ -296,17 +317,17 @@
     min-height: 96rpx;
     margin-top: 32rpx;
     padding: 20rpx 24rpx;
-    border-radius: 16rpx;
-    border: 2rpx solid #e2e8f0;
-    background: #f8fafc;
-    color: #0f172a;
+    border-radius: var(--radius-sm);
+    border: 2rpx solid var(--border-light);
+    background: var(--bg-input);
+    color: var(--text-primary);
     line-height: 1.5;
     box-sizing: border-box;
 }
 
 .members-invite-dialog__name {
     margin-top: 20rpx;
-    color: #0f172a;
+    color: var(--text-primary);
     font-size: 28rpx;
     font-weight: 600;
     line-height: 1.5;
@@ -317,9 +338,9 @@
     width: 100%;
     min-height: 96rpx;
     margin-top: 48rpx;
-    border-radius: 24rpx;
-    background: #3478f6;
-    color: #ffffff;
+    border-radius: var(--radius-md);
+    background: var(--color-primary);
+    color: var(--text-on-primary);
     font-size: 32rpx;
     font-weight: 700;
     line-height: 1.4;
@@ -327,6 +348,7 @@
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
+    box-shadow: var(--shadow-button);
 }
 
 .members-invite-dialog__share::after,
@@ -338,7 +360,7 @@
     margin-top: 24rpx;
     padding: 8rpx 0;
     background: transparent;
-    color: #94a3b8;
+    color: var(--text-secondary);
     font-size: 28rpx;
     font-weight: 500;
     line-height: 1.5;

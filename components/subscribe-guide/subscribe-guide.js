@@ -2,8 +2,14 @@ const {
   SUBSCRIBE_ALERT_TEMPLATE_ID,
   resolveSubscribeAlertStatus,
 } = require('../../utils/alert-subscription');
+const { DEFAULT_FONT_SCALE, syncFontData } = require('../../utils/font-scale');
 
 Component({
+  data: {
+    fontScale: DEFAULT_FONT_SCALE,
+    fs: {},
+  },
+
   properties: {
     show: {
       type: Boolean,
@@ -19,7 +25,31 @@ Component({
     },
   },
 
+  lifetimes: {
+    attached() {
+      this.syncFontScale();
+    },
+  },
+
+  pageLifetimes: {
+    show() {
+      this.syncFontScale();
+    },
+  },
+
+  observers: {
+    show(value) {
+      if (value) {
+        this.syncFontScale();
+      }
+    },
+  },
+
   methods: {
+    syncFontScale() {
+      syncFontData.call(this);
+    },
+
     onSubscribe() {
       if (typeof wx.requestSubscribeMessage !== 'function') {
         wx.showToast({

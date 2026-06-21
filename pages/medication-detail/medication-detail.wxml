@@ -99,6 +99,7 @@
       loading="{{isSaving}}"
       disabled="{{isSaving || isDeleting || isLoadingMedication}}"
       bindtap="handleSubmit"
+      style="font-size:{{fs.button}}"
     >
       保存
     </button>

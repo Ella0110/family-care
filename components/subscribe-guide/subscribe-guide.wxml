@@ -1,27 +1,27 @@
 <view class="guide-mask" wx:if="{{show}}">
-  <view class="guide-card">
-    <view class="guide-header">
-      <text class="title">接收血压预警</text>
+  <view class="guide-card" style="padding: {{fs.space2XL}} {{fs.spaceXL}} {{fs.spaceXL}};">
+    <view class="guide-header" style="margin-bottom: {{fs.spaceLG}};">
+      <text class="title" style="font-size:{{fs.title}}">接收血压预警</text>
     </view>
     <view class="guide-body">
-      <view class="main-text">
-        <text class="highlight">{{inviterName}} </text> 想在
-        <text class="highlight"> {{profileName}} </text>
+      <view class="main-text" style="font-size:{{fs.body}}; margin-bottom: {{fs.spaceXL}};">
+        <text class="highlight" style="font-size:{{fs.body}}">{{inviterName}} </text> 想在
+        <text class="highlight" style="font-size:{{fs.body}}"> {{profileName}} </text>
         血压异常时通知您。
       </view>
-      <view class="instruction-box">
-        <text class="inst-title">点击下方按钮弹出授权窗口后：</text>
-        <text class="inst-item">• 请开启<text class="bold">【指标异常提醒】</text>开关</text>
-        <text class="inst-item">• 再点击<text class="bold">【允许】</text>按钮</text>
-        <text class="inst-item">• 并勾选<text class="bold">【总是保持以上选择】</text></text>
+      <view class="instruction-box" style="padding: {{fs.spaceLG}} {{fs.spaceLG}} {{fs.spaceMD}}; margin-bottom: {{fs.spaceLG}};">
+        <text class="inst-title" style="font-size:{{fs.caption}}">点击下方按钮弹出授权窗口后：</text>
+        <text class="inst-item" style="font-size:{{fs.body}}">• 请开启<text class="bold">【指标异常提醒】</text>开关</text>
+        <text class="inst-item" style="font-size:{{fs.body}}">• 再点击<text class="bold">【允许】</text>按钮</text>
+        <text class="inst-item" style="font-size:{{fs.body}}">• 并勾选<text class="bold">【总是保持以上选择】</text></text>
       </view>
-      <view class="warning-text">
+      <view class="warning-text" style="font-size:{{fs.label}}; margin-bottom: {{fs.spaceXL}};">
         ※ 如果点击拒绝，将无法收到血压异常提醒
       </view>
     </view>
-    <view class="guide-footer">
-      <button class="guide-btn-primary" bindtap="onSubscribe">开启通知</button>
-      <button class="guide-btn-secondary" bindtap="onReject">暂不</button>
+    <view class="guide-footer" style="gap: {{fs.spaceMD}};">
+      <button class="guide-btn-primary" bindtap="onSubscribe" style="font-size:{{fs.button}}; padding: {{fs.spaceLG}} 0;">开启通知</button>
+      <button class="guide-btn-secondary" bindtap="onReject" style="font-size:{{fs.body}}; padding: {{fs.spaceXS}} 0 2rpx;">暂不</button>
     </view>
   </view>
 </view>

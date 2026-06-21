@@ -2,18 +2,19 @@
   <view wx:if="{{!isGenerated}}" class="invite-page">
     <view class="card invite-section">
       <view class="invite-section__title" style="font-size:{{fs.label}}">选择要分享的档案</view>
-      <view class="invite-profile-list">
+      <view class="invite-profile-list" style="gap: {{fs.spaceMD}};">
         <view
           wx:for="{{invitableProfiles}}"
           wx:key="profile._id"
           class="invite-profile-item {{item.checked ? 'invite-profile-item--active' : ''}}"
+          style="gap: {{fs.spaceMD}}; padding: {{fs.spaceLG}};"
           data-profile-id="{{item.profile._id}}"
           bindtap="onToggleProfile"
         >
           <view class="invite-profile-item__check" style="font-size:{{fs.label}}">{{item.checked ? '✓' : ''}}</view>
           <view class="invite-profile-item__content">
             <view class="invite-profile-item__label" style="font-size:{{fs.body}}">{{item.label}}</view>
-            <view class="invite-profile-item__summary">{{item.latestSummary}}</view>
+            <view class="invite-profile-item__summary" style="margin-top: {{fs.spaceXS}}; font-size:{{fs.secondary}}">{{item.latestSummary}}</view>
           </view>
         </view>
       </view>
@@ -21,18 +22,18 @@
 
     <view class="card invite-section">
       <view class="invite-section__title" style="font-size:{{fs.label}}">对方可以做什么</view>
-      <view class="invite-role-selector">
+      <view class="invite-role-selector" style="gap: {{fs.spaceMD}}; margin-bottom: {{fs.spaceMD}};">
         <view
           wx:for="{{roleOptions}}"
           wx:key="value"
           class="invite-role-selector__option {{defaultRole === item.value ? 'invite-role-selector__option--active' : ''}}"
           data-role="{{item.value}}"
           bindtap="onRoleChange"
-         style="font-size:{{fs.body}}">
+         style="padding: {{fs.spaceMD}} {{fs.spaceLG}}; font-size:{{fs.body}}">
           {{item.label}}
         </view>
       </view>
-      <view class="invite-section__hint">{{roleDescription}}</view>
+      <view class="invite-section__hint" style="font-size:{{fs.secondary}}">{{roleDescription}}</view>
     </view>
 
     <view class="card invite-section">
@@ -45,7 +46,7 @@
         bindinput="onMessageInput"
         style="font-size:{{fs.body}}"
       />
-      <view class="invite-section__count">{{message.length}} / 50</view>
+      <view class="invite-section__count" style="font-size:{{fs.secondary}}">{{message.length}} / 50</view>
     </view>
 
     <view class="card invite-section">
@@ -65,15 +66,15 @@
           </view>
           <view class="invite-inviter__summary-copy">
             <view class="invite-inviter__summary-name" style="font-size:{{fs.body}}">{{currentInviterProfile.nickname}}</view>
-            <view class="invite-section__hint">邀请卡片会显示这个昵称。头像可选，不选时会用昵称首字作为默认头像。</view>
+            <view class="invite-section__hint" style="font-size:{{fs.secondary}}">邀请卡片会显示这个昵称。头像可选，不选时会用昵称首字作为默认头像。</view>
           </view>
         </view>
-        <view class="invite-inviter__summary-action" bindtap="handleEditInviterProfile">修改</view>
+        <view class="invite-inviter__summary-action" bindtap="handleEditInviterProfile" style="font-size:{{fs.body}}">修改</view>
       </view>
 
       <view wx:else>
-        <view class="invite-section__hint">请先填写一个家人能认出来的昵称，再生成邀请卡片。头像可选，不选时会自动显示昵称首字。</view>
-        <view class="invite-inviter">
+        <view class="invite-section__hint" style="font-size:{{fs.secondary}}">请先填写一个家人能认出来的昵称，再生成邀请卡片。头像可选，不选时会自动显示昵称首字。</view>
+        <view class="invite-inviter" style="gap: {{fs.spaceMD}}; margin-top: {{fs.spaceMD}};">
           <button
             class="invite-inviter__avatar-button"
             open-type="chooseAvatar"
@@ -110,6 +111,7 @@
       bindtap="handleGenerateInvitation"
       loading="{{isGenerating}}"
       disabled="{{isGenerating || selectedCount < 1}}"
+      style="font-size:{{fs.button}}"
     >
       生成邀请卡片
     </button>
@@ -137,11 +139,12 @@
         </view>
       </view>
     </view>
-    <view class="invite-generated__hint">7 天内有效，仅限 1 人接受</view>
+    <view class="invite-generated__hint" style="font-size:{{fs.secondary}}">7 天内有效，仅限 1 人接受</view>
     <button
       class="btn-primary invite-generated__button"
       open-type="share"
       data-token="{{generatedInvitation.token}}"
+      style="font-size:{{fs.button}}"
     >
       立即分享给家人
     </button>

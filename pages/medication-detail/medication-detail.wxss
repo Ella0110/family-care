@@ -1,18 +1,18 @@
 .page {
-  background: #f2f2f7;
+  background: var(--bg-page);
 }
 
 .medication-detail-page {
   min-height: 100vh;
   padding: 32rpx 28rpx 48rpx;
-  background: #f2f2f7;
+  background: var(--bg-page);
 }
 
 .medication-detail__state,
 .medication-detail__form {
-  border-radius: 32rpx;
-  background: #ffffff;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-card);
 }
 
 .medication-detail__state {
@@ -21,7 +21,7 @@
 }
 
 .medication-detail__state-text {
-  color: #64748b;
+  color: var(--text-secondary);
   font-size: 30rpx;
   line-height: 1.6;
 }
@@ -36,7 +36,7 @@
 
 .form-label {
   margin-bottom: 16rpx;
-  color: #334155;
+  color: var(--text-secondary);
   font-size: 30rpx;
   font-weight: 700;
   line-height: 1.5;
@@ -45,7 +45,7 @@
 .form-required,
 .medication-detail__error,
 .medication-detail__delete {
-  color: #ff3b30;
+  color: var(--color-danger);
 }
 
 .form-input,
@@ -54,13 +54,12 @@
   width: 100%;
   min-height: 88rpx;
   padding: 20rpx 28rpx;
-  border: 1px solid #e2e8f0;
-  border-radius: 16rpx;
-  background: #f8fafc;
-  color: #0f172a;
+  border: 2rpx solid var(--border-light);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  color: var(--text-primary);
   font-size: 30rpx;
   line-height: 1.5;
-  box-sizing: border-box;
 }
 
 .form-input--custom {
@@ -74,7 +73,7 @@
 
 .picker-field.is-placeholder,
 .form-placeholder {
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .date-row {
@@ -87,7 +86,7 @@
 .date-clear {
   flex-shrink: 0;
   min-width: 88rpx;
-  color: #3478f6;
+  color: var(--text-link);
   font-size: 26rpx;
   font-weight: 700;
   text-align: center;
@@ -95,7 +94,7 @@
 
 .form-help {
   margin-top: 10rpx;
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-size: 22rpx;
   line-height: 1.5;
 }
@@ -107,8 +106,8 @@
 .medication-detail__error {
   margin-bottom: 20rpx;
   padding: 20rpx 24rpx;
-  border-radius: 20rpx;
-  background: #fef2f2;
+  border-radius: var(--radius-md);
+  background: var(--bg-danger-light);
   font-size: 26rpx;
   font-weight: 700;
   line-height: 1.6;
@@ -119,11 +118,15 @@
   width: 100%;
   min-height: 96rpx;
   padding: 24rpx 32rpx;
-  border-radius: 24rpx;
+  border-radius: var(--radius-md);
   font-size: 32rpx;
   font-weight: 700;
   line-height: 1.4;
   box-sizing: border-box;
+}
+
+.medication-detail__button {
+  box-shadow: var(--shadow-button);
 }
 
 .medication-detail__button::after,
@@ -142,5 +145,5 @@
 .medication-detail__cancel {
   margin-top: 12rpx;
   background: transparent;
-  color: #94a3b8;
+  color: var(--text-secondary);
 }

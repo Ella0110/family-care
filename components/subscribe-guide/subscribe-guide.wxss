@@ -13,14 +13,17 @@
 }
 .guide-card {
     width: 620rpx;
-    background: #ffffff;
-    border-radius: 40rpx;
+    max-height: 85vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
     padding: 52rpx 36rpx 36rpx;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     align-items: center;
-    box-shadow: 0 28rpx 80rpx rgba(15, 23, 42, 0.18);
+    box-shadow: var(--shadow-float);
 }
 .guide-header {
     display: flex;
@@ -33,7 +36,7 @@
     font-weight: 700;
     line-height: 1.2;
     letter-spacing: 0;
-    color: #1c1c1e;
+    color: var(--text-primary);
 }
 .guide-body {
     width: 100%;
@@ -45,7 +48,7 @@
     padding: 0;
     font-size: 32rpx;
     font-weight: 400;
-    color: #2f3640;
+    color: var(--text-primary);
     text-align: left;
     line-height: 1.65;
     margin-bottom: 32rpx;
@@ -53,12 +56,12 @@
 .highlight {
     font-size: 32rpx;
     font-weight: 700;
-    color: #111827;
+    color: var(--text-primary);
 }
 .instruction-box {
     width: 100%;
-    background: #f6f7fc;
-    border-radius: 28rpx;
+    background: var(--bg-input);
+    border-radius: var(--radius-md);
     padding: 24rpx 28rpx 20rpx;
     box-sizing: border-box;
     display: flex;
@@ -67,24 +70,24 @@
 }
 .inst-title {
     font-size: 26rpx;
-    color: #a0a7b4;
+    color: var(--text-tertiary);
     line-height: 1.5;
     margin-bottom: 10rpx;
 }
 .inst-item {
     font-size: 30rpx;
     font-weight: 400;
-    color: #2f3640;
+    color: var(--text-primary);
     line-height: 1.66;
 }
 .bold {
     font-weight: 700;
-    color: #111827;
+    color: var(--text-primary);
 }
 .warning-text {
     padding: 0 12rpx;
     font-size: 24rpx;
-    color: #9ba3af;
+    color: var(--text-tertiary);
     text-align: center;
     line-height: 1.6;
     margin-bottom: 36rpx;
@@ -100,15 +103,15 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    background: #007aff;
-    color: #ffffff;
+    background: var(--color-primary);
+    color: var(--text-on-primary);
     font-size: 34rpx;
     font-weight: 700;
-    border-radius: 28rpx;
+    border-radius: var(--radius-md);
     padding: 26rpx 0;
     line-height: 1.1;
     text-align: center;
-    box-shadow: 0 16rpx 28rpx rgba(0, 122, 255, 0.22);
+    box-shadow: var(--shadow-button);
 }
 .guide-btn-primary::after {
     border: none;
@@ -122,7 +125,7 @@
     justify-content: center;
     width: 100%;
     background: transparent;
-    color: #8e8e93;
+    color: var(--text-secondary);
     font-size: 30rpx;
     font-weight: 500;
     padding: 10rpx 0 2rpx;
